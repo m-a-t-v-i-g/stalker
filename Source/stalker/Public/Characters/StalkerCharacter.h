@@ -3,17 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GenPawn.h"
+#include "Characters/BaseOrganic.h"
 #include "StalkerCharacter.generated.h"
 
 UCLASS()
-class STALKER_API AStalkerCharacter : public AGenPawn
+class STALKER_API AStalkerCharacter : public ABaseOrganic
 {
 	GENERATED_BODY()
 
 public:
 	AStalkerCharacter();
-
-protected:
-	virtual void BeginPlay() override;
 };

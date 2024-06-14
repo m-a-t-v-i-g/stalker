@@ -13,4 +13,7 @@ class STALKER_API AStalkerPlayerController : public AGenPlayerController
 
 public:
 	AStalkerPlayerController();
+
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void SetupInputComponent() override;
 };

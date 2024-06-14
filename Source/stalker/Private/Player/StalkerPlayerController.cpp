@@ -5,3 +5,13 @@
 AStalkerPlayerController::AStalkerPlayerController()
 {
 }
+
+void AStalkerPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+}
+
+void AStalkerPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+}

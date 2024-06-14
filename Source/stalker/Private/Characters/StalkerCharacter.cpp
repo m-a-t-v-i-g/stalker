@@ -6,8 +6,3 @@ AStalkerCharacter::AStalkerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
-
-void AStalkerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-}
