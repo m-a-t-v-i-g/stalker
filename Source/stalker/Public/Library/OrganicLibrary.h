@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "OrganicLibrary.generated.h"
 
+class UCurveVector;
+
 UENUM(BlueprintType)
 enum class EOrganicMovementState : uint8
 {
@@ -13,6 +15,16 @@ enum class EOrganicMovementState : uint8
 	Airborne,
 	Mantle,
 	Ragdoll
+};
+
+UENUM(BlueprintType)
+enum class EOrganicMovementAction : uint8
+{
+	None,
+	LowMantle,
+	HighMantle,
+	Rolling,
+	GettingUp
 };
 
 UENUM(BlueprintType)
@@ -33,9 +45,9 @@ enum class EOrganicStance : uint8
 UENUM(BlueprintType)
 enum class EOrganicGait : uint8
 {
-	Walking,
-	Running,
-	Sprinting
+	Slow,
+	Medium,
+	Fast
 };
 
 USTRUCT(BlueprintType)
@@ -130,7 +142,7 @@ struct FOrganicGait
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
-	EOrganicGait Gait = EOrganicGait::Walking;
+	EOrganicGait Gait = EOrganicGait::Slow;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
 	bool bWalking = true;
@@ -157,8 +169,74 @@ public:
 	void operator=(const EOrganicGait NewGait)
 	{
 		Gait = NewGait;
-		bWalking = Gait == EOrganicGait::Walking;
-		bRunning = Gait == EOrganicGait::Running;
-		bSprinting = Gait == EOrganicGait::Sprinting;
+		bWalking = Gait == EOrganicGait::Slow;
+		bRunning = Gait == EOrganicGait::Medium;
+		bSprinting = Gait == EOrganicGait::Fast;
 	}
+};
+
+USTRUCT(BlueprintType)
+struct FMovementSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	float MinSpeed = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	float DefaultSpeed = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	float MaxSpeed = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	TObjectPtr<UCurveVector> MovementCurve = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	TObjectPtr<UCurveFloat> RotationRateCurve = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	TObjectPtr<UCurveFloat> RotateLeftCurve = nullptr;
+
+	float GetSpeedForGait(const EOrganicGait Gait) const
+	{
+		switch (Gait)
+		{
+		case EOrganicGait::Medium:
+			return DefaultSpeed;
+		case EOrganicGait::Fast:
+			return MaxSpeed;
+		case EOrganicGait::Slow:
+			return MinSpeed;
+		default:
+			return DefaultSpeed;
+		}
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FWMovementStanceSettings
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	FMovementSettings Standing;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	FMovementSettings Crouching;
+};
+
+USTRUCT(BlueprintType)
+struct FMovementStateSettings : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	FWMovementStanceSettings ControlDirection;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	FWMovementStanceSettings VelocityDirection;
+
+	UPROPERTY(EditAnywhere, Category = "Movement Settings")
+	FWMovementStanceSettings LookingDirection;
 };

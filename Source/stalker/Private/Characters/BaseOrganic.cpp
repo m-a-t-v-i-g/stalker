@@ -102,6 +102,18 @@ void ABaseOrganic::Tick(float DeltaSeconds)
 	OrganicTick(DeltaSeconds);
 }
 
+void ABaseOrganic::OnMovementModeChanged()
+{
+	if (OrganicMovement->IsMovingOnGround())
+	{
+		SetMovementState(EOrganicMovementState::Ground);
+	}
+	else if (OrganicMovement->IsAirborne())
+	{
+		SetMovementState(EOrganicMovementState::Airborne);
+	}
+}
+
 void ABaseOrganic::OrganicTick(float DeltaTime)
 {
 	Acceleration = OrganicMovement->GetTransientAcceleration();
@@ -146,35 +158,158 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 	PreviousViewYaw = ViewRotation.Yaw;
 }
 
-void ABaseOrganic::SetOrganicMovementState(const EOrganicMovementState NewState, bool bForce)
+void ABaseOrganic::SetMovementModel()
 {
-	if (bForce || MovementState != NewState)
+	const FString ContextString = GetFullName();
+	const FMovementStateSettings* OutRow = MovementTable.DataTable->FindRow<FMovementStateSettings>(MovementTable.RowName, ContextString);
+	
+	MovementModel = *OutRow;
+}
+
+FMovementSettings ABaseOrganic::GetMovementSettings() const
+{
+	switch (RotationMode)
+	{
+	case EOrganicRotationMode::ControlDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel.ControlDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel.ControlDirection.Crouching;
+			}
+		}
+	case EOrganicRotationMode::LookingDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel.LookingDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel.LookingDirection.Crouching;
+			}
+		}
+	case EOrganicRotationMode::VelocityDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel.VelocityDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel.VelocityDirection.Crouching;
+			}
+		}
+	default: return MovementModel.VelocityDirection.Standing;
+	}
+}
+
+void ABaseOrganic::SetMovementState(const EOrganicMovementState NewMovementState, bool bForce)
+{
+	if (bForce || MovementState != NewMovementState)
 	{
 		PrevMovementState = MovementState;
-		MovementState = NewState;
+		MovementState = NewMovementState;
 		OnMovementStateChanged(PrevMovementState);
 	}
 }
 
-void ABaseOrganic::SetOrganicStance(const EOrganicStance NewStance, bool bForce)
+void ABaseOrganic::SetStance(const EOrganicStance NewStance, bool bForce)
 {
-	
-}
-
-void ABaseOrganic::SetOrganicGait(const EOrganicGait NewGait, bool bForce)
-{
-	
-}
-
-void ABaseOrganic::OnMovementModeChanged()
-{
-	if (OrganicMovement->IsMovingOnGround())
+	if (bForce || Stance != NewStance)
 	{
-		SetOrganicMovementState(EOrganicMovementState::Ground);
+		const EOrganicStance Prev = Stance;
+		Stance = NewStance;
+		OnStanceChanged(Prev);
 	}
-	else if (OrganicMovement->IsAirborne())
+}
+
+void ABaseOrganic::OnStanceChanged(EOrganicStance PreviousStance)
+{
+	//OrganicMovement->SetMovementSettings(GetMovementSettings()); TODO
+}
+
+void ABaseOrganic::GaitTick()
+{
+	const EOrganicGait AllowedGait = CalculateAllowedGait();
+	const EOrganicGait ActualGait = CalculateActualGait(AllowedGait);
+
+	if (ActualGait != Gait)
 	{
-		SetOrganicMovementState(EOrganicMovementState::Airborne);
+		SetGait(ActualGait);
+	}
+	//OrganicMovement->SetAllowedGait(AllowedGait); TODO!!!
+}
+
+void ABaseOrganic::SetInputGait(EOrganicGait NewInputGait)
+{
+	InputGait = NewInputGait;
+}
+
+void ABaseOrganic::SetGait(const EOrganicGait NewGait, bool bForce)
+{
+	if (bForce || Gait != NewGait)
+	{
+		const EOrganicGait PreviousGait = Gait;
+		Gait = NewGait;
+		OnGaitChanged(PreviousGait);
+	}
+}
+
+void ABaseOrganic::OnGaitChanged(EOrganicGait PreviousGait)
+{
+	
+}
+
+EOrganicGait ABaseOrganic::CalculateAllowedGait() const
+{
+	if (Stance == EOrganicStance::Standing)
+	{
+		if (RotationMode != EOrganicRotationMode::ControlDirection)
+		{
+			if (InputGait == EOrganicGait::Fast)
+			{
+				return CanSprint() ? EOrganicGait::Fast : EOrganicGait::Medium;
+			}
+			return InputGait;
+		}
+	}
+	if (InputGait == EOrganicGait::Fast)
+	{
+		return EOrganicGait::Medium;
+	}
+	return InputGait;
+}
+
+EOrganicGait ABaseOrganic::CalculateActualGait(EOrganicGait AllowedGait) const
+{
+	float LocWalkSpeed = OrganicMovement->CurrentMovementSettings.WalkSpeed;
+	float LocRunSpeed = OrganicMovement->CurrentMovementSettings.RunSpeed;
+	if (Speed > LocRunSpeed + 10.0f)
+	{
+		if (AllowedGait == EOrganicGait::Fast)
+		{
+			return EOrganicGait::Fast;
+		}
+		return EOrganicGait::Medium;
+	}
+	if (Speed >= LocWalkSpeed + 10.0f)
+	{
+		return EOrganicGait::Medium;
+	}
+	return EOrganicGait::Slow;
+}
+
+void ABaseOrganic::SetMovementAction(EOrganicMovementAction NewMovementAction, bool bForce)
+{
+	if (bForce || MovementAction != NewMovementAction)
+	{
+		const EOrganicMovementAction Prev = MovementAction;
+		MovementAction = NewMovementAction;
+		OnMovementActionChanged(Prev);
 	}
 }
 
@@ -197,6 +332,83 @@ void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousSt
 		}
 		*/
 	}
+}
+
+void ABaseOrganic::OnMovementActionChanged(const EOrganicMovementAction PreviousAction)
+{
+	if (MovementAction == EOrganicMovementAction::Rolling)
+	{
+		//CharacterMovement->OnCrouch(true); TODO
+	}
+	if (PreviousAction == EOrganicMovementAction::Rolling)
+	{
+		if (InputStance == EOrganicStance::Standing)
+		{
+			//CharacterMovement->OnUncrouch(true); TODO
+		}
+		else if (InputStance == EOrganicStance::Crouching)
+		{
+			//CharacterMovement->OnCrouch(true); TODO
+		}
+	}
+}
+
+void ABaseOrganic::SetInputRotationMode(EOrganicRotationMode NewInputRotationMode)
+{
+	InputRotationMode = NewInputRotationMode;
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_SetInputRotationMode(NewInputRotationMode);
+	}
+}
+
+void ABaseOrganic::Server_SetInputRotationMode_Implementation(EOrganicRotationMode NewInputRotationMode)
+{
+	SetInputRotationMode(NewInputRotationMode);
+}
+
+void ABaseOrganic::SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce)
+{
+	if (bForce || RotationMode != NewRotationMode)
+	{
+		const EOrganicRotationMode Prev = RotationMode;
+		RotationMode = NewRotationMode;
+		OnRotationModeChanged(Prev);
+
+		if (GetLocalRole() == ROLE_AutonomousProxy)
+		{
+			Server_SetRotationMode(NewRotationMode, bForce);
+		}
+	}
+}
+
+void ABaseOrganic::Server_SetRotationMode_Implementation(EOrganicRotationMode NewRotationMode, bool bForce)
+{
+	SetRotationMode(NewRotationMode);
+}
+
+void ABaseOrganic::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
+{
+	//OrganicMovement->SetMovementSettings(GetMovementSettings()); TODO
+}
+
+void ABaseOrganic::OnRep_RotationMode(EOrganicRotationMode PrevRotationMode)
+{
+	OnRotationModeChanged(PrevRotationMode);
+}
+
+void ABaseOrganic::SetInputStance(EOrganicStance NewInputStance)
+{
+	InputStance = NewInputStance;
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		Server_SetInputStance(NewInputStance);
+	}
+}
+
+void ABaseOrganic::Server_SetInputStance_Implementation(EOrganicStance NewInputStance)
+{
+	SetInputStance(NewInputStance);
 }
 
 void ABaseOrganic::UpdateGroundRotation(float DeltaTime)

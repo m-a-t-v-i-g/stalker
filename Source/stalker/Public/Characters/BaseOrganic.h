@@ -51,22 +51,56 @@ public:
 	FORCEINLINE UGenCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 
 protected:
+	
+#pragma region Movement
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Base Organic|Movement")
+	FDataTableRowHandle MovementTable;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
+	FMovementStateSettings MovementModel;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState MovementState = EOrganicMovementState::None;
 
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
 
+	UPROPERTY(VisibleInstanceOnly, Category = "Character|MovementAction")
+	EOrganicMovementAction MovementAction = EOrganicMovementAction::None;
+
+#pragma region Movement
+	
+#pragma region Rotation
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Rotation")
+	EOrganicRotationMode InputRotationMode = EOrganicRotationMode::VelocityDirection;
+
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_RotationMode", Category = "Base Organic|Rotation")
+	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
+	
+#pragma endregion Rotation
+
+#pragma region Stance
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Stance")
+	EOrganicStance InputStance = EOrganicStance::Standing;
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Stance")
+	EOrganicStance Stance = EOrganicStance::Standing;
+
+#pragma region Stance
+	
 #pragma region Gait
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Character|Gait")
-	EOrganicGait InputGait = EOrganicGait::Running;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Gait")
+	EOrganicGait InputGait = EOrganicGait::Medium;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic")
-	EOrganicGait Gait = EOrganicGait::Running;
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Gait")
+	EOrganicGait Gait = EOrganicGait::Medium;
 
 #pragma endregion Gait
 
-	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
-	
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	FVector Acceleration;
 
@@ -103,13 +137,78 @@ public:
 	void OnMovementModeChanged();
 
 protected:
-	void SetOrganicMovementState(const EOrganicMovementState NewState, bool bForce = false);
-	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
 	
-	void SetOrganicStance(const EOrganicStance NewStance, bool bForce = false);
+#pragma region Movement
 	
-	void SetOrganicGait(const EOrganicGait NewGait, bool bForce = false);
+	void SetMovementModel();
+	FMovementSettings GetMovementSettings() const;
 
+	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
+	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementState; }
+
+	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
+
+	void SetMovementAction(EOrganicMovementAction NewMovementAction, bool bForce = false);
+	FORCEINLINE EOrganicMovementAction GetMovementAction() const { return MovementAction; }
+
+	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
+	void OnMovementActionChanged(const EOrganicMovementAction PreviousAction);
+	
+#pragma endregion Movement
+	
+#pragma region Rotation
+	
+	void SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
+	FORCEINLINE EOrganicRotationMode GetInputRotationMode() const { return InputRotationMode; }
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
+	
+	void SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce = false);
+	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce);
+
+	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
+
+	UFUNCTION()
+	void OnRep_RotationMode(EOrganicRotationMode PrevRotationMode);
+
+#pragma endregion Rotation
+	
+#pragma region Stance
+	
+	void SetInputStance(EOrganicStance NewInputStance);
+	FORCEINLINE EOrganicStance GetInputStance() const { return InputStance; }
+	
+	UFUNCTION(Server, Reliable)
+	void Server_SetInputStance(EOrganicStance NewInputStance);
+	
+	void SetStance(const EOrganicStance NewStance, bool bForce = false);
+	FORCEINLINE EOrganicStance GetStance() const { return Stance; }
+
+	virtual void OnStanceChanged(EOrganicStance PreviousStance);
+	
+#pragma endregion Stance
+	
+#pragma region Gait
+	
+	void GaitTick();
+	
+	void SetInputGait(EOrganicGait NewInputGait);
+	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
+
+	void SetGait(const EOrganicGait NewGait, bool bForce = false);
+	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
+	
+	void OnGaitChanged(EOrganicGait PreviousGait);
+
+	EOrganicGait CalculateAllowedGait() const;
+	EOrganicGait CalculateActualGait(EOrganicGait AllowedGait) const;
+
+#pragma endregion Gait
+	
 	virtual void UpdateGroundRotation(float DeltaTime);
 	virtual void UpdateAirborneRotation(float DeltaTime);
 
