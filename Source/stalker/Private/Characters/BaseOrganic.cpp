@@ -4,10 +4,14 @@
 #include "GenCapsuleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 FName ABaseOrganic::CapsuleName {"Collision Cylinder"};
-FName ABaseOrganic::OrganicMovementName {"CharMoveComp"};
-FName ABaseOrganic::MeshName {"CharacterMesh0"};
+FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
+FName ABaseOrganic::MeshName {"OrganicMesh0"};
+
+const FName NAME_RotationAmount(TEXT("RotationAmount"));
+const FName NAME_YawOffset(TEXT("YawOffset"));
 
 ABaseOrganic::ABaseOrganic()
 {
@@ -93,6 +97,20 @@ void ABaseOrganic::PostInitializeComponents()
 void ABaseOrganic::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetMesh())
+	{
+		GetMesh()->AddTickPrerequisiteActor(this);
+	}
+	
+	SetMovementModel();
+	ForceUpdateCharacterState();
+
+	TargetRotation = GetOrganicMovement()->GetRootCollisionRotation();
+	LastVelocityRotation = TargetRotation;
+	LastInputRotation = TargetRotation;
+
+	GetOrganicMovement()->SetMovementSettings(GetMovementSettings());
 }
 
 void ABaseOrganic::Tick(float DeltaSeconds)
@@ -104,11 +122,11 @@ void ABaseOrganic::Tick(float DeltaSeconds)
 
 void ABaseOrganic::OnMovementModeChanged()
 {
-	if (OrganicMovement->IsMovingOnGround())
+	if (GetOrganicMovement()->IsMovingOnGround())
 	{
 		SetMovementState(EOrganicMovementState::Ground);
 	}
-	else if (OrganicMovement->IsAirborne())
+	else if (GetOrganicMovement()->IsAirborne())
 	{
 		SetMovementState(EOrganicMovementState::Airborne);
 	}
@@ -116,10 +134,10 @@ void ABaseOrganic::OnMovementModeChanged()
 
 void ABaseOrganic::OrganicTick(float DeltaTime)
 {
-	Acceleration = OrganicMovement->GetTransientAcceleration();
-	ViewRotation = OrganicMovement->GetViewRotation();
+	Acceleration = GetOrganicMovement()->GetTransientAcceleration();
+	ViewRotation = GetOrganicMovement()->GetViewRotation();
 	
-	const FVector Velocity = OrganicMovement->GetVelocity();
+	const FVector Velocity = GetOrganicMovement()->GetVelocity();
 	
 	//const FVector NewAcceleration = (Velocity - PreviousVelocity) / DeltaTime; TODO: Old acceleration
 	//Acceleration = NewAcceleration.IsNearlyZero() ? Acceleration / 2 : NewAcceleration;
@@ -143,15 +161,24 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 	
 	if (MovementState == EOrganicMovementState::Ground)
 	{
+		const EOrganicGait AllowedGait = CalculateAllowedGait();
+		const EOrganicGait ActualGait = CalculateActualGait(AllowedGait);
+
+		if (ActualGait != Gait)
+		{
+			SetGait(ActualGait);
+		}
 		
+		GetOrganicMovement()->SetAllowedGait(AllowedGait);
+		UpdateGroundRotation(DeltaTime);
 	}
 	else if (MovementState == EOrganicMovementState::Airborne)
 	{
-		
+		UpdateAirborneRotation(DeltaTime);
 	}
 	else if (MovementState == EOrganicMovementState::Ragdoll)
 	{
-		
+		// UpdateRagdoll;
 	}
 	
 	PreviousVelocity = GetVelocity();
@@ -161,12 +188,13 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 void ABaseOrganic::SetMovementModel()
 {
 	const FString ContextString = GetFullName();
-	const FMovementStateSettings* OutRow = MovementTable.DataTable->FindRow<FMovementStateSettings>(MovementTable.RowName, ContextString);
+	const FOrganicMovementStateSettings* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementStateSettings>(
+		MovementTable.RowName, ContextString);
 	
 	MovementModel = *OutRow;
 }
 
-FMovementSettings ABaseOrganic::GetMovementSettings() const
+FOrganicMovementSettings ABaseOrganic::GetMovementSettings() const
 {
 	switch (RotationMode)
 	{
@@ -272,7 +300,7 @@ EOrganicGait ABaseOrganic::CalculateAllowedGait() const
 		{
 			if (InputGait == EOrganicGait::Fast)
 			{
-				return CanSprint() ? EOrganicGait::Fast : EOrganicGait::Medium;
+				return CanBeFaster() ? EOrganicGait::Fast : EOrganicGait::Medium;
 			}
 			return InputGait;
 		}
@@ -286,8 +314,8 @@ EOrganicGait ABaseOrganic::CalculateAllowedGait() const
 
 EOrganicGait ABaseOrganic::CalculateActualGait(EOrganicGait AllowedGait) const
 {
-	float LocWalkSpeed = OrganicMovement->CurrentMovementSettings.WalkSpeed;
-	float LocRunSpeed = OrganicMovement->CurrentMovementSettings.RunSpeed;
+	float LocWalkSpeed = GetOrganicMovement()->MovementSettings.SlowSpeed;
+	float LocRunSpeed = GetOrganicMovement()->MovementSettings.MediumSpeed;
 	if (Speed > LocRunSpeed + 10.0f)
 	{
 		if (AllowedGait == EOrganicGait::Fast)
@@ -303,14 +331,45 @@ EOrganicGait ABaseOrganic::CalculateActualGait(EOrganicGait AllowedGait) const
 	return EOrganicGait::Slow;
 }
 
-void ABaseOrganic::SetMovementAction(EOrganicMovementAction NewMovementAction, bool bForce)
+void ABaseOrganic::ForceUpdateCharacterState()
 {
-	if (bForce || MovementAction != NewMovementAction)
+	SetGait(InputGait, true);
+	SetStance(InputStance, true);
+	SetRotationMode(InputRotationMode, true);
+	SetMovementState(MovementState, true);
+}
+
+float ABaseOrganic::GetAnimCurveValue(FName CurveName) const
+{
+	if (GetMesh() && GetMesh()->GetAnimInstance())
 	{
-		const EOrganicMovementAction Prev = MovementAction;
-		MovementAction = NewMovementAction;
-		OnMovementActionChanged(Prev);
+		return GetMesh()->GetAnimInstance()->GetCurveValue(CurveName);
 	}
+	return 0.0;
+}
+
+bool ABaseOrganic::CanBeFaster() const
+{
+	if (!bHasMovementInput || RotationMode == EOrganicRotationMode::ControlDirection)
+	{
+		return false;
+	}
+
+	const bool bValidInputAmount = MovementInputAmount > 0.9f;
+	if (RotationMode == EOrganicRotationMode::VelocityDirection)
+	{
+		return bValidInputAmount;
+	}
+
+	if (RotationMode == EOrganicRotationMode::LookingDirection)
+	{
+		const FRotator AccRot = Acceleration.ToOrientationRotator();
+		FRotator Delta = AccRot - ViewRotation;
+		Delta.Normalize();
+
+		return bValidInputAmount && FMath::Abs(Delta.Yaw) < 50.0f;
+	}
+	return false;
 }
 
 void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousState)
@@ -331,25 +390,6 @@ void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousSt
 			//RagdollStart(); TODO: For character
 		}
 		*/
-	}
-}
-
-void ABaseOrganic::OnMovementActionChanged(const EOrganicMovementAction PreviousAction)
-{
-	if (MovementAction == EOrganicMovementAction::Rolling)
-	{
-		//CharacterMovement->OnCrouch(true); TODO
-	}
-	if (PreviousAction == EOrganicMovementAction::Rolling)
-	{
-		if (InputStance == EOrganicStance::Standing)
-		{
-			//CharacterMovement->OnUncrouch(true); TODO
-		}
-		else if (InputStance == EOrganicStance::Crouching)
-		{
-			//CharacterMovement->OnCrouch(true); TODO
-		}
 	}
 }
 
@@ -413,10 +453,91 @@ void ABaseOrganic::Server_SetInputStance_Implementation(EOrganicStance NewInputS
 
 void ABaseOrganic::UpdateGroundRotation(float DeltaTime)
 {
-	
+	if ((bIsMoving && bHasMovementInput) || Speed > 150.0f) // && !HasAnyRootMotion())
+	{
+		const float GroundedRotationRate = CalculateGroundRotationRate();
+		if (RotationMode == EOrganicRotationMode::ControlDirection)
+		{
+			SmoothRotation({0.0f, ViewRotation.Yaw, 0.0f}, 1000.0f, 2.5f, DeltaTime);
+		}
+		else if (RotationMode == EOrganicRotationMode::LookingDirection)
+		{
+			float YawValue;
+			if (Gait == EOrganicGait::Fast)
+			{
+				YawValue = LastVelocityRotation.Yaw;
+			}
+			else
+			{
+				float YawOffsetCurveVal = GetAnimCurveValue(NAME_YawOffset);
+				YawValue = ViewRotation.Yaw + YawOffsetCurveVal;
+			}
+			SmoothRotation({0.0f, YawValue, 0.0f}, 500.0f, GroundedRotationRate, DeltaTime);
+		}
+		else if (RotationMode == EOrganicRotationMode::VelocityDirection)
+		{
+			SmoothRotation({0.0f, LastVelocityRotation.Yaw, 0.0f}, 800.0f, GroundedRotationRate, DeltaTime);
+		}
+	}
+	else
+	{
+		if (RotationMode == EOrganicRotationMode::ControlDirection)
+		{
+			LimitRotation(-ViewTurnLimit, ViewTurnLimit, 20.0f, DeltaTime);
+		}
+		else if (RotationMode == EOrganicRotationMode::LookingDirection)
+		{
+			float RotationAmount = GetAnimCurveValue(NAME_RotationAmount);
+			if (FMath::Abs(RotationAmount) > 0.001f)
+			{
+				TargetRotation.Yaw = UKismetMathLibrary::NormalizeAxis(
+					TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
+				GetOrganicMovement()->SetRootCollisionRotation(TargetRotation);
+			}
+			TargetRotation = GetOrganicMovement()->GetRootCollisionRotation();
+		}
+	}
 }
 
 void ABaseOrganic::UpdateAirborneRotation(float DeltaTime)
 {
-	
+	if (RotationMode == EOrganicRotationMode::VelocityDirection || RotationMode == EOrganicRotationMode::LookingDirection)
+	{
+		SmoothRotation({0.0f, AirborneRotation.Yaw, 0.0f}, 0.0f, 2.5f, DeltaTime);
+		AirborneRotation = Speed > 100.0 ? LastVelocityRotation : GetOrganicMovement()->GetRootCollisionRotation();
+	}
+	else if (RotationMode == EOrganicRotationMode:: ControlDirection)
+	{
+		SmoothRotation({0.0f, ViewRotation.Yaw, 0.0f}, 0.0f, 15.0f, DeltaTime);
+		AirborneRotation = GetOrganicMovement()->GetRootCollisionRotation();
+	}
+}
+
+void ABaseOrganic::SmoothRotation(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime)
+{
+	TargetRotation = FMath::RInterpConstantTo(TargetRotation, Target, DeltaTime, TargetInterpSpeed);
+	GetOrganicMovement()->SetRootCollisionRotation(FMath::RInterpTo(GetOrganicMovement()->GetRootCollisionRotation(),
+	                                                                TargetRotation, DeltaTime, ActorInterpSpeed));
+}
+
+void ABaseOrganic::LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime)
+{
+	FRotator AimDelta = ViewRotation - GetOrganicMovement()->GetRootCollisionRotation();
+	AimDelta.Normalize();
+	float RangeValue = AimDelta.Yaw;
+
+	if (RangeValue < AimYawMin || RangeValue > AimYawMax)
+	{
+		float ControlRotYaw = ViewRotation.Yaw;
+		float TargetYaw = ControlRotYaw + (RangeValue > 0.0f ? AimYawMin : AimYawMax);
+		SmoothRotation({0.0f, TargetYaw, 0.0f}, 0.0f, InterpSpeed, DeltaTime);
+	}
+}
+
+float ABaseOrganic::CalculateGroundRotationRate() const
+{
+	float MappedSpeedVal = GetOrganicMovement()->GetMappedSpeed();
+	float CurveVal = GetOrganicMovement()->MovementSettings.RotationRateCurve->GetFloatValue(MappedSpeedVal);
+	float ClampedAimYawRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 300.0f}, {0.5f, 1.0f}, ViewYawRate);
+	return CurveVal * ClampedAimYawRate;
 }

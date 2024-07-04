@@ -50,15 +50,14 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE UGenCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 
-protected:
-	
 #pragma region Movement
-	
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Base Organic|Movement")
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
 	FDataTableRowHandle MovementTable;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
-	FMovementStateSettings MovementModel;
+	FOrganicMovementStateSettings MovementModel;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState MovementState = EOrganicMovementState::None;
@@ -66,11 +65,8 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Character|MovementAction")
-	EOrganicMovementAction MovementAction = EOrganicMovementAction::None;
+#pragma endregion Movement
 
-#pragma region Movement
-	
 #pragma region Rotation
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Rotation")
@@ -89,8 +85,8 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Stance")
 	EOrganicStance Stance = EOrganicStance::Standing;
 
-#pragma region Stance
-	
+#pragma endregion Stance
+
 #pragma region Gait
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Gait")
@@ -108,8 +104,17 @@ protected:
 	FRotator ViewRotation;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
+	FRotator TargetRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	float ViewYawRate = 0.0f;
 	
+	UPROPERTY(BlueprintReadWrite, Category = "Base Organic")
+	float ViewTurnLimit = 35.0f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
+	FRotator AirborneRotation;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	FRotator LastVelocityRotation;
 
@@ -136,24 +141,18 @@ public:
 
 	void OnMovementModeChanged();
 
-protected:
-	
 #pragma region Movement
 	
 	void SetMovementModel();
-	FMovementSettings GetMovementSettings() const;
+	FOrganicMovementSettings GetMovementSettings() const;
 
 	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
 	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementState; }
 
 	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
 
-	void SetMovementAction(EOrganicMovementAction NewMovementAction, bool bForce = false);
-	FORCEINLINE EOrganicMovementAction GetMovementAction() const { return MovementAction; }
-
 	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
-	void OnMovementActionChanged(const EOrganicMovementAction PreviousAction);
-	
+
 #pragma endregion Movement
 	
 #pragma region Rotation
@@ -209,10 +208,20 @@ protected:
 
 #pragma endregion Gait
 	
+	void ForceUpdateCharacterState();
+
+	float GetAnimCurveValue(FName CurveName) const;
+	
+	bool CanBeFaster() const;
+	
 	virtual void UpdateGroundRotation(float DeltaTime);
 	virtual void UpdateAirborneRotation(float DeltaTime);
 
-public:
+	void SmoothRotation(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
+	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
+	
+	float CalculateGroundRotationRate() const;
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE FVector GetAcceleration() const { return Acceleration; }
 
@@ -222,15 +231,15 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Movement")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE float GetSpeed() const { return Speed; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Movement")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE float GetMovementInputAmount() const { return MovementInputAmount; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Movement")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE bool HasMovementInput() const { return bHasMovementInput; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Movement")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE bool IsMoving() const { return bIsMoving; }
 };

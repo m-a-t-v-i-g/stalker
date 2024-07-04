@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
-#include "Characters/StalkerCharacter.h"
+#include "Characters/BaseCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
-class STALKER_API APlayerCharacter : public AStalkerCharacter
+class STALKER_API APlayerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 

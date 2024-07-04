@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GenOrganicMovementComponent.h"
+#include "Library/OrganicLibrary.h"
 #include "OrganicMovementComponent.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -14,7 +15,7 @@ class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponen
 public:
 	UOrganicMovementComponent();
 
-	virtual void PostLoad() override;
+	virtual void SetUpdatedComponent(USceneComponent* NewUpdatedComponent) override;
 	
 	virtual void BindReplicationData_Implementation() override;
 
@@ -27,6 +28,13 @@ public:
 protected:
 	TObjectPtr<class ABaseOrganic> OrganicOwner;
 
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
+	EOrganicGait AllowedGait = EOrganicGait::Slow;
+
+	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
+	FOrganicMovementSettings MovementSettings;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "View")
 	float ViewInterpSpeed = 30.0f;
@@ -36,5 +44,14 @@ private:
 	FRotator PrevComponentRotation;
 
 public:
-	FRotator GetViewRotation() const { return ViewRotation; }
+	void SetMovementSettings(FOrganicMovementSettings NewMovementSettings);
+	void SetAllowedGait(EOrganicGait DesiredGait);
+
+	float GetMappedSpeed() const;
+
+	FORCEINLINE FRotator GetViewRotation() const { return ViewRotation; }
+	
+	FORCEINLINE FRotator GetLastPawnRotation() const { return PrevPawnRotation; }
+	
+	FORCEINLINE FRotator GetLastComponentRotation() const { return PrevComponentRotation; }
 };
