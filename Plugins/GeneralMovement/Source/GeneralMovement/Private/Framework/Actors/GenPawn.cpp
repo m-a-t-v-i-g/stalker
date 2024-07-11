@@ -6,7 +6,7 @@
 
 GENERALMOVEMENT_API DEFINE_LOG_CATEGORY(LogGMCPawn);
 
-AGenPawn::AGenPawn()
+AGenPawn::AGenPawn(const FObjectInitializer& ObjectInitializer)
 {
   PrimaryActorTick.bCanEverTick = true;
   bAllowTickBeforeBeginPlay = false;

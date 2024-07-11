@@ -22,10 +22,5 @@ public class stalker : ModuleRules
 		{
 			"stalker/Public"
 		});
-
-		PrivateIncludePaths.AddRange(new[]
-		{
-			"stalker/Private"
-		});
 	}
 }

@@ -22,9 +22,6 @@ class STALKER_API UOrganicAnimInstance : public UAnimInstance
 
 public:
 	virtual void NativeInitializeAnimation() override;
-
-	virtual void NativeBeginPlay() override;
-
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Animation")
@@ -151,7 +148,7 @@ private:
 public:
 	/** References */
 	UPROPERTY(BlueprintReadOnly, Category = "Read Only Data|Character Information")
-	TObjectPtr<class ABaseOrganic> Character = nullptr;
+	TObjectPtr<class ABaseOrganic> OrganicPawn = nullptr;
 
 	/** Character Information */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information", Meta = (
@@ -169,9 +166,6 @@ public:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
 	FOrganicStance Stance = EOrganicStance::Standing;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
-	FCharacterOverlayState OverlayState = ECharacterOverlayState::Default; // TODO: Move to Character Anim Instance
 
 	/** Anim Graph - Grounded */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded", Meta = (

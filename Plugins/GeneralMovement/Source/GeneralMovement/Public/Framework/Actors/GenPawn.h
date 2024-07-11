@@ -25,7 +25,7 @@ class GENERALMOVEMENT_API AGenPawn : public APawn
 
 public:
 
-  AGenPawn();
+  AGenPawn(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
   bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const override;
   void PossessedBy(AController* NewController) override;
   void UnPossessed() override;

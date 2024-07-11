@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
-#include "Characters/BaseCharacter.h"
+#include "Organic/Characters/BaseCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
