@@ -7,6 +7,8 @@
 #include "Library/OrganicLibrary.h"
 #include "BaseOrganic.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumped);
+
 UCLASS()
 class STALKER_API ABaseOrganic : public AGenPawn
 {
@@ -58,7 +60,7 @@ protected:
 	FDataTableRowHandle MovementTable;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
-	FOrganicMovementStateSettings MovementModel;
+	FOrganicMovementModel MovementModel;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState MovementState = EOrganicMovementState::None;
@@ -138,6 +140,9 @@ protected:
 	float PreviousViewYaw;
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FOnJumped OnJumpedDelegate;
+
 	virtual void OrganicTick(float DeltaTime);
 
 	void OnMovementModeChanged();
@@ -209,12 +214,12 @@ public:
 
 #pragma endregion Gait
 	
-	void ForceUpdateCharacterState();
-
 	float GetAnimCurveValue(FName CurveName) const;
 	
-	bool CanBeFaster() const;
+	bool CanSprint() const;
 	
+	void ForceUpdateCharacterState();
+
 	virtual void UpdateGroundRotation(float DeltaTime);
 	virtual void UpdateAirborneRotation(float DeltaTime);
 
@@ -222,6 +227,11 @@ public:
 	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
 	
 	float CalculateGroundRotationRate() const;
+
+	void OnSprint(bool bEnabled);
+	void OnCrouch();
+	void OnUnCrouch();
+	void OnJump();
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE FVector GetAcceleration() const { return Acceleration; }

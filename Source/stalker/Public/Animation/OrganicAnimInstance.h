@@ -146,31 +146,32 @@ private:
 	float GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const;
 
 public:
-	/** References */
-	UPROPERTY(BlueprintReadOnly, Category = "Read Only Data|Character Information")
+	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
 	TObjectPtr<class ABaseOrganic> OrganicPawn = nullptr;
 
-	/** Character Information */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicInformation CharacterInformation;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information", meta = (ShowOnlyInnerProperties))
+	FAnimOrganicInformation OrganicInformation;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicMovementState MovementState = EOrganicMovementState::None;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
-	FOrganicGait Gait = EOrganicGait::Slow;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicStance Stance = EOrganicStance::Standing;
 
-	/** Anim Graph - Grounded */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded", Meta = (
-		ShowOnlyInnerProperties))
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
+	FOrganicGait Gait = EOrganicGait::Slow;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded", meta = (ShowOnlyInnerProperties))
 	FAnimOrganicGrounded Grounded;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - In Air", meta = (ShowOnlyInnerProperties))
+	FAnimOrganicAirborne Airborne;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Aiming Values", meta = (ShowOnlyInnerProperties))
+	FAnimOrganicViewValues ViewValues;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
 	FOrganicVelocityBlend VelocityBlend;
@@ -179,39 +180,25 @@ public:
 	FOrganicLeanAmount LeanAmount;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
-	FVector RelativeAccelerationAmount = FVector::ZeroVector;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
 	FOrganicMovementDirection MovementDirection = EOrganicMovementDirection::Forward;
 
-	/** Anim Graph - In Air */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - In Air", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicAirborne InAir;
-
-	/** Anim Graph - Aiming Values */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Aiming Values", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicViewValues AimingValues;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
+	FVector RelativeAccelerationAmount = FVector::ZeroVector;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Aiming Values")
 	FVector2D SmoothedAimingAngle = FVector2D::ZeroVector;
 
-	/** Anim Graph - Ragdoll */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Ragdoll")
 	float FlailRate = 0.0f;
 
-	/** Anim Graph - Layer Blending */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Layer Blending", Meta = (
 		ShowOnlyInnerProperties))
 	FAnimOrganicLayerBlending LayerBlendingValues;
 
-	/** Anim Graph - Foot IK */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Foot IK", Meta = (
 		ShowOnlyInnerProperties))
 	FAnimOrganicFootIK FootIKValues;
 
-	/** Turn In Place */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Turn In Place", Meta = (
 		ShowOnlyInnerProperties))
 	FAnimOrganicTurnInPlace TurnInPlaceValues;

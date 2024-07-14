@@ -7058,6 +7058,7 @@ void UGenMovementReplicationComponent::BindInputFlag(
   checkCodeGMC(if (!HasAnyFlags(NoBindingFlags)) check(Owner))
   if (!Owner) return;
 
+  /* TODO: Handle for this block
   TArray<FInputActionKeyMapping> Mapping;
   UInputSettings::GetInputSettings()->GetActionMappingByName(ActionName, Mapping);
   if (Mapping.Num() == 0)
@@ -7070,13 +7071,28 @@ void UGenMovementReplicationComponent::BindInputFlag(
     )
     return;
   }
+  */
 
   // The input flags should never be replicated to the autonomous proxy. They represent the physical input of the player and are sent to
   // the server with every move. The server then executes the move with the received data meaning the input flags can never deviate
   // between server and client, and it would be a waste of bandwidth to replicate them back to the client.
   // @attention Replicated input flags always force a net update to simulated proxies.
   // @attention Input flags may be skipped while binding, e.g. input flags 1 and 3 could be bound, but not 2.
-  if (Owner->ID_Action1 == ActionName)  { if (!InputFlag1)  { InputFlag1  = &VariableToBind; checkGMC(!ServerState_AutonomousProxy().bReplicateInputFlag1)  if (bNoMoveCombine) { bNoMoveCombineInputFlag1  = true; } if (bReplicateToSimulatedProxy) { ServerState_SimulatedProxy().bReplicateInputFlag1  = true; } return; } UE_LOG(LogGMCReplication, Error, TEXT("Action \"%s\" is already bound to a variable."), *ActionName.ToString()) return; }
+  if (Owner->ID_Action1 == ActionName)
+  {
+    if (!InputFlag1)
+    {
+      InputFlag1 = &VariableToBind;
+      checkGMC(!ServerState_AutonomousProxy().bReplicateInputFlag1) if (bNoMoveCombine)
+      {
+        bNoMoveCombineInputFlag1 = true;
+      }
+      if (bReplicateToSimulatedProxy) { ServerState_SimulatedProxy().bReplicateInputFlag1 = true; }
+      return;
+    }
+    UE_LOG(LogGMCReplication, Error, TEXT("Action \"%s\" is already bound to a variable."), *ActionName.ToString())
+    return;
+  }
   if (Owner->ID_Action2 == ActionName)  { if (!InputFlag2)  { InputFlag2  = &VariableToBind; checkGMC(!ServerState_AutonomousProxy().bReplicateInputFlag2)  if (bNoMoveCombine) { bNoMoveCombineInputFlag2  = true; } if (bReplicateToSimulatedProxy) { ServerState_SimulatedProxy().bReplicateInputFlag2  = true; } return; } UE_LOG(LogGMCReplication, Error, TEXT("Action \"%s\" is already bound to a variable."), *ActionName.ToString()) return; }
   if (Owner->ID_Action3 == ActionName)  { if (!InputFlag3)  { InputFlag3  = &VariableToBind; checkGMC(!ServerState_AutonomousProxy().bReplicateInputFlag3)  if (bNoMoveCombine) { bNoMoveCombineInputFlag3  = true; } if (bReplicateToSimulatedProxy) { ServerState_SimulatedProxy().bReplicateInputFlag3  = true; } return; } UE_LOG(LogGMCReplication, Error, TEXT("Action \"%s\" is already bound to a variable."), *ActionName.ToString()) return; }
   if (Owner->ID_Action4 == ActionName)  { if (!InputFlag4)  { InputFlag4  = &VariableToBind; checkGMC(!ServerState_AutonomousProxy().bReplicateInputFlag4)  if (bNoMoveCombine) { bNoMoveCombineInputFlag4  = true; } if (bReplicateToSimulatedProxy) { ServerState_SimulatedProxy().bReplicateInputFlag4  = true; } return; } UE_LOG(LogGMCReplication, Error, TEXT("Action \"%s\" is already bound to a variable."), *ActionName.ToString()) return; }

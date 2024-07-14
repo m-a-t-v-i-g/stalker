@@ -5,6 +5,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 FName ABaseOrganic::CapsuleName {"OrganicCollision"};
 FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
@@ -63,7 +64,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer)
 	OrganicMovement = CreateDefaultSubobject<UOrganicMovementComponent>(OrganicMovementName);
 	if (OrganicMovement)
 	{
-		OrganicMovement->SetUpdatedComponent(CapsuleComponent);
+		OrganicMovement->UpdatedComponent = CapsuleComponent;
 	}
 	
 #if WITH_EDITORONLY_DATA
@@ -90,17 +91,17 @@ void ABaseOrganic::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if (Mesh)
+	if (GetMesh())
 	{
-		if (OrganicMovement && Mesh->PrimaryComponentTick.bCanEverTick)
+		if (GetOrganicMovement() && GetMesh()->PrimaryComponentTick.bCanEverTick)
 		{
-			Mesh->PrimaryComponentTick.AddPrerequisite(OrganicMovement, OrganicMovement->PrimaryComponentTick);
+			GetMesh()->PrimaryComponentTick.AddPrerequisite(GetOrganicMovement(), GetOrganicMovement()->PrimaryComponentTick);
 		}
 	}
 	
-	if (OrganicMovement && CapsuleComponent)
+	if (GetOrganicMovement() && GetCapsuleComponent())
 	{
-		OrganicMovement->UpdateNavAgent(*CapsuleComponent);
+		GetOrganicMovement()->UpdateNavAgent(*CapsuleComponent);
 	}
 }
 
@@ -149,13 +150,11 @@ void ABaseOrganic::OnMovementModeChanged()
 
 void ABaseOrganic::OrganicTick(float DeltaTime)
 {
-	Acceleration = GetOrganicMovement()->GetTransientAcceleration();
 	ViewRotation = GetOrganicMovement()->GetViewRotation();
 	
 	const FVector Velocity = GetOrganicMovement()->GetVelocity();
-	
-	//const FVector NewAcceleration = (Velocity - PreviousVelocity) / DeltaTime; TODO: Old acceleration
-	//Acceleration = NewAcceleration.IsNearlyZero() ? Acceleration / 2 : NewAcceleration;
+	const FVector PrevAcceleration = (Velocity - PreviousVelocity) / DeltaTime;
+	Acceleration = PrevAcceleration.IsNearlyZero() ? Acceleration / 2 : PrevAcceleration;
 	
 	Speed = Velocity.Size2D();
 	bIsMoving = Speed > 1.0f;
@@ -164,8 +163,8 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 		LastVelocityRotation = Velocity.ToOrientationRotator();
 	}
 
-	float InputAcceleration = GetOrganicMovement()->GetInputAcceleration();
-	MovementInputAmount = Acceleration.Size() / InputAcceleration;
+	float MaxSpeed = GetOrganicMovement()->GetMaxSpeed();
+	MovementInputAmount = Velocity.Size2D() / MaxSpeed;
 	
 	bHasMovementInput = MovementInputAmount > 0.0f;
 	if (bHasMovementInput)
@@ -193,7 +192,7 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 	}
 	else if (MovementState == EOrganicMovementState::Ragdoll)
 	{
-		// UpdateRagdoll; TODO
+		
 	}
 	
 	PreviousVelocity = GetVelocity();
@@ -203,8 +202,9 @@ void ABaseOrganic::OrganicTick(float DeltaTime)
 void ABaseOrganic::SetMovementModel()
 {
 	const FString ContextString = GetFullName();
-	const FOrganicMovementStateSettings* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementStateSettings>(
+	const FOrganicMovementModel* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementModel>(
 		MovementTable.RowName, ContextString);
+	if (!OutRow) return;
 	
 	MovementModel = *OutRow;
 }
@@ -315,7 +315,7 @@ EOrganicGait ABaseOrganic::CalculateAllowedGait() const
 		{
 			if (InputGait == EOrganicGait::Fast)
 			{
-				return CanBeFaster() ? EOrganicGait::Fast : EOrganicGait::Medium;
+				return EOrganicGait::Fast;
 			}
 			return InputGait;
 		}
@@ -346,6 +346,41 @@ EOrganicGait ABaseOrganic::CalculateActualGait(EOrganicGait AllowedGait) const
 	return EOrganicGait::Slow;
 }
 
+float ABaseOrganic::GetAnimCurveValue(FName CurveName) const
+{
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		return GetMesh()->GetAnimInstance()->GetCurveValue(CurveName);
+	}
+	return 0.0f;
+}
+
+bool ABaseOrganic::CanSprint() const
+{
+	bool bCanBeFaster = false;
+	if (!bHasMovementInput || RotationMode == EOrganicRotationMode::ControlDirection)
+	{
+		return bCanBeFaster;
+	}
+
+	bCanBeFaster = MovementInputAmount > 0.9f;
+	if (RotationMode == EOrganicRotationMode::VelocityDirection)
+	{
+		return bCanBeFaster;
+	}
+
+	if (RotationMode == EOrganicRotationMode::LookingDirection)
+	{
+		const FRotator AccRot = GetOrganicMovement()->GetVelocity().ToOrientationRotator();
+		FRotator Delta = AccRot - ViewRotation;
+		Delta.Normalize();
+
+		bool bResult = bCanBeFaster && FMath::Abs(Delta.Yaw) < 50.0f;
+		return bResult;
+	}
+	return false;
+}
+
 void ABaseOrganic::ForceUpdateCharacterState()
 {
 	SetGait(InputGait, true);
@@ -354,57 +389,15 @@ void ABaseOrganic::ForceUpdateCharacterState()
 	SetMovementState(MovementState, true);
 }
 
-float ABaseOrganic::GetAnimCurveValue(FName CurveName) const
-{
-	if (GetMesh() && GetMesh()->GetAnimInstance())
-	{
-		return GetMesh()->GetAnimInstance()->GetCurveValue(CurveName);
-	}
-	return 0.0;
-}
-
-bool ABaseOrganic::CanBeFaster() const
-{
-	if (!bHasMovementInput || RotationMode == EOrganicRotationMode::ControlDirection)
-	{
-		return false;
-	}
-
-	const bool bValidInputAmount = MovementInputAmount > 0.9f;
-	if (RotationMode == EOrganicRotationMode::VelocityDirection)
-	{
-		return bValidInputAmount;
-	}
-
-	if (RotationMode == EOrganicRotationMode::LookingDirection)
-	{
-		const FRotator AccRot = Acceleration.ToOrientationRotator();
-		FRotator Delta = AccRot - ViewRotation;
-		Delta.Normalize();
-
-		return bValidInputAmount && FMath::Abs(Delta.Yaw) < 50.0f;
-	}
-	return false;
-}
-
 void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousState)
 {
 	if (MovementState == EOrganicMovementState::Airborne)
 	{
-		/*
-		if (MovementAction == EWMovementAction::None)
+		AirborneRotation = OrganicMovement->GetRootCollisionRotation();
+		if (Stance == EOrganicStance::Crouching)
 		{
-			AirborneRotation = OrganicMovement->GetRootCollisionRotation();
-			if (Stance == EWStanceType::Crouching)
-			{
-				//OrganicMovement->OnUncrouch(true); TODO: For character
-			}
+			OrganicMovement->OnUnCrouch();
 		}
-		else if (MovementAction == EWMovementAction::Rolling)
-		{
-			//RagdollStart(); TODO: For character
-		}
-		*/
 	}
 }
 
@@ -468,7 +461,7 @@ void ABaseOrganic::Server_SetInputStance_Implementation(EOrganicStance NewInputS
 
 void ABaseOrganic::UpdateGroundRotation(float DeltaTime)
 {
-	if ((bIsMoving && bHasMovementInput) || Speed > 150.0f) // && !HasAnyRootMotion())
+	if ((bIsMoving && bHasMovementInput) || Speed > 150.0f) // TODO: && !HasAnyRootMotion())
 	{
 		const float GroundedRotationRate = CalculateGroundRotationRate();
 		if (RotationMode == EOrganicRotationMode::ControlDirection)
@@ -539,20 +532,54 @@ void ABaseOrganic::LimitRotation(float AimYawMin, float AimYawMax, float InterpS
 {
 	FRotator AimDelta = ViewRotation - GetOrganicMovement()->GetRootCollisionRotation();
 	AimDelta.Normalize();
+	
 	float RangeValue = AimDelta.Yaw;
-
 	if (RangeValue < AimYawMin || RangeValue > AimYawMax)
 	{
 		float ControlRotYaw = ViewRotation.Yaw;
 		float TargetYaw = ControlRotYaw + (RangeValue > 0.0f ? AimYawMin : AimYawMax);
+		
 		SmoothRotation({0.0f, TargetYaw, 0.0f}, 0.0f, InterpSpeed, DeltaTime);
 	}
 }
 
 float ABaseOrganic::CalculateGroundRotationRate() const
 {
-	float MappedSpeedVal = GetOrganicMovement()->GetMappedSpeed();
-	float CurveVal = GetOrganicMovement()->MovementSettings.RotationRateCurve->GetFloatValue(MappedSpeedVal);
-	float ClampedAimYawRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 300.0f}, {0.5f, 1.0f}, ViewYawRate);
-	return CurveVal * ClampedAimYawRate;
+	FOrganicMovementSettings MovementSettings = GetOrganicMovement()->MovementSettings;
+	float MappedSpeed = GetOrganicMovement()->GetMappedSpeed();
+	
+	float CurveValue = MovementSettings.RotationRateCurve->GetFloatValue(MappedSpeed);
+	float MappedViewYawRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 300.0f}, {0.5f, 1.0f}, ViewYawRate);
+	return CurveValue * MappedViewYawRate;
+}
+
+void ABaseOrganic::OnSprint(bool bEnabled)
+{
+	bEnabled ? SetInputGait(EOrganicGait::Fast) : SetInputGait(EOrganicGait::Medium);
+}
+
+void ABaseOrganic::OnCrouch()
+{
+	SetStance(EOrganicStance::Crouching);
+}
+
+void ABaseOrganic::OnUnCrouch()
+{
+	SetStance(EOrganicStance::Standing);
+}
+
+void ABaseOrganic::OnJump()
+{
+	if (MovementState == EOrganicMovementState::Ground)
+	{
+		if (Stance == EOrganicStance::Standing)
+		{
+			OrganicMovement->OnJump();
+			OnJumpedDelegate.Broadcast();
+		}
+		else if (Stance == EOrganicStance::Crouching)
+		{
+			OrganicMovement->OnUnCrouch();
+		}
+	}
 }

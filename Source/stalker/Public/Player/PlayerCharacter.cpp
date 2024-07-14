@@ -88,7 +88,11 @@ void APlayerCharacter::IA_Crouch(const FInputActionValue& Value)
 {
 	if (Value.Get<bool>())
 	{
-		
+		Super::StartAction2();
+	}
+	else
+	{
+		Super::StopAction2();
 	}
 }
 

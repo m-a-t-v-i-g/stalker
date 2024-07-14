@@ -327,7 +327,7 @@ struct FOrganicMovementSettings
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicMovementStanceSettings
+struct FOrganicMovementStances
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -339,18 +339,18 @@ struct FOrganicMovementStanceSettings
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicMovementStateSettings : public FTableRowBase
+struct FOrganicMovementModel : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStanceSettings ControlDirection;
+	FOrganicMovementStances ControlDirection;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStanceSettings VelocityDirection;
+	FOrganicMovementStances VelocityDirection;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStanceSettings LookingDirection;
+	FOrganicMovementStances LookingDirection;
 };
 
 #pragma endregion Movement Settings
