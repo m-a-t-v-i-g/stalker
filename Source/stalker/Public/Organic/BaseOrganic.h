@@ -75,7 +75,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Rotation")
 	EOrganicRotationMode InputRotationMode = EOrganicRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_RotationMode", Category = "Base Organic|Rotation")
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Rotation")
 	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
 	
 #pragma endregion Rotation
@@ -99,6 +99,13 @@ protected:
 	EOrganicGait Gait = EOrganicGait::Medium;
 
 #pragma endregion Gait
+
+#pragma region Overlay
+
+	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Overlay")
+	int32 OverlayOverrideState = 0;
+
+#pragma endregion Overlay
 
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	FVector Acceleration;
@@ -177,9 +184,6 @@ public:
 
 	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
 
-	UFUNCTION()
-	void OnRep_RotationMode(EOrganicRotationMode PrevRotationMode);
-
 #pragma endregion Rotation
 	
 #pragma region Stance
@@ -214,6 +218,13 @@ public:
 
 #pragma endregion Gait
 	
+#pragma region Overlay
+
+	void SetOverlayOverrideState(int32 NewState);
+	FORCEINLINE int32 GetOverlayOverrideState() const { return OverlayOverrideState; }
+
+#pragma endregion Overlay
+
 	float GetAnimCurveValue(FName CurveName) const;
 	
 	bool CanSprint() const;

@@ -2,7 +2,6 @@
 // Source Code:     https://github.com/dyanikoglu/ALS-Community
 
 #include "Animation/OrganicAnimInstance.h"
-#include "GenCapsuleComponent.h"
 #include "Organic/BaseOrganic.h"
 #include "Curves/CurveVector.h"
 #include "Components/CapsuleComponent.h"
@@ -39,6 +38,7 @@ static const FName NAME__ALSCharacterAnimInstance__root(TEXT("root"));
 void UOrganicAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+
 	OrganicPawn = Cast<ABaseOrganic>(TryGetPawnOwner());
 	if (OrganicPawn)
 	{
@@ -50,28 +50,32 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (!OrganicPawn) return;
-	
+	if (!OrganicPawn)
+	{
+		return;
+	}
+
 	OrganicInformation.Rotation = OrganicPawn->GetOrganicMovement()->GetRootCollisionRotation();
 	OrganicInformation.ViewRotation = OrganicPawn->GetOrganicViewRotation();
-	OrganicInformation.AimYawRate = OrganicPawn->GetViewYawRate();
-	
+	OrganicInformation.ViewYawRate = OrganicPawn->GetViewYawRate();
+
 	OrganicInformation.Velocity = OrganicPawn->GetOrganicMovement()->GetVelocity();
 	OrganicInformation.Acceleration = OrganicPawn->GetAcceleration();
 	OrganicInformation.Speed = OrganicPawn->GetSpeed();
-	
+
 	OrganicInformation.bIsMoving = OrganicPawn->IsMoving();
 	OrganicInformation.MovementInputAmount = OrganicPawn->GetMovementInputAmount();
 	OrganicInformation.bHasMovementInput = OrganicPawn->HasMovementInput();
-	
+
 	OrganicInformation.PrevMovementState = OrganicPawn->GetPrevMovementState();
+	LayerBlendingValues.OverlayOverrideState = OrganicPawn->GetOverlayOverrideState();
 	
 	MovementState = OrganicPawn->GetMovementState();
 	RotationMode = OrganicPawn->GetRotationMode();
 	Stance = OrganicPawn->GetStance();
 	Gait = OrganicPawn->GetGait();
-	
-	UpdateAimingValues(DeltaSeconds);
+
+	UpdateViewValues(DeltaSeconds);
 	UpdateLayerValues();
 	UpdateFootIK(DeltaSeconds);
 
@@ -103,7 +107,7 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				Grounded.bRotateL = false;
 				Grounded.bRotateR = false;
 			}
-			
+
 			if (CanTurnInPlace())
 			{
 				TurnInPlaceCheck(DeltaSeconds);
@@ -112,7 +116,7 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			{
 				TurnInPlaceValues.ElapsedDelayTime = 0.0f;
 			}
-			
+
 			if (CanDynamicTransition())
 			{
 				DynamicTransitionCheck();
@@ -121,7 +125,7 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 	else if (MovementState.Airborne())
 	{
-		UpdateInAirValues(DeltaSeconds);
+		UpdateAirborneValues(DeltaSeconds);
 	}
 	else if (MovementState.Ragdoll())
 	{
@@ -151,19 +155,15 @@ void UOrganicAnimInstance::PlayDynamicTransition(float ReTriggerDelay, FOrganicD
 		bCanPlayDynamicTransition = false;
 
 		PlayTransition(Parameters);
-
-		UWorld* World = GetWorld();
-		check(World);
-		World->GetTimerManager().SetTimer(PlayDynamicTransitionTimer, this,
-		                                  &UOrganicAnimInstance::PlayDynamicTransitionDelay,
-		                                  ReTriggerDelay, false);
+		GetWorld()->GetTimerManager().SetTimer(PlayDynamicTransitionTimer, this,
+		                                       &UOrganicAnimInstance::PlayDynamicTransitionDelay, ReTriggerDelay,
+		                                       false);
 	}
 }
 
 bool UOrganicAnimInstance::ShouldMoveCheck() const
 {
-	return (OrganicInformation.bIsMoving && OrganicInformation.bHasMovementInput) ||
-		OrganicInformation.Speed > 150.0f;
+	return (OrganicInformation.bIsMoving && OrganicInformation.bHasMovementInput) || OrganicInformation.Speed > 150.0f;
 }
 
 bool UOrganicAnimInstance::CanRotateInPlace() const
@@ -196,11 +196,11 @@ void UOrganicAnimInstance::OnPivotDelay()
 	Grounded.bPivot = false;
 }
 
-void UOrganicAnimInstance::UpdateAimingValues(float DeltaSeconds)
+void UOrganicAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
 	ViewValues.SmoothedViewRotation = FMath::RInterpTo(ViewValues.SmoothedViewRotation,
-	                                                       OrganicInformation.ViewRotation, DeltaSeconds,
-	                                                       Config.SmoothedAimingRotationInterpSpeed);
+	                                                   OrganicInformation.ViewRotation, DeltaSeconds,
+	                                                   Config.SmoothedAimingRotationInterpSpeed);
 
 	FRotator Delta = OrganicInformation.ViewRotation - OrganicInformation.Rotation;
 	Delta.Normalize();
@@ -215,7 +215,7 @@ void UOrganicAnimInstance::UpdateAimingValues(float DeltaSeconds)
 	if (!RotationMode.VelocityDirection())
 	{
 		ViewValues.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>({-90.0f, 90.0f}, {1.0f, 0.0f},
-		                                                              ViewValues.AimingAngle.Y);
+			ViewValues.AimingAngle.Y);
 
 		ViewValues.SpineRotation.Roll = 0.0f;
 		ViewValues.SpineRotation.Pitch = 0.0f;
@@ -225,41 +225,41 @@ void UOrganicAnimInstance::UpdateAimingValues(float DeltaSeconds)
 	{
 		Delta = OrganicInformation.Acceleration.ToOrientationRotator() - OrganicInformation.Rotation;
 		Delta.Normalize();
-		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
+		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>(
+			{-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
 
 		ViewValues.InputYawOffsetTime = FMath::FInterpTo(ViewValues.InputYawOffsetTime, InterpTarget,
-		                                                   DeltaSeconds, Config.InputYawOffsetInterpSpeed);
+		                                                 DeltaSeconds, Config.InputYawOffsetInterpSpeed);
 	}
 
 	ViewValues.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f},
-	                                                             FMath::Abs(SmoothedAimingAngle.X));
+	                                                                         FMath::Abs(SmoothedAimingAngle.X));
 	ViewValues.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f},
-	                                                              FMath::Abs(SmoothedAimingAngle.X));
+	                                                                          FMath::Abs(SmoothedAimingAngle.X));
 	ViewValues.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f},
-	                                                                SmoothedAimingAngle.X);
+		SmoothedAimingAngle.X);
 }
 
 void UOrganicAnimInstance::UpdateLayerValues()
 {
-	
 	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(NAME_Mask_AimOffset));
-	
+
 	LayerBlendingValues.BasePose_N = GetCurveValue(NAME_BasePose_N);
 	LayerBlendingValues.BasePose_CLF = GetCurveValue(NAME_BasePose_CLF);
-	
+
 	LayerBlendingValues.Spine_Add = GetCurveValue(NAME_Layering_Spine_Add);
 	LayerBlendingValues.Head_Add = GetCurveValue(NAME_Layering_Head_Add);
 	LayerBlendingValues.Arm_L_Add = GetCurveValue(NAME_Layering_Arm_L_Add);
 	LayerBlendingValues.Arm_R_Add = GetCurveValue(NAME_Layering_Arm_R_Add);
-	
+
 	LayerBlendingValues.Hand_R = GetCurveValue(NAME_Layering_Hand_R);
 	LayerBlendingValues.Hand_L = GetCurveValue(NAME_Layering_Hand_L);
-	
+
 	LayerBlendingValues.EnableHandIK_L = FMath::Lerp(0.0f, GetCurveValue(NAME_Enable_HandIK_L),
 	                                                 GetCurveValue(NAME_Layering_Arm_L));
 	LayerBlendingValues.EnableHandIK_R = FMath::Lerp(0.0f, GetCurveValue(NAME_Enable_HandIK_R),
 	                                                 GetCurveValue(NAME_Layering_Arm_R));
-	
+
 	LayerBlendingValues.Arm_L_LS = GetCurveValue(NAME_Layering_Arm_L_LS);
 	LayerBlendingValues.Arm_L_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlendingValues.Arm_L_LS));
 	LayerBlendingValues.Arm_R_LS = GetCurveValue(NAME_Layering_Arm_R_LS);
@@ -296,8 +296,8 @@ void UOrganicAnimInstance::UpdateFootIK(float DeltaSeconds)
 }
 
 void UOrganicAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve,
-                                               FName IKFootBone, float& CurFootLockAlpha, bool& UseFootLockCurve,
-                                               FVector& CurFootLockLoc, FRotator& CurFootLockRot)
+                                          FName IKFootBone, float& CurFootLockAlpha, bool& UseFootLockCurve,
+                                          FVector& CurFootLockLoc, FRotator& CurFootLockRot)
 {
 	if (GetCurveValue(EnableFootIKCurve) <= 0.0f)
 	{
@@ -308,20 +308,11 @@ void UOrganicAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFootIK
 	if (UseFootLockCurve)
 	{
 		UseFootLockCurve = true;
-		/*
-		UseFootLockCurve = FMath::Abs(GetCurveValue(NAME__ALSCharacterAnimInstance__RotationAmount)) <= 0.001f ||
-			Character->GetLocalRole() != ROLE_AutonomousProxy;
-			*/
-		
 		FootLockCurveVal = GetCurveValue(FootLockCurve) * (1.f / GetSkelMeshComponent()->AnimUpdateRateParams->UpdateRate);
 	}
 	else
 	{
 		UseFootLockCurve = true;
-		/*
-		UseFootLockCurve = GetCurveValue(FootLockCurve) >= 0.99f;
-		*/
-		
 		FootLockCurveVal = 0.0f;
 	}
 
@@ -370,18 +361,16 @@ void UOrganicAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Local
 	LocalRot = Delta;
 }
 
-void UOrganicAnimInstance::SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget,
-                                                  FVector FootOffsetRTarget)
+void UOrganicAnimInstance::SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget)
 {
-	FootIKValues.PelvisAlpha =
-		(GetCurveValue(NAME_Enable_FootIK_L) + GetCurveValue(NAME_Enable_FootIK_R)) / 2.0f;
+	FootIKValues.PelvisAlpha = (GetCurveValue(NAME_Enable_FootIK_L) + GetCurveValue(NAME_Enable_FootIK_R)) / 2.0f;
 
 	if (FootIKValues.PelvisAlpha > 0.0f)
 	{
-		const FVector PelvisTarget = FootOffsetLTarget.Z < FootOffsetRTarget.Z ? FootOffsetLTarget : FootOffsetRTarget;
-		const float InterpSpeed = PelvisTarget.Z > FootIKValues.PelvisOffset.Z ? 10.0f : 15.0f;
-		FootIKValues.PelvisOffset =
-			FMath::VInterpTo(FootIKValues.PelvisOffset, PelvisTarget, DeltaSeconds, InterpSpeed);
+		FVector PelvisTarget = FootOffsetLTarget.Z < FootOffsetRTarget.Z ? FootOffsetLTarget : FootOffsetRTarget;
+		float InterpSpeed = PelvisTarget.Z > FootIKValues.PelvisOffset.Z ? 10.0f : 15.0f;
+
+		FootIKValues.PelvisOffset = FMath::VInterpTo(FootIKValues.PelvisOffset, PelvisTarget, DeltaSeconds, InterpSpeed);
 	}
 	else
 	{
@@ -402,8 +391,8 @@ void UOrganicAnimInstance::ResetIKOffsets(float DeltaSeconds)
 }
 
 void UOrganicAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone,
-                                               FName RootBone, FVector& CurLocationTarget, FVector& CurLocationOffset,
-                                               FRotator& CurRotationOffset)
+                                          FName RootBone, FVector& CurLocationTarget, FVector& CurLocationOffset,
+                                          FRotator& CurRotationOffset)
 {
 	if (GetCurveValue(EnableFootIKCurve) <= 0)
 	{
@@ -416,9 +405,6 @@ void UOrganicAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFootIK
 	FVector IKFootFloorLoc = OwnerComp->GetSocketLocation(IKFootBone);
 	IKFootFloorLoc.Z = OwnerComp->GetSocketLocation(RootBone).Z;
 
-	UWorld* World = GetWorld();
-	check(World);
-
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OrganicPawn);
 
@@ -426,26 +412,7 @@ void UOrganicAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFootIK
 	const FVector TraceEnd = IKFootFloorLoc - FVector(0.0, 0.0, Config.IK_TraceDistanceBelowFoot);
 
 	FHitResult HitResult;
-	const bool bHit = World->LineTraceSingleByChannel(HitResult,
-	                                                  TraceStart,
-	                                                  TraceEnd,
-	                                                  ECC_Visibility, Params);
-
-	/*
-	if (ALSDebugComponent && ALSDebugComponent->GetShowTraces())
-	{
-		UALSDebugComponent::DrawDebugLineTraceSingle(
-			World,
-			TraceStart,
-			TraceEnd,
-			EDrawDebugTrace::Type::ForOneFrame,
-			bHit,
-			HitResult,
-			FLinearColor::Red,
-			FLinearColor::Green,
-			5.0f);
-	}
-	*/
+	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
 
 	FRotator TargetRotOffset = FRotator::ZeroRotator;
 	if (OrganicPawn->GetOrganicMovement()->HitWalkableFloor(HitResult))
@@ -453,82 +420,60 @@ void UOrganicAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFootIK
 		FVector ImpactPoint = HitResult.ImpactPoint;
 		FVector ImpactNormal = HitResult.ImpactNormal;
 
-		// Step 1.1: Find the difference in location from the Impact point and the expected (flat) floor location.
-		// These values are offset by the normal multiplied by the
-		// foot height to get better behavior on angled surfaces.
-		CurLocationTarget = (ImpactPoint + ImpactNormal * Config.FootHeight) -
-			(IKFootFloorLoc + FVector(0, 0, Config.FootHeight));
+		CurLocationTarget = ImpactPoint + ImpactNormal * Config.FootHeight - (IKFootFloorLoc + FVector(
+			0, 0, Config.FootHeight));
 
-		// Step 1.2: Calculate the Rotation offset by getting the Atan2 of the Impact Normal.
 		TargetRotOffset.Pitch = -FMath::RadiansToDegrees(FMath::Atan2(ImpactNormal.X, ImpactNormal.Z));
 		TargetRotOffset.Roll = FMath::RadiansToDegrees(FMath::Atan2(ImpactNormal.Y, ImpactNormal.Z));
 	}
 
-	// Step 2: Interp the Current Location Offset to the new target value.
-	// Interpolate at different speeds based on whether the new target is above or below the current one.
-	const float InterpSpeed = CurLocationOffset.Z > CurLocationTarget.Z ? 30.f : 15.0f;
+	float InterpSpeed = CurLocationOffset.Z > CurLocationTarget.Z ? 30.f : 15.0f;
 	CurLocationOffset = FMath::VInterpTo(CurLocationOffset, CurLocationTarget, DeltaSeconds, InterpSpeed);
-
-	// Step 3: Interp the Current Rotation Offset to the new target value.
 	CurRotationOffset = FMath::RInterpTo(CurRotationOffset, TargetRotOffset, DeltaSeconds, 30.0f);
 }
 
 void UOrganicAnimInstance::RotateInPlaceCheck()
 {
-	// Step 1: Check if the character should rotate left or right by checking if the Aiming Angle exceeds the threshold.
 	Grounded.bRotateL = ViewValues.AimingAngle.X < RotateInPlace.RotateMinThreshold;
 	Grounded.bRotateR = ViewValues.AimingAngle.X > RotateInPlace.RotateMaxThreshold;
 
-	// Step 2: If the character should be rotating, set the Rotate Rate to scale with the Aim Yaw Rate.
-	// This makes the character rotate faster when moving the camera faster.
 	if (Grounded.bRotateL || Grounded.bRotateR)
 	{
 		Grounded.RotateRate = FMath::GetMappedRangeValueClamped<float, float>(
 			{RotateInPlace.ViewYawRateMinRange, RotateInPlace.ViewYawRateMaxRange},
-			{RotateInPlace.MinPlayRate, RotateInPlace.MaxPlayRate},
-			OrganicInformation.AimYawRate);
+			{RotateInPlace.MinPlayRate, RotateInPlace.MaxPlayRate}, OrganicInformation.ViewYawRate);
 	}
 }
 
 void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 {
-	// Step 1: Check if Aiming angle is outside of the Turn Check Min Angle, and if the Aim Yaw Rate is below the Aim Yaw Rate Limit.
-	// If so, begin counting the Elapsed Delay Time. If not, reset the Elapsed Delay Time.
-	// This ensures the conditions remain true for a sustained period of time before turning in place.
 	if (FMath::Abs(ViewValues.AimingAngle.X) <= TurnInPlaceValues.TurnCheckMinAngle ||
-		OrganicInformation.AimYawRate >= TurnInPlaceValues.AimYawRateLimit)
+		OrganicInformation.ViewYawRate >= TurnInPlaceValues.AimYawRateLimit)
 	{
 		TurnInPlaceValues.ElapsedDelayTime = 0.0f;
 		return;
 	}
 
 	TurnInPlaceValues.ElapsedDelayTime += DeltaSeconds;
-	const float ClampedAimAngle = FMath::GetMappedRangeValueClamped<float, float>({TurnInPlaceValues.TurnCheckMinAngle, 180.0f},
-	                                                                {
-		                                                                TurnInPlaceValues.MinAngleDelay,
-		                                                                TurnInPlaceValues.MaxAngleDelay
-	                                                                },
-	                                                                ViewValues.AimingAngle.X);
+	float ClampedAimAngle = FMath::GetMappedRangeValueClamped<float, float>(
+		{TurnInPlaceValues.TurnCheckMinAngle, 180.0f},
+		{TurnInPlaceValues.MinAngleDelay, TurnInPlaceValues.MaxAngleDelay}, ViewValues.AimingAngle.X);
 
-	// Step 2: Check if the Elapsed Delay time exceeds the set delay (mapped to the turn angle range). If so, trigger a Turn In Place.
 	if (TurnInPlaceValues.ElapsedDelayTime > ClampedAimAngle)
 	{
 		FRotator TurnInPlaceYawRot = OrganicInformation.ViewRotation;
 		TurnInPlaceYawRot.Roll = 0.0f;
 		TurnInPlaceYawRot.Pitch = 0.0f;
+
 		TurnInPlace(TurnInPlaceYawRot, 1.0f, 0.0f, false);
 	}
 }
 
 void UOrganicAnimInstance::DynamicTransitionCheck()
 {
-	// Check each foot to see if the location difference between the IK_Foot bone and its desired / target location
-	// (determined via a virtual bone) exceeds a threshold. If it does, play an additive transition animation on that foot.
-	// The currently set transition plays the second half of a 2 foot transition animation, so that only a single foot moves.
-	// Because only the IK_Foot bone can be locked, the separate virtual bone allows the system to know its desired location when locked.
 	FTransform SocketTransformA = GetOwningComponent()->GetSocketTransform(IkFootL_BoneName, RTS_Component);
-	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(
-		NAME_VB___foot_target_l, RTS_Component);
+	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_l, RTS_Component);
+
 	float Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > Config.DynamicTransitionThreshold)
 	{
@@ -538,11 +483,13 @@ void UOrganicAnimInstance::DynamicTransitionCheck()
 		Params.BlendOutTime = 0.2f;
 		Params.PlayRate = 1.5f;
 		Params.StartTime = 0.8f;
+
 		PlayDynamicTransition(0.1f, Params);
 	}
 
 	SocketTransformA = GetOwningComponent()->GetSocketTransform(IkFootR_BoneName, RTS_Component);
 	SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_r, RTS_Component);
+
 	Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > Config.DynamicTransitionThreshold)
 	{
@@ -552,6 +499,7 @@ void UOrganicAnimInstance::DynamicTransitionCheck()
 		Params.BlendOutTime = 0.2f;
 		Params.PlayRate = 1.5f;
 		Params.StartTime = 0.8f;
+
 		PlayDynamicTransition(0.1f, Params);
 	}
 }
@@ -559,10 +507,14 @@ void UOrganicAnimInstance::DynamicTransitionCheck()
 void UOrganicAnimInstance::UpdateMovementValues(float DeltaSeconds)
 {
 	const FOrganicVelocityBlend& TargetBlend = CalculateVelocityBlend();
-	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds, Config.VelocityBlendInterpSpeed);
-	VelocityBlend.Backward = FMath::FInterpTo(VelocityBlend.Backward, TargetBlend.Backward, DeltaSeconds, Config.VelocityBlendInterpSpeed);
-	VelocityBlend.Left = FMath::FInterpTo(VelocityBlend.Left, TargetBlend.Left, DeltaSeconds, Config.VelocityBlendInterpSpeed);
-	VelocityBlend.Right = FMath::FInterpTo(VelocityBlend.Right, TargetBlend.Right, DeltaSeconds, Config.VelocityBlendInterpSpeed);
+	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds,
+	                                         Config.VelocityBlendInterpSpeed);
+	VelocityBlend.Backward = FMath::FInterpTo(VelocityBlend.Backward, TargetBlend.Backward, DeltaSeconds,
+	                                          Config.VelocityBlendInterpSpeed);
+	VelocityBlend.Left = FMath::FInterpTo(VelocityBlend.Left, TargetBlend.Left, DeltaSeconds,
+	                                      Config.VelocityBlendInterpSpeed);
+	VelocityBlend.Right = FMath::FInterpTo(VelocityBlend.Right, TargetBlend.Right, DeltaSeconds,
+	                                       Config.VelocityBlendInterpSpeed);
 
 	Grounded.DiagonalScaleAmount = CalculateDiagonalScaleAmount();
 
@@ -586,15 +538,17 @@ void UOrganicAnimInstance::UpdateRotationValues()
 
 	FRotator Delta = OrganicInformation.Velocity.ToOrientationRotator() - OrganicInformation.ViewRotation;
 	Delta.Normalize();
+	
 	const FVector& FBOffset = YawOffset_FB->GetVectorValue(Delta.Yaw);
 	Grounded.FYaw = FBOffset.X;
 	Grounded.BYaw = FBOffset.Y;
+	
 	const FVector& LROffset = YawOffset_LR->GetVectorValue(Delta.Yaw);
 	Grounded.LYaw = LROffset.X;
 	Grounded.RYaw = LROffset.Y;
 }
 
-void UOrganicAnimInstance::UpdateInAirValues(float DeltaSeconds)
+void UOrganicAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 {
 	Airborne.FallSpeed = OrganicInformation.Velocity.Z;
 	Airborne.LandPrediction = CalculateLandPrediction();
@@ -606,12 +560,11 @@ void UOrganicAnimInstance::UpdateInAirValues(float DeltaSeconds)
 
 void UOrganicAnimInstance::UpdateRagdollValues()
 {
-	const float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(NAME__ALSCharacterAnimInstance__root).Size();
+	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(NAME__ALSCharacterAnimInstance__root).Size();
 	FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
 }
 
-float UOrganicAnimInstance::GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin,
-                                                     float ClampMax) const
+float UOrganicAnimInstance::GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const
 {
 	return FMath::Clamp(GetCurveValue(Name) + Bias, ClampMin, ClampMax);
 }
@@ -650,9 +603,8 @@ float UOrganicAnimInstance::CalculateStrideBlend() const
 {
 	const float CurveTime = OrganicInformation.Speed / GetOwningComponent()->GetComponentScale().Z;
 	const float ClampedGait = GetAnimCurveClamped(NAME_W_Gait, -1.0, 0.0f, 1.0f);
-	const float LerpedStrideBlend =
-		FMath::Lerp(StrideBlend_N_Walk->GetFloatValue(CurveTime), StrideBlend_N_Run->GetFloatValue(CurveTime),
-		            ClampedGait);
+	const float LerpedStrideBlend = FMath::Lerp(StrideBlend_N_Walk->GetFloatValue(CurveTime),
+	                                            StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
 	return FMath::Lerp(LerpedStrideBlend, StrideBlend_C_Walk->GetFloatValue(OrganicInformation.Speed),
 	                   GetCurveValue(NAME_BasePose_CLF));
 }
@@ -697,9 +649,10 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 
 	const UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(OrganicPawn->GetCapsuleComponent());
 	check(CapsuleComp);
-	
+
 	const FVector& CapsuleWorldLoc = CapsuleComp->GetComponentLocation();
 	const float VelocityZ = OrganicInformation.Velocity.Z;
+
 	FVector VelocityClamped = OrganicInformation.Velocity;
 	VelocityClamped.Z = FMath::Clamp(VelocityZ, -4000.0f, -200.0f);
 	VelocityClamped.Normalize();
@@ -707,17 +660,16 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 	const FVector TraceLength = VelocityClamped * FMath::GetMappedRangeValueClamped<float, float>(
 		{0.0f, -4000.0f}, {50.0f, 2000.0f}, VelocityZ);
 
-	UWorld* World = GetWorld();
-	check(World);
-
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OrganicPawn);
 
 	FHitResult HitResult;
 	const FCollisionShape CapsuleCollisionShape = FCollisionShape::MakeCapsule(CapsuleComp->GetUnscaledCapsuleRadius(),
-	                                                                           CapsuleComp->GetUnscaledCapsuleHalfHeight());
-	const bool bHit = World->SweepSingleByChannel(HitResult, CapsuleWorldLoc, CapsuleWorldLoc + TraceLength, FQuat::Identity,
-	                                              ECC_Visibility, CapsuleCollisionShape, Params);
+	                                                                           CapsuleComp->
+	                                                                           GetUnscaledCapsuleHalfHeight());
+
+	GetWorld()->SweepSingleByChannel(HitResult, CapsuleWorldLoc, CapsuleWorldLoc + TraceLength, FQuat::Identity,
+	                                 ECC_Visibility, CapsuleCollisionShape, Params);
 
 	if (OrganicPawn->GetOrganicMovement()->HitWalkableFloor(HitResult))
 	{
@@ -731,8 +683,7 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 FOrganicLeanAmount UOrganicAnimInstance::CalculateAirLeanAmount() const
 {
 	FOrganicLeanAmount CalcLeanAmount;
-	const FVector& UnrotatedVel = OrganicInformation.Rotation.UnrotateVector(
-		OrganicInformation.Velocity) / 350.0f;
+	const FVector& UnrotatedVel = OrganicInformation.Rotation.UnrotateVector(OrganicInformation.Velocity) / 350.0f;
 	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
 	InversedVect *= LeanInAirCurve->GetFloatValue(Airborne.FallSpeed);
 	CalcLeanAmount.LR = InversedVect.X;
@@ -753,13 +704,14 @@ EOrganicMovementDirection UOrganicAnimInstance::CalculateMovementDirection() con
 }
 
 void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime,
-                                            bool OverrideCurrent)
+                                       bool OverrideCurrent)
 {
 	FRotator Delta = TargetRotation - OrganicInformation.Rotation;
 	Delta.Normalize();
-	const float TurnAngle = Delta.Yaw;
 
+	float TurnAngle = Delta.Yaw;
 	FOrganicTurnInPlaceAsset TargetTurnAsset;
+
 	if (Stance.Standing())
 	{
 		if (FMath::Abs(TurnAngle) < TurnInPlaceValues.Turn180Threshold)
@@ -795,6 +747,7 @@ void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateSc
 	{
 		return;
 	}
+	
 	PlaySlotAnimationAsDynamicMontage(TargetTurnAsset.Animation, TargetTurnAsset.SlotName, 0.2f, 0.2f,
 	                                  TargetTurnAsset.PlayRate * PlayRateScale, 1, 0.0f, StartTime);
 
@@ -820,8 +773,8 @@ void UOrganicAnimInstance::OnJumped()
 void UOrganicAnimInstance::OnPivot()
 {
 	Grounded.bPivot = OrganicInformation.Speed < Config.TriggerPivotSpeedLimit;
-	GetWorld()->GetTimerManager().SetTimer(OnPivotTimer, this,
-	                                  &UOrganicAnimInstance::OnPivotDelay, 0.1f, false);
+
+	GetWorld()->GetTimerManager().SetTimer(OnPivotTimer, this, &UOrganicAnimInstance::OnPivotDelay, 0.1f, false);
 }
 
 bool UOrganicAnimInstance::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer)
@@ -838,17 +791,17 @@ EOrganicMovementDirection UOrganicAnimInstance::CalculateQuadrant(EOrganicMoveme
                                                                   float BLThreshold, float Buffer, float Angle)
 {
 	if (AngleInRange(Angle, FLThreshold, FRThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Forward && Current != EOrganicMovementDirection::Backward))
+	                 Current != EOrganicMovementDirection::Forward && Current != EOrganicMovementDirection::Backward))
 	{
 		return EOrganicMovementDirection::Forward;
 	}
 	if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+	                 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
 	{
 		return EOrganicMovementDirection::Right;
 	}
 	if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+	                 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
 	{
 		return EOrganicMovementDirection::Left;
 	}

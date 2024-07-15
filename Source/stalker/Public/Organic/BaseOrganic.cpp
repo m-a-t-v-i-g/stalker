@@ -346,6 +346,11 @@ EOrganicGait ABaseOrganic::CalculateActualGait(EOrganicGait AllowedGait) const
 	return EOrganicGait::Slow;
 }
 
+void ABaseOrganic::SetOverlayOverrideState(int32 NewState)
+{
+	OverlayOverrideState = NewState;
+}
+
 float ABaseOrganic::GetAnimCurveValue(FName CurveName) const
 {
 	if (GetMesh() && GetMesh()->GetAnimInstance())
@@ -438,11 +443,6 @@ void ABaseOrganic::Server_SetRotationMode_Implementation(EOrganicRotationMode Ne
 void ABaseOrganic::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
 {
 	OrganicMovement->SetMovementSettings(GetMovementSettings());
-}
-
-void ABaseOrganic::OnRep_RotationMode(EOrganicRotationMode PrevRotationMode)
-{
-	OnRotationModeChanged(PrevRotationMode);
 }
 
 void ABaseOrganic::SetInputStance(EOrganicStance NewInputStance)

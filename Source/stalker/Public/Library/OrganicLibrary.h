@@ -443,11 +443,6 @@ struct FAnimOrganicInformation
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
 	FVector Acceleration = FVector::ZeroVector;
 
-	/*
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FVector TransientAcceleration = FVector::ZeroVector;
-	*/
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
 	FRotator Rotation = FRotator::ZeroRotator;
 
@@ -467,7 +462,7 @@ struct FAnimOrganicInformation
 	float MovementInputAmount = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	float AimYawRate = 0.0f;
+	float ViewYawRate = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
 	float ZoomAmount = 0.0f;
