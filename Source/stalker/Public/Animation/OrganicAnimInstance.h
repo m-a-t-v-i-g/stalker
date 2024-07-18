@@ -21,21 +21,6 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayTransition(const FOrganicDynamicMontage& Parameters);
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayTransitionChecked(const FOrganicDynamicMontage& Parameters);
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayDynamicTransition(float ReTriggerDelay, FOrganicDynamicMontage Parameters);
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Event")
-	void OnJumped();
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Event")
-	void OnPivot();
-
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
 	void SetTrackedHipsDirection(EOrganicHipsDirection HipsDirection)
@@ -43,50 +28,32 @@ protected:
 		Grounded.TrackedHipsDirection = HipsDirection;
 	}
 
-	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
-	bool ShouldMoveCheck() const;
+	virtual void OnLayerValuesUpdated(float DeltaSeconds);
+	
+	virtual void UpdateViewValues(float DeltaSeconds);
+	virtual void UpdateLayerValues(float DeltaSeconds);
+	virtual void UpdateFootIK(float DeltaSeconds);
 
-	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
-	bool CanRotateInPlace() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
-	bool CanTurnInPlace() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
-	bool CanDynamicTransition() const;
-
-	void PlayDynamicTransitionDelay();
-
-	void OnJumpedDelay();
-	void OnPivotDelay();
-
-	void UpdateViewValues(float DeltaSeconds);
-	void UpdateLayerValues();
-	void UpdateFootIK(float DeltaSeconds);
 	void UpdateMovementValues(float DeltaSeconds);
 	void UpdateRotationValues();
-	void UpdateAirborneValues(float DeltaSeconds);
-	void UpdateRagdollValues();
+	
+	virtual void UpdateGroundedValues(float DeltaSeconds);
+	virtual void UpdateAirborneValues(float DeltaSeconds);
+	virtual void UpdateRagdollValues();
 
-	void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
+	virtual void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
 	                    float& CurFootLockAlpha, bool& UseFootLockCurve,
 	                    FVector& CurFootLockLoc, FRotator& CurFootLockRot);
-	void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot);
-	void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget);
-	void ResetIKOffsets(float DeltaSeconds);
-	void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
+	virtual void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot);
+	virtual void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget);
+	virtual void ResetIKOffsets(float DeltaSeconds);
+	virtual void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
 	                    FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset);
 
 	void RotateInPlaceCheck();
 	void TurnInPlaceCheck(float DeltaSeconds);
 
-	void DynamicTransitionCheck();
-
-	FOrganicVelocityBlend CalculateVelocityBlend() const;
-
 	void TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime, bool OverrideCurrent);
-
-	FVector CalculateRelativeAccelerationAmount() const;
 
 	float CalculateStrideBlend() const;
 	float CalculateWalkRunBlend() const;
@@ -95,12 +62,53 @@ protected:
 	float CalculateCrouchingPlayRate() const;
 	float CalculateLandPrediction() const;
 
+	FVector CalculateRelativeAccelerationAmount() const;
+
+	FOrganicVelocityBlend CalculateVelocityBlend() const;
 	FOrganicLeanAmount CalculateAirLeanAmount() const;
 	EOrganicMovementDirection CalculateMovementDirection() const;
 
 	float GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const;
 
+	bool ShouldMoveCheck() const;
+
+	bool CanRotateInPlace() const;
+	bool CanTurnInPlace() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Organic|Event")
+	void OnJumped();
+
+	UFUNCTION(BlueprintCallable, Category = "Organic|Event")
+	void OnPivot();
+
+	void OnJumpedDelay();
+	void OnPivotDelay();
+
 public:
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_BasePose_N = "BasePose_N";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_BasePose_CLF = "BasePose_CLF";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_Mask_AimOffset = "Mask_AimOffset";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_Mask_LandPrediction = "Mask_LandPrediction";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_Grounded_Slot = "Grounded Slot";
+
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_Enable_Transition = "Enable_Transition";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME_W_Gait = "W_Gait";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
+	FName NAME__ALSCharacterAnimInstance__root = "root";
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
 	TObjectPtr<class ABaseOrganic> OrganicPawn = nullptr;
 
@@ -200,19 +208,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Dynamic Transition")
 	TObjectPtr<UAnimSequenceBase> TransitionAnim_L = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Anim Graph - Foot IK")
-	FName IkFootL_BoneName = "ik_foot_l";
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Anim Graph - Foot IK")
-	FName IkFootR_BoneName = "ik_foot_r";
-
 private:
 	FTimerHandle OnJumpedTimer;
 	FTimerHandle OnPivotTimer;
-
-	FTimerHandle PlayDynamicTransitionTimer;
-
-	bool bCanPlayDynamicTransition = true;
 
 protected:
 	static bool AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer);
