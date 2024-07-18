@@ -20,7 +20,7 @@ public class stalker : ModuleRules
 		
 		PublicIncludePaths.AddRange(new[]
 		{
-			"stalker/Public"
+			"stalker/"
 		});
 	}
 }
