@@ -13,11 +13,8 @@ class STALKER_API UItemObject : public UObject
 
 public:
 	UPROPERTY(EditDefaultsOnly)
-	uint8 SizeX = 1;
+	FIntPoint Size;
 	
-	UPROPERTY(EditDefaultsOnly)
-	uint8 SizeY = 1;
-
 	UPROPERTY(EditDefaultsOnly)
 	uint32 ItemId = 0;
 };

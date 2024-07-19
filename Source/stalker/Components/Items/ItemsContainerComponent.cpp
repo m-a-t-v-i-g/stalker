@@ -2,21 +2,21 @@
 
 #include "ItemsContainerComponent.h"
 #include "Interactive/Items/ItemObject.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 UItemsContainerComponent::UItemsContainerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 }
 
-void UItemsContainerComponent::BeginPlay()
+void UItemsContainerComponent::InitializeComponent()
 {
-	Super::BeginPlay();
+	Super::InitializeComponent();
 
 	ItemsContainerSlots.SetNum(Columns * Rows);
 }
 
-bool UItemsContainerComponent::FindAvailablePlace(const UItemObject* ItemObject)
+bool UItemsContainerComponent::FindAvailablePlace(UItemObject* ItemObject)
 {
 	uint32 Index;
 	if (CanAddItem(ItemObject, Index))
@@ -26,19 +26,41 @@ bool UItemsContainerComponent::FindAvailablePlace(const UItemObject* ItemObject)
 	return false;
 }
 
-void UItemsContainerComponent::AddItemAt(const UItemObject* ItemObject, uint32 Index)
+bool UItemsContainerComponent::TryAddItem(UItemObject* ItemObject)
 {
-	const FIntPoint Tile = TileFromIndex(Index, Columns);
-	const FIntPoint ItemSize = {Tile.X + (ItemObject->SizeX - 1), Tile.Y + (ItemObject->SizeY - 1)};
-
-	FillRoom(ItemsContainerSlots, ItemObject->ItemId, Tile, ItemSize, Columns);
+	uint32 Index;
+	if (CanAddItem(ItemObject, Index))
+	{
+		AddItemAt(ItemObject, Index);
+		return true;
+	}
+	return false;
 }
 
-bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32& Index)
+void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
+{
+	const FIntPoint Tile = TileFromIndex(Index, Columns);
+	const FIntPoint ItemSize = {Tile.X + (ItemObject->Size.X - 1), Tile.Y + (ItemObject->Size.Y - 1)};
+
+	FillRoom(ItemsContainerSlots, ItemObject->ItemId, Tile, ItemSize, Columns);
+
+	OnItemAddedToContainer.Broadcast(ItemObject, Tile);
+}
+
+void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
+{
+	if (ItemsContainer.Contains(ItemObject))
+	{
+		ItemsContainer.Remove(ItemObject);
+	}
+	OnItemRemovedFromContainer.Broadcast(ItemObject);
+}
+
+bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32& FindIndex)
 {
 	if (ItemsContainerSlots.Num() > 0)
 	{
-		if (FindAvailableRoom(ItemObject, Index))
+		if (FindAvailableRoom(ItemObject, FindIndex))
 		{
 			return true;
 		}
@@ -46,13 +68,13 @@ bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32&
 	return false;
 }
 
-bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& Index)
+bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex)
 {
 	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
 	{
 		if (CheckRoom(ItemObject, (uint32)i))
 		{
-			Index = i;
+			FindIndex = i;
 			return true;
 		}
 	}
@@ -62,10 +84,9 @@ bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, 
 bool UItemsContainerComponent::CheckRoom(const UItemObject* ItemObject, uint32 Index)
 {
 	const FIntPoint Tile = TileFromIndex(Index, Columns);
-	const FIntPoint ItemSize = {Tile.X + (ItemObject->SizeX - 1), Tile.Y + (ItemObject->SizeY - 1)};
+	const FIntPoint ItemSize = {Tile.X + (ItemObject->Size.X - 1), Tile.Y + (ItemObject->Size.Y - 1)};
 
-	bool bIsRoomAvailable = IsRoomValid(ItemsContainerSlots, Tile, ItemSize, Columns, Rows);
-	return bIsRoomAvailable;
+	return IsRoomValid(ItemsContainerSlots, Tile, ItemSize, Columns, Rows);
 }
 
 FIntPoint UItemsContainerComponent::TileFromIndex(uint32 Index, uint8 Width)
@@ -120,9 +141,5 @@ bool UItemsContainerComponent::IsTileValid(const FIntPoint& Tile, uint8 Columns,
 
 bool UItemsContainerComponent::IsTileFilled(const TArray<uint32>& Slots, uint32 Index)
 {
-	if (Slots[Index] != 0)
-	{
-		return true;
-	}
-	return false;
+	return Slots[Index] != 0;
 }

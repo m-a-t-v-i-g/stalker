@@ -6,6 +6,11 @@
 #include "Components/ActorComponent.h"
 #include "ItemsContainerComponent.generated.h"
 
+class UItemObject;
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemAddedToContainer, const UItemObject*, FIntPoint);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedFromContainer, const UItemObject*);
+
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UItemsContainerComponent : public UActorComponent
 {
@@ -14,35 +19,46 @@ class STALKER_API UItemsContainerComponent : public UActorComponent
 public:
 	UItemsContainerComponent();
 
-	void BeginPlay() override;
+	virtual void InitializeComponent() override;
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Properties", Meta = (ExposeOnSpawn = true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items Container")
 	uint8 Columns = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Properties", Meta = (ExposeOnSpawn = true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items Container")
 	uint8 Rows = 0;
 
 	UPROPERTY(EditInstanceOnly, Category = "Items Container")
-	TArray<class UItemObject*> ItemsContainer;
+	TArray<UItemObject*> ItemsContainer;
 
-	UPROPERTY(EditInstanceOnly, Category = "Items Container")
+	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
 	TArray<uint32> ItemsContainerSlots;
 
 	TMap<uint32, FIntPoint> ItemsContainerMap;
 
 public:
-	UFUNCTION(BlueprintCallable)
-	bool FindAvailablePlace(const UItemObject* ItemObject);
-	
-	void AddItemAt(const UItemObject* ItemObject, uint32 Index);
+	FOnItemAddedToContainer OnItemAddedToContainer;
+	FOnItemRemovedFromContainer OnItemRemovedFromContainer;
 
-	bool CanAddItem(const UItemObject* ItemObject, uint32& Index);
+	bool FindAvailablePlace(UItemObject* ItemObject);
+
+	bool TryAddItem(UItemObject* ItemObject);
 	
-	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& Index);
+	void AddItemAt(UItemObject* ItemObject, uint32 Index);
+	void RemoveItem(UItemObject* ItemObject);
+
+	bool CanAddItem(const UItemObject* ItemObject, uint32& FindIndex);
+	
+	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex);
 	
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 
+	FORCEINLINE uint8 GetColumns() const { return Columns; }
+	FORCEINLINE uint8 GetRows() const { return Rows; }
+	
+	FORCEINLINE TArray<UItemObject*> GetItemsContainer() const { return ItemsContainer; }
+	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsContainerSlots; }
+	
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, int Width);
 	
