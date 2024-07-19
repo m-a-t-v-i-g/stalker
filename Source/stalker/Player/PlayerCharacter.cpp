@@ -17,8 +17,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
 		GetController<APlayerController>()->GetLocalPlayer()))
 	{
@@ -26,7 +24,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Options.bForceImmediately = 1;
 		
 		Subsystem->AddMappingContext(InputMappingContext, 1, Options);
-	} 
+	}
+	
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 void APlayerCharacter::BindDirectionalInput(UInputComponent* PlayerInputComponent)
@@ -106,4 +106,9 @@ void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 	{
 		Super::StopAction3();
 	}
+}
+
+void APlayerCharacter::SetupCharacterLocally()
+{
+	
 }

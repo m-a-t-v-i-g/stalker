@@ -19,4 +19,6 @@ public:
 	void InitializeHUDWidget();
 
 	void InitializePlayerInventory(class UItemsContainerComponent* ItemsContainerComponent);
+
+	void ToggleInventory(bool bEnable);
 };

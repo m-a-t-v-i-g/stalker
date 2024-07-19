@@ -3,10 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
+#include "Library/Items/ItemsLibrary.h"
 #include "ItemsContainerComponent.generated.h"
 
 class UItemObject;
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FALDItemsContainerStartingData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Starting Data")
+	FDataTableRowHandle ItemRow;
+
+	UPROPERTY(EditAnywhere, Category = "Starting Data")
+	FItemParams ItemParams;
+
+	UPROPERTY(EditAnywhere, Category = "Starting Data", meta = (ClampMin = "1"))
+	int Quantity = 1;
+
+	bool IsValid() const
+	{
+		return !ItemRow.IsNull();
+	}
+};
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemAddedToContainer, const UItemObject*, FIntPoint);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedFromContainer, const UItemObject*);
@@ -20,12 +42,16 @@ public:
 	UItemsContainerComponent();
 
 	virtual void InitializeComponent() override;
+	virtual void BeginPlay() override;
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items Container")
+	UPROPERTY(EditAnywhere, Category = "Item Container")
+	FGameplayTagContainer CategoryTags;
+	
+	UPROPERTY(EditAnywhere, Category = "Items Container")
 	uint8 Columns = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Items Container")
+	UPROPERTY(EditAnywhere, Category = "Items Container")
 	uint8 Rows = 0;
 
 	UPROPERTY(EditInstanceOnly, Category = "Items Container")
@@ -34,12 +60,15 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
 	TArray<uint32> ItemsContainerSlots;
 
-	TMap<uint32, FIntPoint> ItemsContainerMap;
+	UPROPERTY(EditAnywhere, Category = "Items Container")
+	TArray<FALDItemsContainerStartingData> StartingData;
 
 public:
 	FOnItemAddedToContainer OnItemAddedToContainer;
 	FOnItemRemovedFromContainer OnItemRemovedFromContainer;
 
+	virtual void AddStartingData();
+	
 	bool FindAvailablePlace(UItemObject* ItemObject);
 
 	bool TryAddItem(UItemObject* ItemObject);

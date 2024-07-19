@@ -31,3 +31,11 @@ void APlayerHUD::InitializePlayerInventory(UItemsContainerComponent* ItemsContai
 		HUDWidget->InitializePlayerInventory(ItemsContainerComponent);
 	}
 }
+
+void APlayerHUD::ToggleInventory(bool bEnable)
+{
+	if (HUDWidget)
+	{
+		HUDWidget->ToggleInventory(bEnable);
+	}
+}

@@ -27,4 +27,6 @@ public:
 	static float TileSize;
 	
 	void InitializePlayerInventory(class UItemsContainerComponent* ItemsContainerComponent);
+
+	void ToggleInventory(bool bEnable);
 };

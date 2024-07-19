@@ -9,3 +9,8 @@ void UPlayerHUDWidget::InitializeHUDWidget()
 void UPlayerHUDWidget::InitializePlayerInventory(UItemsContainerComponent* ItemsContainerComponent)
 {
 }
+
+void UPlayerHUDWidget::ToggleInventory(bool bEnable)
+{
+	
+}

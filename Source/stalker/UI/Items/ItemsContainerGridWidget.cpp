@@ -30,7 +30,7 @@ void UItemsContainerGridWidget::OnItemAddedToContainer(const UItemObject* ItemOb
 	
 	if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(this, APlayerHUD::StaticInteractiveItemWidgetClass))
 	{
-		ItemWidget->InitItemWidget(ItemObject, ItemObject->Size);
+		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 		FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
 
 		ContainerItems.Add(ItemObject, ItemWidget);
