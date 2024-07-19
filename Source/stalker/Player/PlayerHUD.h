@@ -6,27 +6,38 @@
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
+UENUM()
+enum class EActivateTab : uint8
+{
+	HUD,
+	Inventory,
+	PDA
+};
+
 UCLASS()
 class STALKER_API APlayerHUD : public AHUD
 {
 	GENERATED_BODY()
 
 protected:
+	virtual void PostInitializeComponents() override;
+	
 	UPROPERTY(EditDefaultsOnly, DisplayName = "HUD Widget Class", Category = "HUD")
-	TSubclassOf<class UPlayerHUDWidget> HUDWidgetClass; 
+	TSubclassOf<class UPlayerMainWidget> HUDWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UInteractiveItemWidget> InteractiveItemWidgetClass; 
 
-	TObjectPtr<UPlayerHUDWidget> HUDWidget;
-	
-	virtual void PostInitializeComponents() override;
+	TObjectPtr<UPlayerMainWidget> HUDWidget;
 
+private:
+	EActivateTab ActiveTab = EActivateTab::HUD;
+	
 public:
 	static UClass* StaticInteractiveItemWidgetClass;
 	static float TileSize;
 	
 	void InitializePlayerInventory(class UItemsContainerComponent* ItemsContainerComponent);
 
-	void ToggleInventory(bool bEnable);
+	void ToggleTab(EActivateTab Tab);
 };

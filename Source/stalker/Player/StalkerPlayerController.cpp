@@ -56,6 +56,8 @@ void AStalkerPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(InputData->InputMap[InputInventoryName], ETriggerEvent::Triggered, this,
 										   &AStalkerPlayerController::IA_Inventory);
+		EnhancedInputComponent->BindAction(InputData->InputMap[InputPDAName], ETriggerEvent::Triggered, this,
+										   &AStalkerPlayerController::IA_PDA);
 	}
 }
 
@@ -63,6 +65,14 @@ void AStalkerPlayerController::IA_Inventory(const FInputActionValue& Value)
 {
 	if (StalkerHUD)
 	{
-		StalkerHUD->ToggleInventory(Value.Get<bool>());
+		StalkerHUD->ToggleTab(EActivateTab::Inventory);
+	}
+}
+
+void AStalkerPlayerController::IA_PDA(const FInputActionValue& Value)
+{
+	if (StalkerHUD)
+	{
+		StalkerHUD->ToggleTab(EActivateTab::PDA);
 	}
 }

@@ -2,7 +2,7 @@
 
 #include "Player/PlayerHUD.h"
 #include "UI/Items/InteractiveItemWidget.h"
-#include "UI/Player/PlayerHUDWidget.h"
+#include "UI/Player/PlayerMainWidget.h"
 
 UClass* APlayerHUD::StaticInteractiveItemWidgetClass {nullptr};
 float APlayerHUD::TileSize {50.0f};
@@ -15,11 +15,13 @@ void APlayerHUD::PostInitializeComponents()
 	
 	if (HUDWidgetClass)
 	{
-		HUDWidget = CreateWidget<UPlayerHUDWidget>(GetOwningPlayerController(), HUDWidgetClass);
+		HUDWidget = CreateWidget<UPlayerMainWidget>(GetOwningPlayerController(), HUDWidgetClass);
 		if (HUDWidget && !HUDWidget->IsInViewport())
 		{
 			HUDWidget->InitializeHUDWidget();
 			HUDWidget->AddToViewport();
+
+			ActiveTab = EActivateTab::HUD;
 		}
 	}
 }
@@ -32,10 +34,12 @@ void APlayerHUD::InitializePlayerInventory(UItemsContainerComponent* ItemsContai
 	}
 }
 
-void APlayerHUD::ToggleInventory(bool bEnable)
+void APlayerHUD::ToggleTab(EActivateTab Tab)
 {
-	if (HUDWidget)
-	{
-		HUDWidget->ToggleInventory(bEnable);
-	}
+	if (!HUDWidget) return;
+	
+	Tab = ActiveTab != Tab ? Tab : EActivateTab::HUD;
+	HUDWidget->ToggleTab(Tab);
+
+	ActiveTab = Tab;
 }

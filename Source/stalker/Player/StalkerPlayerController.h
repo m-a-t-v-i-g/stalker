@@ -27,6 +27,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputInventoryName;
 
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Input PDA Name", Category = "Input")
+	FString InputPDAName;
+
 	TObjectPtr<class APlayerHUD> StalkerHUD;
 	
 	TObjectPtr<class APlayerCharacter> Stalker;
@@ -39,4 +42,5 @@ public:
 
 protected:
 	void IA_Inventory(const FInputActionValue& Value);
+	void IA_PDA(const FInputActionValue& Value);
 };
