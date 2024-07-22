@@ -14,10 +14,10 @@ class STALKER_API UPlayerMainWidget : public UUserWidget
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UUserWidget> HUD;
+	TObjectPtr<class UHUDWidget> HUD;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UPlayerManagerWidget> Inventory;
+	TObjectPtr<class UPlayerManagerWidget> Manager;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UUserWidget> PDA;
@@ -26,9 +26,8 @@ protected:
 	TObjectPtr<class UWidgetSwitcher> TabSwitcher;
 	
 public:
-	void InitializeHUDWidget();
-
-	void InitializePlayerInventory(class UItemsContainerComponent* ItemsContainerComponent);
+	void InitializeHUD(class UStalkerAbilityComponent* AbilityComponent);
+	void InitializeManager(class UItemsContainerComponent* ItemsContainerComponent);
 
 	void ToggleTab(EActivateTab ActivateTab);
 };

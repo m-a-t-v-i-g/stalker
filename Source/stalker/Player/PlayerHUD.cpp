@@ -18,7 +18,7 @@ void APlayerHUD::PostInitializeComponents()
 		HUDWidget = CreateWidget<UPlayerMainWidget>(GetOwningPlayerController(), HUDWidgetClass);
 		if (HUDWidget && !HUDWidget->IsInViewport())
 		{
-			HUDWidget->InitializeHUDWidget();
+			//HUDWidget->InitializeHUD();
 			HUDWidget->AddToViewport();
 
 			ActiveTab = EActivateTab::HUD;
@@ -30,7 +30,7 @@ void APlayerHUD::InitializePlayerInventory(UItemsContainerComponent* ItemsContai
 {
 	if (HUDWidget)
 	{
-		HUDWidget->InitializePlayerInventory(ItemsContainerComponent);
+		HUDWidget->InitializeManager(ItemsContainerComponent);
 	}
 }
 

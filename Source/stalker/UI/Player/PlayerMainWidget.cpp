@@ -3,14 +3,16 @@
 #include "PlayerMainWidget.h"
 #include "PlayerManagerWidget.h"
 #include "Components/WidgetSwitcher.h"
+#include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeHUDWidget()
+void UPlayerMainWidget::InitializeHUD(UStalkerAbilityComponent* AbilityComponent)
 {
+	
 }
 
-void UPlayerMainWidget::InitializePlayerInventory(UItemsContainerComponent* ItemsContainerComponent)
+void UPlayerMainWidget::InitializeManager(UItemsContainerComponent* ItemsContainerComponent)
 {
-	Inventory->InitializeInventory(ItemsContainerComponent);
+	Manager->InitializeInventory(ItemsContainerComponent);
 }
 
 void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)
@@ -18,7 +20,7 @@ void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)
 	switch (ActivateTab)
 	{
 	case EActivateTab::Inventory:
-		TabSwitcher->SetActiveWidget(Inventory);
+		TabSwitcher->SetActiveWidget(Manager);
 		break;
 	case EActivateTab::PDA:
 		TabSwitcher->SetActiveWidget(PDA);
