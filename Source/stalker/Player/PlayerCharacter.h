@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
-#include "Organic/Characters/BaseCharacter.h"
+#include "Organic/Characters/StalkerCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
-class STALKER_API APlayerCharacter : public ABaseCharacter
+class STALKER_API APlayerCharacter : public AStalkerCharacter
 {
 	GENERATED_BODY()
 
@@ -50,4 +50,7 @@ protected:
 	void IA_Jump(const FInputActionValue& Value);
 	void IA_Crouch(const FInputActionValue& Value);
 	void IA_Sprint(const FInputActionValue& Value);
+	
+public:
+	virtual void SetupCharacterLocally();
 };
