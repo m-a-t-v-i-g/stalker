@@ -3,9 +3,11 @@
 #include "ItemObject.h"
 #include "ItemActor.h"
 
-void UItemObject::InitItem(const FItemData& ItemData)
+void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
 {
 	ItemParams = ItemData.ItemParams;
+	ItemParams.ItemId = ItemId;
+	
 	ItemDataTable = ItemData.ItemRow.DataTable;
 	ItemRowName = ItemData.ItemRow.RowName;
 	SetupItemProperties();

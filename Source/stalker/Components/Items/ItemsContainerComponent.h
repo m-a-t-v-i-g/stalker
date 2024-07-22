@@ -45,7 +45,7 @@ public:
 	virtual void BeginPlay() override;
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "Item Container")
+	UPROPERTY(EditAnywhere, Category = "Items Container")
 	FGameplayTagContainer CategoryTags;
 	
 	UPROPERTY(EditAnywhere, Category = "Items Container")
@@ -97,6 +97,6 @@ public:
 	static bool IsRoomValid(TArray<uint32>& Slots, const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Columns,
 	                        uint8 Rows);
 	
-	static bool IsTileValid(const FIntPoint& Tile, uint8 Columns, uint8 Rows);
+	static bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns, uint8 Rows);
 	static bool IsTileFilled(const TArray<uint32>& Slots, uint32 Index);
 };

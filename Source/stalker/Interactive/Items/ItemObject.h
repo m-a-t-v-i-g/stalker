@@ -23,7 +23,7 @@ protected:
 	FName ItemRowName;
 	
 public:
-	void InitItem(const FItemData& ItemData);
+	void InitItem(const uint32 ItemId, const FItemData& ItemData);
 	
 protected:
 	virtual void SetupItemProperties();

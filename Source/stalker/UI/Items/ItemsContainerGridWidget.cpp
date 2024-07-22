@@ -60,5 +60,5 @@ void UItemsContainerGridWidget::SetupSize()
 	};
 	
 	GridSizeBox->SetWidthOverride(GridSize.X);
-	GridSizeBox->SetHeightOverride(GridSize.Y);
+	//GridSizeBox->SetHeightOverride(GridSize.Y);
 }

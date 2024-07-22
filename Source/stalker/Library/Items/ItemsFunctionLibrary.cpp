@@ -3,6 +3,8 @@
 #include "ItemsFunctionLibrary.h"
 #include "Interactive/Items/ItemObject.h"
 
+uint32 UItemsFunctionLibrary::LastItemId {0};
+
 UItemObject* UItemsFunctionLibrary::GenerateItemObject(const FItemData& ItemData)
 {
 	UItemObject* ItemObject = nullptr;
@@ -14,7 +16,8 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(const FItemData& ItemData
 			ItemObject = NewObject<UItemObject>(GetTransientPackage(), ItemClass);
 			if (ItemObject)
 			{
-				ItemObject->InitItem(ItemData);
+				LastItemId++;
+				ItemObject->InitItem(LastItemId, ItemData);
 			}
 		}
 	}

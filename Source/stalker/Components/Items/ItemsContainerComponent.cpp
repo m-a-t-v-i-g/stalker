@@ -164,7 +164,7 @@ bool UItemsContainerComponent::IsRoomValid(TArray<uint32>& Slots, const FIntPoin
 	{
 		for (int y = Tile.Y; y <= ItemSize.Y; y++)
 		{
-			if (IsTileValid({x, y}, Columns, Rows))
+			if (IsItemSizeValid({x, y}, Columns, Rows))
 			{
 				if (IsTileFilled(Slots, IndexFromTile({x, y}, Columns)))
 				{
@@ -180,9 +180,9 @@ bool UItemsContainerComponent::IsRoomValid(TArray<uint32>& Slots, const FIntPoin
 	return true;
 }
 
-bool UItemsContainerComponent::IsTileValid(const FIntPoint& Tile, uint8 Columns, uint8 Rows)
+bool UItemsContainerComponent::IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns, uint8 Rows)
 {
-	return Tile.X >= 0 && Tile.Y >= 0 && Tile.X < Columns && Tile.Y < Rows;
+	return ItemSize.X >= 0 && ItemSize.Y >= 0 && ItemSize.X < Columns && ItemSize.Y < Rows;
 }
 
 bool UItemsContainerComponent::IsTileFilled(const TArray<uint32>& Slots, uint32 Index)
