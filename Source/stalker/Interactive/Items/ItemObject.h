@@ -30,6 +30,7 @@ protected:
 	
 public:
 	uint32 GetItemId() const;
+	FItemParams GetItemParams() const;
 
 	FGameplayTag GetItemTag() const;
 	UClass* GetActorClass() const;

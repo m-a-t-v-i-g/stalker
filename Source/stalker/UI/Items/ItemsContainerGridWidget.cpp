@@ -20,7 +20,7 @@ void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* Own
 	
 	ItemsContainerRef->OnItemAddedToContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemAddedToContainer);
 	ItemsContainerRef->OnItemRemovedFromContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemRemovedFromContainer);
-
+	
 	SetupSize();
 }
 
@@ -30,7 +30,7 @@ void UItemsContainerGridWidget::OnItemAddedToContainer(const UItemObject* ItemOb
 	
 	if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(this, APlayerHUD::StaticInteractiveItemWidgetClass))
 	{
-		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+		ItemWidget->InitItemWidget(ItemObject->GetItemTag(), ItemObject, ItemObject->GetItemSize());
 		FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
 
 		ItemWidgetsMap.Add(ItemObject->GetItemId(), ItemWidget);
@@ -54,11 +54,6 @@ void UItemsContainerGridWidget::OnItemRemovedFromContainer(const UItemObject* It
 
 void UItemsContainerGridWidget::SetupSize()
 {
-	FVector2D GridSize = {
-		ItemsContainerRef->GetColumns() * APlayerHUD::TileSize,
-		ItemsContainerRef->GetRows() * APlayerHUD::TileSize
-	};
-	
-	GridSizeBox->SetWidthOverride(GridSize.X);
-	//GridSizeBox->SetHeightOverride(GridSize.Y);
+	uint16 Width = ItemsContainerRef->GetColumns() * APlayerHUD::TileSize;
+	GridSizeBox->SetWidthOverride(Width);
 }

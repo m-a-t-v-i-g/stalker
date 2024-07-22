@@ -14,7 +14,7 @@ void UItemsContainerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	ItemsContainerSlots.SetNum(Columns * Rows);
+	//ItemsContainerSlots.SetNum(Columns * Rows);
 }
 
 void UItemsContainerComponent::BeginPlay()
@@ -58,6 +58,7 @@ bool UItemsContainerComponent::FindAvailablePlace(UItemObject* ItemObject)
 		if (CanAddItem(ItemObject, Index))
 		{
 			AddItemAt(ItemObject, Index);
+			return true;
 		}
 	}
 	return false;
@@ -83,9 +84,12 @@ void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 	
 	const FIntPoint Tile = TileFromIndex(Index, Columns);
 	const FIntPoint ItemSize = {Tile.X + (ItemObject->GetItemSize().X - 1), Tile.Y + (ItemObject->GetItemSize().Y - 1)};
-
+	
+	if (!ItemsContainer.Contains(ItemObject))
+	{
+		ItemsContainer.Add(ItemObject);
+	}
 	FillRoom(ItemsContainerSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
-
 	OnItemAddedToContainer.Broadcast(ItemObject, Tile);
 }
 
@@ -97,7 +101,20 @@ void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
 	{
 		ItemsContainer.Remove(ItemObject);
 	}
+	ResizeSlots(ItemObject, true);
 	OnItemRemovedFromContainer.Broadcast(ItemObject);
+}
+
+void UItemsContainerComponent::ResizeSlots(const UItemObject* ItemObject, bool bSubtract)
+{
+	if (bSubtract)
+	{
+		ItemsContainerSlots.SetNum(ItemsContainerSlots.Num() - Columns * ItemObject->GetItemSize().Y);
+	}
+	else
+	{
+		ItemsContainerSlots.SetNum(ItemsContainerSlots.Num() + Columns * ItemObject->GetItemSize().Y);
+	}
 }
 
 bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32& FindIndex)
@@ -105,17 +122,18 @@ bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32&
 	bool bResult = false;
 	if (ItemObject)
 	{
-		if (ItemsContainerSlots.Num() > 0)
+		auto ItemSize = ItemObject->GetItemSize();
+		if (Columns >= ItemSize.X)
 		{
-			bResult = FindAvailableRoom(ItemObject, FindIndex);
+			bResult = FindAvailableRoom(ItemObject, FindIndex) & ItemObject->GetItemTag().MatchesAny(CategoryTags);
 		}
-		bResult = bResult & ItemObject->GetItemTag().MatchesAny(CategoryTags);
 	}
 	return bResult;
 }
 
 bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex)
 {
+	ResizeSlots(ItemObject, false);
 	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
 	{
 		if (CheckRoom(ItemObject, (uint32)i))
@@ -132,7 +150,7 @@ bool UItemsContainerComponent::CheckRoom(const UItemObject* ItemObject, uint32 I
 	const FIntPoint Tile = TileFromIndex(Index, Columns);
 	const FIntPoint ItemSize = {Tile.X + (ItemObject->GetItemSize().X - 1), Tile.Y + (ItemObject->GetItemSize().Y - 1)};
 
-	return IsRoomValid(ItemsContainerSlots, Tile, ItemSize, Columns, Rows);
+	return IsRoomValid(ItemsContainerSlots, Tile, ItemSize, Columns);
 }
 
 FIntPoint UItemsContainerComponent::TileFromIndex(uint32 Index, uint8 Width)
@@ -158,13 +176,13 @@ void UItemsContainerComponent::FillRoom(TArray<uint32>& Slots, uint32 ItemId, co
 }
 
 bool UItemsContainerComponent::IsRoomValid(TArray<uint32>& Slots, const FIntPoint& Tile, const FIntPoint& ItemSize,
-                                           uint8 Columns, uint8 Rows)
+                                           uint8 Columns)
 {
 	for (int x = Tile.X; x <= ItemSize.X; x++)
 	{
 		for (int y = Tile.Y; y <= ItemSize.Y; y++)
 		{
-			if (IsItemSizeValid({x, y}, Columns, Rows))
+			if (IsItemSizeValid({x, y}, Columns))
 			{
 				if (IsTileFilled(Slots, IndexFromTile({x, y}, Columns)))
 				{
@@ -180,9 +198,9 @@ bool UItemsContainerComponent::IsRoomValid(TArray<uint32>& Slots, const FIntPoin
 	return true;
 }
 
-bool UItemsContainerComponent::IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns, uint8 Rows)
+bool UItemsContainerComponent::IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns)
 {
-	return ItemSize.X >= 0 && ItemSize.Y >= 0 && ItemSize.X < Columns && ItemSize.Y < Rows;
+	return ItemSize.X >= 0 && ItemSize.Y >= 0 && ItemSize.X < Columns;
 }
 
 bool UItemsContainerComponent::IsTileFilled(const TArray<uint32>& Slots, uint32 Index)

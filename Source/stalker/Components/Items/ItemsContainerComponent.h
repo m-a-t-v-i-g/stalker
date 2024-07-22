@@ -51,9 +51,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	uint8 Columns = 0;
 
-	UPROPERTY(EditAnywhere, Category = "Items Container")
-	uint8 Rows = 0;
-
 	UPROPERTY(EditInstanceOnly, Category = "Items Container")
 	TArray<UItemObject*> ItemsContainer;
 
@@ -76,6 +73,8 @@ public:
 	void AddItemAt(UItemObject* ItemObject, uint32 Index);
 	void RemoveItem(UItemObject* ItemObject);
 
+	void ResizeSlots(const UItemObject* ItemObject, bool bSubtract);
+
 	bool CanAddItem(const UItemObject* ItemObject, uint32& FindIndex);
 	
 	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex);
@@ -83,7 +82,6 @@ public:
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 
 	FORCEINLINE uint8 GetColumns() const { return Columns; }
-	FORCEINLINE uint8 GetRows() const { return Rows; }
 	
 	FORCEINLINE TArray<UItemObject*> GetItemsContainer() const { return ItemsContainer; }
 	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsContainerSlots; }
@@ -94,9 +92,8 @@ public:
 	static void FillRoom(TArray<uint32>& Slots, uint32 ItemId, const FIntPoint& Tile, const FIntPoint& ItemSize,
 	                     uint8 Columns);
 
-	static bool IsRoomValid(TArray<uint32>& Slots, const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Columns,
-	                        uint8 Rows);
+	static bool IsRoomValid(TArray<uint32>& Slots, const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Columns);
 	
-	static bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns, uint8 Rows);
+	static bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Columns);
 	static bool IsTileFilled(const TArray<uint32>& Slots, uint32 Index);
 };

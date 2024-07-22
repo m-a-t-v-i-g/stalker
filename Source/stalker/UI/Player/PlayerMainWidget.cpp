@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerMainWidget.h"
-#include "PlayerInventoryWidget.h"
+#include "PlayerManagerWidget.h"
 #include "Components/WidgetSwitcher.h"
 
 void UPlayerMainWidget::InitializeHUDWidget()

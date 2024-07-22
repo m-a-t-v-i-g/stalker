@@ -33,6 +33,11 @@ uint32 UItemObject::GetItemId() const
 	return ItemParams.ItemId;
 }
 
+FItemParams UItemObject::GetItemParams() const
+{
+	return ItemParams;
+}
+
 FGameplayTag UItemObject::GetItemTag() const
 {
 	FGameplayTag ItemTag;

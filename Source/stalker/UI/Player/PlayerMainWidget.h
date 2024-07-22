@@ -17,7 +17,7 @@ protected:
 	TObjectPtr<UUserWidget> HUD;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UPlayerInventoryWidget> Inventory;
+	TObjectPtr<class UPlayerManagerWidget> Inventory;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UUserWidget> PDA;

@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "PlayerInventoryWidget.generated.h"
+#include "InventoryWidget.generated.h"
 
 UCLASS()
-class STALKER_API UPlayerInventoryWidget : public UUserWidget
+class STALKER_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UItemsContainerGridWidget> InventoryGrid;
-
+	TObjectPtr<class UItemsContainerGridWidget> ItemsGrid;
+	
 public:
 	void InitializeInventory(class UItemsContainerComponent* ItemsContainerComponent);
 };

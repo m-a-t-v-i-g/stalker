@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "InteractiveItemWidget.generated.h"
 
@@ -15,9 +16,32 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> SizeBox;
 	
-public:
-	virtual void InitItemWidget(const UObject* BindObject, FIntPoint Size);
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UImage> ItemImage;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TextAmount;
+
+	UPROPERTY(EditAnywhere, Category = "Interactive Item")
+	TSoftObjectPtr<UDataTable> DescriptionsTable;
+	
 private:
+	FGameplayTag ItemTag;
+	
 	TWeakObjectPtr<const UObject> BoundObject;
+	
+public:
+	virtual void InitItemWidget(const FGameplayTag& InItemTag, const UObject* BindObject, FIntPoint Size);
+
+	const UObject* GetBoundObject() const { return BoundObject.Get(); }
+
+	template <class T>
+	const T* GetBoundObject() const { return Cast<T>(GetBoundObject()); }
+	
+protected:
+	UFUNCTION()
+	ESlateVisibility GetAmountVisibility();
+	
+	UFUNCTION()
+	FText GetAmountText();
 };
