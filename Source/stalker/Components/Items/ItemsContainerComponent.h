@@ -11,7 +11,7 @@
 class UItemObject;
 
 USTRUCT(BlueprintType, Blueprintable)
-struct FALDItemsContainerStartingData
+struct FItemsContainerStartingData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -61,7 +61,7 @@ protected:
 	TArray<uint32> ItemsContainerSlots;
 
 	UPROPERTY(EditAnywhere, Category = "Items Container")
-	TArray<FALDItemsContainerStartingData> StartingData;
+	TArray<FItemsContainerStartingData> StartingData;
 
 public:
 	FOnItemAddedToContainer OnItemAddedToContainer;

@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemObject.h"
+#include "ItemActor.h"
 
 void UItemObject::InitItem(const FItemData& ItemData)
 {
@@ -60,6 +61,7 @@ UClass* UItemObject::GetObjectClass() const
 	return ObjectClass;
 }
 
+/*
 FText UItemObject::GetItemName() const
 {
 	FText Name;
@@ -79,6 +81,7 @@ FText UItemObject::GetItemDesc() const
 	}
 	return Description;
 }
+*/
 
 FIntPoint UItemObject::GetItemSize() const
 {

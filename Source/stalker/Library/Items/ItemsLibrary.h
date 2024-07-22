@@ -42,16 +42,10 @@ struct FTableRowItems : public FTableRowBase
 	FGameplayTag Tag;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
-	TSubclassOf<AActor> ActorClass = nullptr;
+	TSubclassOf<class AItemActor> ActorClass = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
 	TSubclassOf<class UItemObject> ObjectClass = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Description")
-	FText Name;
-
-	UPROPERTY(EditAnywhere, Category = "Description")
-	FText Description;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	FIntPoint Size = {0, 0};

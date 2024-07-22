@@ -9,17 +9,17 @@
 #include "Interactive/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
 
-void UItemsContainerGridWidget::SetupItemsContainerGrid(UItemsContainerComponent* NewItemsContainer)
+void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* OwnContainerComp)
 {
-	if (ItemsContainerComponent.IsValid())
+	if (ItemsContainerRef.IsValid())
 	{
-		ItemsContainerComponent->OnItemAddedToContainer.RemoveAll(this);
+		ItemsContainerRef->OnItemAddedToContainer.RemoveAll(this);
 	}
 	
-	ItemsContainerComponent = NewItemsContainer;
+	ItemsContainerRef = OwnContainerComp;
 	
-	ItemsContainerComponent->OnItemAddedToContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemAddedToContainer);
-	ItemsContainerComponent->OnItemRemovedFromContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemRemovedFromContainer);
+	ItemsContainerRef->OnItemAddedToContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemAddedToContainer);
+	ItemsContainerRef->OnItemRemovedFromContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemRemovedFromContainer);
 
 	SetupSize();
 }
@@ -33,7 +33,7 @@ void UItemsContainerGridWidget::OnItemAddedToContainer(const UItemObject* ItemOb
 		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 		FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
 
-		ContainerItems.Add(ItemObject, ItemWidget);
+		ItemWidgetsMap.Add(ItemObject->GetItemId(), ItemWidget);
 		
 		if (UCanvasPanelSlot* CanvasPanelSlot = GridCanvas->AddChildToCanvas(ItemWidget))
 		{
@@ -45,18 +45,18 @@ void UItemsContainerGridWidget::OnItemAddedToContainer(const UItemObject* ItemOb
 
 void UItemsContainerGridWidget::OnItemRemovedFromContainer(const UItemObject* ItemObject)
 {
-	if (auto FindWidget = ContainerItems.FindChecked(ItemObject))
+	if (auto FindWidget = ItemWidgetsMap.FindChecked(ItemObject->GetItemId()))
 	{
 		FindWidget->RemoveFromParent();
-		ContainerItems.Remove(ItemObject);
+		ItemWidgetsMap.Remove(ItemObject->GetItemId());
 	}
 }
 
 void UItemsContainerGridWidget::SetupSize()
 {
 	FVector2D GridSize = {
-		ItemsContainerComponent->GetColumns() * APlayerHUD::TileSize,
-		ItemsContainerComponent->GetRows() * APlayerHUD::TileSize
+		ItemsContainerRef->GetColumns() * APlayerHUD::TileSize,
+		ItemsContainerRef->GetRows() * APlayerHUD::TileSize
 	};
 	
 	GridSizeBox->SetWidthOverride(GridSize.X);

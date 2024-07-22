@@ -18,14 +18,15 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> GridSizeBox;
 	
-	TWeakObjectPtr<class UItemsContainerComponent> ItemsContainerComponent;
+	TWeakObjectPtr<class UItemsContainerComponent> ItemsContainerRef;
 
-	TMap<const class UItemObject*, class UInteractiveItemWidget*> ContainerItems;
+private:
+	TMap<const uint32, class UInteractiveItemWidget*> ItemWidgetsMap;
 
 public:
-	void SetupItemsContainerGrid(UItemsContainerComponent* NewItemsContainer);
+	void SetupContainerGrid(UItemsContainerComponent* OwnContainerComp);
 	
-	void OnItemAddedToContainer(const UItemObject* ItemObject, FIntPoint Tile);
+	void OnItemAddedToContainer(const class UItemObject* ItemObject, FIntPoint Tile);
 	void OnItemRemovedFromContainer(const UItemObject* ItemObject);
 
 protected:

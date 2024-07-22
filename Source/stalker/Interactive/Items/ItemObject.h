@@ -35,8 +35,10 @@ public:
 	UClass* GetActorClass() const;
 	UClass* GetObjectClass() const;
 
+	/*
 	FText GetItemName() const;
 	FText GetItemDesc() const;
+	*/
 
 	FIntPoint GetItemSize() const;
 
