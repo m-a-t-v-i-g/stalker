@@ -1,9 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerManagerWidget.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "Components/Inventory/InventoryComponent.h"
 #include "UI/Inventory/InventoryWidget.h"
 
-void UPlayerManagerWidget::InitializeInventory(UItemsContainerComponent* ItemsContainerComponent)
+void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
 {
-	PlayerInventory->InitializeInventory(ItemsContainerComponent);
+	OwnAbilityComponent = AbilityComp;
+	OwnInventoryComponent = InventoryComp;
+
+	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
+	
+	Inventory->InitializeInventory(InventoryComp);
 }

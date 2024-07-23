@@ -13,33 +13,31 @@ void APlayerHUD::PostInitializeComponents()
 
 	StaticInteractiveItemWidgetClass = InteractiveItemWidgetClass;
 	
-	if (HUDWidgetClass)
+	if (MainWidgetClass)
 	{
-		HUDWidget = CreateWidget<UPlayerMainWidget>(GetOwningPlayerController(), HUDWidgetClass);
-		if (HUDWidget && !HUDWidget->IsInViewport())
+		MainWidget = CreateWidget<UPlayerMainWidget>(GetOwningPlayerController(), MainWidgetClass);
+		if (MainWidget && !MainWidget->IsInViewport())
 		{
-			//HUDWidget->InitializeHUD();
-			HUDWidget->AddToViewport();
-
-			ActiveTab = EActivateTab::HUD;
+			MainWidget->AddToViewport();
+			ToggleTab(EActivateTab::HUD);
 		}
 	}
 }
 
-void APlayerHUD::InitializePlayerInventory(UItemsContainerComponent* ItemsContainerComponent)
+void APlayerHUD::InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
 {
-	if (HUDWidget)
+	if (MainWidget)
 	{
-		HUDWidget->InitializeManager(ItemsContainerComponent);
+		MainWidget->InitializeMainWidget(AbilityComp, InventoryComp);
 	}
 }
 
 void APlayerHUD::ToggleTab(EActivateTab Tab)
 {
-	if (!HUDWidget) return;
+	if (!MainWidget) return;
 	
 	Tab = ActiveTab != Tab ? Tab : EActivateTab::HUD;
-	HUDWidget->ToggleTab(Tab);
+	MainWidget->ToggleTab(Tab);
 
 	ActiveTab = Tab;
 }

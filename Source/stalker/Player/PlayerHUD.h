@@ -6,6 +6,9 @@
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
+class UStalkerAbilityComponent;
+class UInventoryComponent;
+
 UENUM()
 enum class EActivateTab : uint8
 {
@@ -23,12 +26,13 @@ protected:
 	virtual void PostInitializeComponents() override;
 	
 	UPROPERTY(EditDefaultsOnly, DisplayName = "HUD Widget Class", Category = "HUD")
-	TSubclassOf<class UPlayerMainWidget> HUDWidgetClass; 
+	TSubclassOf<class UPlayerMainWidget> MainWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UInteractiveItemWidget> InteractiveItemWidgetClass; 
 
-	TObjectPtr<UPlayerMainWidget> HUDWidget;
+	UPROPERTY(EditInstanceOnly, Category = "HUD")
+	TObjectPtr<UPlayerMainWidget> MainWidget;
 
 private:
 	EActivateTab ActiveTab = EActivateTab::HUD;
@@ -37,7 +41,7 @@ public:
 	static UClass* StaticInteractiveItemWidgetClass;
 	static float TileSize;
 	
-	void InitializePlayerInventory(class UItemsContainerComponent* ItemsContainerComponent);
+	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp);
 
 	void ToggleTab(EActivateTab Tab);
 };

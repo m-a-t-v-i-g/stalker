@@ -12,10 +12,16 @@ class STALKER_API AStalkerCharacter : public ABaseCharacter
 	GENERATED_BODY()
 
 protected:
+	TObjectPtr<class UStalkerAbilityComponent> AbilityComponent;
+	
 	TObjectPtr<class UInventoryComponent> InventoryComponent;
 	
 public:
 	AStalkerCharacter();
 
 	virtual void PreInitializeComponents() override;
+	virtual void PossessedBy(AController* NewController) override;
+
+	FORCEINLINE UStalkerAbilityComponent* GetAbilityComponent() const { return AbilityComponent.Get(); }
+	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent.Get(); }
 };

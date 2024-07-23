@@ -2,17 +2,20 @@
 
 #include "PlayerMainWidget.h"
 #include "PlayerManagerWidget.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
+#include "Components/Inventory/InventoryComponent.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeHUD(UStalkerAbilityComponent* AbilityComponent)
+void UPlayerMainWidget::InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
 {
-	
-}
+	OwnAbilityComponent = AbilityComp;
+	OwnInventoryComponent = InventoryComp;
 
-void UPlayerMainWidget::InitializeManager(UItemsContainerComponent* ItemsContainerComponent)
-{
-	Manager->InitializeInventory(ItemsContainerComponent);
+	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
+
+	HUD->InitializeHUD(OwnAbilityComponent.Get());
+	Manager->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
 }
 
 void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)

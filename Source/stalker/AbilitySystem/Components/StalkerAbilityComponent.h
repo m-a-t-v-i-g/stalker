@@ -16,4 +16,6 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Attributes")
 	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
+
+	void InitAbilitySystem(AController* InController, AActor* InActor);
 };

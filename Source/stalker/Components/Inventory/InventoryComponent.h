@@ -6,7 +6,7 @@
 #include "Components/Items/ItemsContainerComponent.h"
 #include "InventoryComponent.generated.h"
 
-UCLASS()
+UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UInventoryComponent : public UItemsContainerComponent
 {
 	GENERATED_BODY()

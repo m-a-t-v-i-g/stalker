@@ -15,3 +15,8 @@ UStalkerAbilityComponent::UStalkerAbilityComponent()
 	ActionAttribute.Attributes = OrganicAttributeSet.GetClass();
 	DefaultStartingData.Add(ActionAttribute);
 }
+
+void UStalkerAbilityComponent::InitAbilitySystem(AController* InController, AActor* InActor)
+{
+	InitAbilityActorInfo(InController, InActor);
+}

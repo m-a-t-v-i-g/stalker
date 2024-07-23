@@ -5,5 +5,7 @@
 
 void UInventoryWidget::InitializeInventory(UItemsContainerComponent* ItemsContainerComponent)
 {
+	check(ItemsContainerComponent);
+	
 	ItemsGrid->SetupContainerGrid(ItemsContainerComponent);
 }
