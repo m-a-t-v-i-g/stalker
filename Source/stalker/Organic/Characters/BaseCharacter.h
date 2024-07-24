@@ -13,7 +13,7 @@ class STALKER_API ABaseCharacter : public ABaseOrganic
 	GENERATED_BODY()
 
 public:
-	ABaseCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	ABaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 #pragma region Movement
 

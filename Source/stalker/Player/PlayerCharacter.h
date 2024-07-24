@@ -13,7 +13,7 @@ class STALKER_API APlayerCharacter : public AStalkerCharacter
 	GENERATED_BODY()
 
 public:
-	APlayerCharacter();
+	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void PossessedBy(AController* NewController) override;

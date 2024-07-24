@@ -6,14 +6,6 @@
 UStalkerAbilityComponent::UStalkerAbilityComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
-	OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>(TEXT("OrganicAttributeSet"));
-	
-	AddAttributeSetSubobject<UOrganicAttributeSet>(OrganicAttributeSet);
-	
-	FAttributeDefaults ActionAttribute;
-	ActionAttribute.Attributes = OrganicAttributeSet.GetClass();
-	DefaultStartingData.Add(ActionAttribute);
 }
 
 void UStalkerAbilityComponent::InitAbilitySystem(AController* InController, AActor* InActor)

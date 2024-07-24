@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GenPawn.h"
 #include "Library/OrganicLibrary.h"
 #include "BaseOrganic.generated.h"
@@ -10,23 +11,33 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumped);
 
 UCLASS()
-class STALKER_API ABaseOrganic : public AGenPawn
+class STALKER_API ABaseOrganic : public AGenPawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	ABaseOrganic(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	ABaseOrganic(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PostInitializeComponents() override;
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void PossessedBy(AController* NewController) override;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	static FName CapsuleName;
-	static FName OrganicMovementName;
+	FORCEINLINE virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	template <class T>
+	T* GetAbilitySystemComponent() const
+	{
+		return Cast<T>(GetAbilitySystemComponent());
+	}
+	
 	static FName MeshName;
+	static FName OrganicMovementName;
+	static FName CapsuleName;
+	static FName AbilitySystemComponentName;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
@@ -38,24 +49,20 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCapsuleComponent> CapsuleComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStalkerAbilityComponent> AbilitySystemComponent;
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	TObjectPtr<class UArrowComponent> ArrowComponent;
 #endif
-	
-public:
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return Mesh; }
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE UOrganicMovementComponent* GetOrganicMovement() const { return OrganicMovement; }
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Attributes")
+	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
 
 #pragma region Movement
 
-protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
 	FDataTableRowHandle MovementTable;
 
@@ -244,6 +251,15 @@ public:
 	void OnUnCrouch();
 	void OnJump();
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return Mesh; }
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	FORCEINLINE UOrganicMovementComponent* GetOrganicMovement() const { return OrganicMovement; }
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	FORCEINLINE UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE FVector GetAcceleration() const { return Acceleration; }
 

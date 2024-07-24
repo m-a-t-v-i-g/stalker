@@ -5,6 +5,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerCharacter.h"
 #include "PlayerHUD.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "Components/Inventory/CharacterInventoryComponent.h"
 #include "DataAssets/InputDataAsset.h"
 
 AStalkerPlayerController::AStalkerPlayerController()
@@ -28,7 +30,8 @@ void AStalkerPlayerController::OnPossess(APawn* InPawn)
 	if (IsLocalController())
 	{
 		Stalker->SetupCharacterLocally();
-		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilityComponent(), Stalker->GetInventoryComponent());
+		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+		                                Stalker->GetInventoryComponent());
 	}
 }
 
@@ -38,6 +41,13 @@ void AStalkerPlayerController::OnRep_Pawn()
 
 	Stalker = GetPawn<APlayerCharacter>();
 	if (!Stalker) return;
+
+	if (StalkerHUD)
+	{
+		Stalker->SetupCharacterLocally();
+		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+		                                Stalker->GetInventoryComponent());
+	}
 }
 
 void AStalkerPlayerController::SetupInputComponent()

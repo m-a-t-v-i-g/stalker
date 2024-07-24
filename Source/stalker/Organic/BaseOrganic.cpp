@@ -2,19 +2,21 @@
 
 #include "Organic/BaseOrganic.h"
 #include "GenCapsuleComponent.h"
+#include "AbilitySystem/Attributes/OrganicAttributeSet.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Net/UnrealNetwork.h"
 
-FName ABaseOrganic::CapsuleName {"OrganicCollision"};
-FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
+FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
+FName ABaseOrganic::CapsuleName {"OrganicCollision"};
+FName ABaseOrganic::AbilitySystemComponentName {"OrganicAbilityComp"};
 
-const FName NAME_RotationAmount(TEXT("RotationAmount"));
-const FName NAME_YawOffset(TEXT("YawOffset"));
+const FName NAME_RotationAmount("RotationAmount");
+const FName NAME_YawOffset("YawOffset");
 
-ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer)
+ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
 	struct FConstructorStatics
 	{
@@ -56,7 +58,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer)
 		Mesh->bAffectDynamicIndirectLighting = true;
 		Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 		Mesh->SetupAttachment(CapsuleComponent);
-		Mesh->SetCollisionProfileName(TEXT("CharacterMesh"));
+		Mesh->SetCollisionProfileName("CharacterMesh");
 		Mesh->SetGenerateOverlapEvents(false);
 		Mesh->SetCanEverAffectNavigation(false);
 	}
@@ -67,8 +69,14 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer)
 		OrganicMovement->UpdatedComponent = CapsuleComponent;
 	}
 	
+	AbilitySystemComponent = CreateDefaultSubobject<UStalkerAbilityComponent>("AbilityComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	
+	OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
+	
 #if WITH_EDITORONLY_DATA
-	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
+	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");
 	if (ArrowComponent)
 	{
 		ArrowComponent->ArrowColor = FColor(150, 200, 255);
@@ -131,9 +139,24 @@ void ABaseOrganic::Tick(float DeltaSeconds)
 	OrganicTick(DeltaSeconds);
 }
 
+void ABaseOrganic::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	{
+		GetAbilitySystemComponent<UStalkerAbilityComponent>()->InitAbilitySystem(NewController, this);
+	}
+}
+
 void ABaseOrganic::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
+UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent.Get();
 }
 
 void ABaseOrganic::OnMovementModeChanged()

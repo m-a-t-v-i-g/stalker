@@ -10,13 +10,6 @@ UItemsContainerComponent::UItemsContainerComponent()
 	bWantsInitializeComponent = true;
 }
 
-void UItemsContainerComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-	//ItemsContainerSlots.SetNum(Columns * Rows);
-}
-
 void UItemsContainerComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -25,6 +18,10 @@ void UItemsContainerComponent::BeginPlay()
 	{
 		AddStartingData();
 	}
+}
+
+void UItemsContainerComponent::InitializeContainer()
+{
 }
 
 void UItemsContainerComponent::AddStartingData()

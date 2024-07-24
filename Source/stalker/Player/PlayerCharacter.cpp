@@ -5,7 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "DataAssets/InputDataAsset.h"
 
-APlayerCharacter::APlayerCharacter()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
 	PrimaryActorTick.bCanEverTick = true;
 }

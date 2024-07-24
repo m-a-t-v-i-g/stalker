@@ -2,7 +2,7 @@
 
 #include "Organic/Characters/BaseCharacter.h"
 
-ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
+ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
 	PrimaryActorTick.bCanEverTick = true;
 }

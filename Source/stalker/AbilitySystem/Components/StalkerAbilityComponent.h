@@ -14,8 +14,5 @@ class STALKER_API UStalkerAbilityComponent : public UAbilitySystemComponent
 public:
 	UStalkerAbilityComponent();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Attributes")
-	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
-
 	void InitAbilitySystem(AController* InController, AActor* InActor);
 };

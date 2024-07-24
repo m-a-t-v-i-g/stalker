@@ -41,7 +41,6 @@ class STALKER_API UItemsContainerComponent : public UActorComponent
 public:
 	UItemsContainerComponent();
 
-	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	
 protected:
@@ -64,6 +63,8 @@ public:
 	FOnItemAddedToContainer OnItemAddedToContainer;
 	FOnItemRemovedFromContainer OnItemRemovedFromContainer;
 
+	virtual void InitializeContainer();
+	
 	virtual void AddStartingData();
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);
