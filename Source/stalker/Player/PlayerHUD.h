@@ -7,7 +7,7 @@
 #include "PlayerHUD.generated.h"
 
 class UStalkerAbilityComponent;
-class UInventoryComponent;
+class UCharacterInventoryComponent;
 
 UENUM()
 enum class EActivateTab : uint8
@@ -41,7 +41,7 @@ public:
 	static UClass* StaticInteractiveItemWidgetClass;
 	static float TileSize;
 	
-	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp);
+	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void ToggleTab(EActivateTab Tab);
 };

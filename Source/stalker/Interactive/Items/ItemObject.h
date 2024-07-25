@@ -12,6 +12,9 @@ class STALKER_API UItemObject : public UObject
 {
 	GENERATED_BODY()
 
+public:
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
 	FItemParams ItemParams;

@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractiveItemWidget.h"
+#include "ItemDragDropOperation.h"
+#include "ItemDraggedWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
@@ -9,7 +11,40 @@
 #include "Library/GeneralLibrary.h"
 #include "Player/PlayerHUD.h"
 
-void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, const UObject* BindObject, FIntPoint Size)
+FReply UInteractiveItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+	
+	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+	{
+		return HandleLeftMouseButtonDown(InMouseEvent, EKeys::LeftMouseButton);
+	}
+	
+	if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+	{
+		return HandleRightMouseButtonDown(InMouseEvent, EKeys::RightMouseButton);
+	}
+	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+                                                  UDragDropOperation*& OutOperation)
+{
+	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+	
+	UItemDragDropOperation* DragDropOperation = NewObject<UItemDragDropOperation>();
+	check(DragDropOperation);
+
+	DragDropOperation->ItemWidgetRef = this;
+	DragDropOperation->Payload = BoundObject.Get();
+	DragDropOperation->DefaultDragVisual = this;
+	DragDropOperation->Pivot = EDragPivot::CenterCenter;
+	OutOperation = DragDropOperation;
+	
+	BeginDragOperation();
+}
+
+void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, UItemObject* BindObject, FIntPoint Size)
 {
 	ItemTag = InItemTag;
 	BoundObject = BindObject;
@@ -30,6 +65,44 @@ void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, const
 		auto Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(Row->Thumbnail.LoadSynchronous());
 		ItemImage->SetBrush(Icon);
 	}
+}
+
+FReply UInteractiveItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+{
+	FEventReply Reply (true);
+	if (InMouseEvent.GetEffectingButton() == DragKey)
+	{
+		TSharedPtr<SWidget> SlateWidgetDetectingDrag = this->GetCachedWidget();
+		if (SlateWidgetDetectingDrag.IsValid())
+		{
+			Reply.NativeReply.DetectDrag(SlateWidgetDetectingDrag.ToSharedRef(), DragKey);
+		}
+	}
+	return Reply.NativeReply;
+}
+
+FReply UInteractiveItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+{
+	FEventReply Reply (true);
+	if (InMouseEvent.GetEffectingButton() == DragKey)
+	{
+	}
+	return Reply.NativeReply;
+}
+
+void UInteractiveItemWidget::BeginDragOperation()
+{
+	OnBeginDragDropOperation.ExecuteIfBound(BoundObject.Get());
+}
+
+void UInteractiveItemWidget::CompleteDragOperation()
+{
+	OnCompleteDragDropOperation.ExecuteIfBound(BoundObject.Get());
+}
+
+void UInteractiveItemWidget::ReverseDragOperation()
+{
+	OnReverseDragDropOperation.ExecuteIfBound(BoundObject.Get());
 }
 
 ESlateVisibility UInteractiveItemWidget::GetAmountVisibility()

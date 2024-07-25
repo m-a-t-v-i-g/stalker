@@ -10,18 +10,10 @@ UItemsContainerComponent::UItemsContainerComponent()
 	bWantsInitializeComponent = true;
 }
 
-void UItemsContainerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (GetOwner()->HasAuthority())
-	{
-		AddStartingData();
-	}
-}
-
 void UItemsContainerComponent::InitializeContainer()
 {
+	ItemsContainerSlots.SetNum(Columns * Capacity);
+	AddStartingData();
 }
 
 void UItemsContainerComponent::AddStartingData()
@@ -87,6 +79,7 @@ void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 		ItemsContainer.Add(ItemObject);
 	}
 	FillRoom(ItemsContainerSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
+	UpdateItemsMap();
 	OnItemAddedToContainer.Broadcast(ItemObject, Tile);
 }
 
@@ -98,19 +91,28 @@ void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
 	{
 		ItemsContainer.Remove(ItemObject);
 	}
-	ResizeSlots(ItemObject, true);
+
+	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
+	{
+		if (ItemsContainerSlots[i] == ItemObject->GetItemId())
+		{
+			ItemsContainerSlots[i] = 0;
+		}
+	}
+	
+	UpdateItemsMap();
 	OnItemRemovedFromContainer.Broadcast(ItemObject);
 }
 
-void UItemsContainerComponent::ResizeSlots(const UItemObject* ItemObject, bool bSubtract)
+void UItemsContainerComponent::UpdateItemsMap()
 {
-	if (bSubtract)
+	ItemsMap.Empty();
+	for (int i = 0; i < ItemsContainer.Num(); i++)
 	{
-		ItemsContainerSlots.SetNum(ItemsContainerSlots.Num() - Columns * ItemObject->GetItemSize().Y);
-	}
-	else
-	{
-		ItemsContainerSlots.SetNum(ItemsContainerSlots.Num() + Columns * ItemObject->GetItemSize().Y);
+		if (!ItemsMap.Contains(ItemsContainer[i]))
+		{
+			ItemsMap.Add(ItemsContainer[i], TileFromIndex(i, Columns));
+		}
 	}
 }
 
@@ -130,7 +132,6 @@ bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32&
 
 bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex)
 {
-	ResizeSlots(ItemObject, false);
 	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
 	{
 		if (CheckRoom(ItemObject, (uint32)i))

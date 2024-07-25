@@ -6,7 +6,6 @@
 #include "PlayerCharacter.h"
 #include "PlayerHUD.h"
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
 #include "DataAssets/InputDataAsset.h"
 
 AStalkerPlayerController::AStalkerPlayerController()
@@ -78,6 +77,9 @@ void AStalkerPlayerController::IA_Inventory(const FInputActionValue& Value)
 	{
 		StalkerHUD->ToggleTab(EActivateTab::Inventory);
 	}
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+	SetShowMouseCursor(true);
 }
 
 void AStalkerPlayerController::IA_PDA(const FInputActionValue& Value)

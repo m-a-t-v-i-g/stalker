@@ -48,14 +48,29 @@ public:
 	
 	virtual void InitializeContainer() override;
 
+	virtual void AddStartingData() override;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Equipment Slots", Category = "Equipment")
 	TArray<FEquipmentSlotSpec> EquipmentSlotSpecs;
 
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
+	TArray<UItemObject*> EquippedItems;
+
 private:
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slots")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
 	TArray<class UEquipmentSlot*> EquipmentSlots;
-	
+
 public:
+	void EquipSlot(const FString& SlotName, const FGameplayTag& ItemTag, UItemObject* BoundObject);
+
+	UFUNCTION(Server, Reliable)
+	void Server_EquipSlot(const FString& SlotName, const FGameplayTag& ItemTag, UItemObject* BoundObject);
+	
+	void UnEquipSlot(const FString& SlotName, UItemObject* OldBoundObject);
+
+	UFUNCTION(Server, Reliable)
+	void Server_UnEquipSlot(const FString& SlotName, UItemObject* OldBoundObject);
+	
 	UEquipmentSlot* FindEquipmentSlotByName(const FString& SlotName) const;
 };

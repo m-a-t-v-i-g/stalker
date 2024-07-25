@@ -4,10 +4,10 @@
 #include "PlayerManagerWidget.h"
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
-#include "Components/Inventory/InventoryComponent.h"
+#include "Components/Inventory/CharacterInventoryComponent.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
+void UPlayerMainWidget::InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = InventoryComp;

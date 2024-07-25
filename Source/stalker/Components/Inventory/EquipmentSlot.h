@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CharacterInventoryComponent.h"
 #include "GameplayTagContainer.h"
-#include "UObject/Object.h"
 #include "EquipmentSlot.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotChangedSignature, const FGameplayTag&, UItemObject*)
 
 UCLASS()
 class STALKER_API UEquipmentSlot : public UObject
@@ -14,23 +16,38 @@ class STALKER_API UEquipmentSlot : public UObject
 
 public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	UPROPERTY(EditInstanceOnly, Category = "Equipment Slot")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Equipment Slot")
 	FGameplayTagContainer CategoryTags;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Equipment Slot")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Equipment Slot")
 	FString SlotName = "Default";
 	
-	UPROPERTY(EditInstanceOnly, Category = "Equipment Slot")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
 	FGameplayTag ItemTag;
 
-	UPROPERTY(EditInstanceOnly, Category = "Equipment Slot")
-	TWeakObjectPtr<const UObject> BoundObject;
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
+	TWeakObjectPtr<UItemObject> BoundObject;
 
-	UPROPERTY(EditInstanceOnly, Category = "Equipment Slot")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
 	bool bAvailable = true;
 
 public:
+	FOnSlotChangedSignature OnSlotEquipped;
+	FOnSlotChangedSignature OnSlotUnequipped;
+
+	void SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec);
+
+	bool EquipSlot(const FGameplayTag& InItemTag, UItemObject* BindObject);
+	void UnEquipSlot();
+
+	bool IsEquipped() const { return ItemTag.IsValid() && BoundObject != nullptr; }
+	
 	const FString& GetSlotName() const { return SlotName; }
+
+	const FGameplayTag& GetItemTag() const { return ItemTag; }
+	UItemObject* GetBoundObject() const { return BoundObject.Get(); }
 };

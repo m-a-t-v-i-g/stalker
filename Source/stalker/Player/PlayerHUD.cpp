@@ -24,11 +24,11 @@ void APlayerHUD::PostInitializeComponents()
 	}
 }
 
-void APlayerHUD::InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
+void APlayerHUD::InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(AbilityComp, InventoryComp);
+		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp);
 	}
 }
 

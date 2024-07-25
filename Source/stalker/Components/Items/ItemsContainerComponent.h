@@ -30,8 +30,8 @@ struct FItemsContainerStartingData
 	}
 };
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemAddedToContainer, const UItemObject*, FIntPoint);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedFromContainer, const UItemObject*);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemAddedToContainer, UItemObject*, FIntPoint);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedFromContainer, UItemObject*);
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UItemsContainerComponent : public UActorComponent
@@ -41,20 +41,24 @@ class STALKER_API UItemsContainerComponent : public UActorComponent
 public:
 	UItemsContainerComponent();
 
-	virtual void BeginPlay() override;
-	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	FGameplayTagContainer CategoryTags;
 	
+	UPROPERTY(VisibleAnywhere, Category = "Items Container")
+	uint8 Columns = 10;
+
 	UPROPERTY(EditAnywhere, Category = "Items Container")
-	uint8 Columns = 0;
+	uint8 Capacity = 70;
 
 	UPROPERTY(EditInstanceOnly, Category = "Items Container")
 	TArray<UItemObject*> ItemsContainer;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
 	TArray<uint32> ItemsContainerSlots;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
+	TMap<UItemObject*, FIntPoint> ItemsMap;
 
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	TArray<FItemsContainerStartingData> StartingData;
@@ -73,9 +77,8 @@ public:
 	
 	void AddItemAt(UItemObject* ItemObject, uint32 Index);
 	void RemoveItem(UItemObject* ItemObject);
-
-	void ResizeSlots(const UItemObject* ItemObject, bool bSubtract);
-
+	void UpdateItemsMap();
+	
 	bool CanAddItem(const UItemObject* ItemObject, uint32& FindIndex);
 	
 	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex);
@@ -86,6 +89,7 @@ public:
 	
 	FORCEINLINE TArray<UItemObject*> GetItemsContainer() const { return ItemsContainer; }
 	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsContainerSlots; }
+	FORCEINLINE TMap<UItemObject*, FIntPoint> GetItemsMap() const { return ItemsMap; }
 	
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, int Width);

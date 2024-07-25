@@ -7,7 +7,7 @@
 #include "PlayerManagerWidget.generated.h"
 
 class UStalkerAbilityComponent;
-class UInventoryComponent;
+class UCharacterInventoryComponent;
 
 UCLASS()
 class STALKER_API UPlayerManagerWidget : public UUserWidget
@@ -18,10 +18,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UInventoryWidget> Inventory;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UCharacterEquipmentWidget> Equipment;
+
 private:
 	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 	
 public:
-	void InitializeManager(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp);
+	void InitializeManager(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 };

@@ -27,10 +27,10 @@ protected:
 	
 private:
 	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<class UCharacterInventoryComponent> OwnInventoryComponent;
 	
 public:
-	void InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* ItemsContainerComp);
+	void InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	
 	void ToggleTab(EActivateTab ActivateTab);
 };

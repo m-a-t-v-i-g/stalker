@@ -2,15 +2,18 @@
 
 #include "PlayerManagerWidget.h"
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
-#include "Components/Inventory/InventoryComponent.h"
+#include "Components/Inventory/CharacterInventoryComponent.h"
+#include "UI/Inventory/CharacterEquipmentWidget.h"
 #include "UI/Inventory/InventoryWidget.h"
 
-void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp)
+void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityComp,
+                                             UCharacterInventoryComponent* CharInventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;
-	OwnInventoryComponent = InventoryComp;
+	OwnInventoryComponent = CharInventoryComp;
 
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 	
-	Inventory->InitializeInventory(InventoryComp);
+	Inventory->InitializeInventory(CharInventoryComp);
+	Equipment->InitializeCharacterEquipment(CharInventoryComp);
 }
