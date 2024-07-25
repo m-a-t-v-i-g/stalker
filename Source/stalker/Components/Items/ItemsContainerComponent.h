@@ -30,8 +30,7 @@ struct FItemsContainerStartingData
 	}
 };
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemAddedToContainer, UItemObject*, FIntPoint);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedFromContainer, UItemObject*);
+DECLARE_MULTICAST_DELEGATE(FOnItemsContainerUpdatedSignature);
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UItemsContainerComponent : public UActorComponent
@@ -46,7 +45,7 @@ protected:
 	FGameplayTagContainer CategoryTags;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Items Container")
-	uint8 Columns = 10;
+	uint8 Columns = 9;
 
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	uint8 Capacity = 70;
@@ -55,18 +54,17 @@ protected:
 	TArray<UItemObject*> ItemsContainer;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
-	TArray<uint32> ItemsContainerSlots;
+	TArray<uint32> ItemsSlots;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
-	TMap<UItemObject*, FIntPoint> ItemsMap;
+	TMap<uint32, FIntPoint> ItemsMap;
 
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	TArray<FItemsContainerStartingData> StartingData;
 
 public:
-	FOnItemAddedToContainer OnItemAddedToContainer;
-	FOnItemRemovedFromContainer OnItemRemovedFromContainer;
-
+	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
+	
 	virtual void InitializeContainer();
 	
 	virtual void AddStartingData();
@@ -74,22 +72,27 @@ public:
 	bool FindAvailablePlace(UItemObject* ItemObject);
 
 	bool TryAddItem(UItemObject* ItemObject);
-	
+
+	void StackItemAt(const UItemObject* ItemObject, uint32 Index);
 	void AddItemAt(UItemObject* ItemObject, uint32 Index);
+	void DragItem(const UItemObject* ItemObject);
 	void RemoveItem(UItemObject* ItemObject);
 	void UpdateItemsMap();
-	
+
+	bool CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex);
 	bool CanAddItem(const UItemObject* ItemObject, uint32& FindIndex);
-	
+
 	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex);
 	
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 
+	UItemObject* FindItemById(uint32 ItemId) const;
+	
 	FORCEINLINE uint8 GetColumns() const { return Columns; }
 	
 	FORCEINLINE TArray<UItemObject*> GetItemsContainer() const { return ItemsContainer; }
-	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsContainerSlots; }
-	FORCEINLINE TMap<UItemObject*, FIntPoint> GetItemsMap() const { return ItemsMap; }
+	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsSlots; }
+	FORCEINLINE TMap<uint32, FIntPoint> GetItemsMap() const { return ItemsMap; }
 	
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, int Width);

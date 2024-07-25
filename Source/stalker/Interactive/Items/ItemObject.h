@@ -32,26 +32,25 @@ protected:
 	virtual void SetupItemProperties();
 	
 public:
-	uint32 GetItemId() const;
-	FItemParams GetItemParams() const;
+	void AddAmount(uint32 Amount);
 
-	FGameplayTag GetItemTag() const;
-	UClass* GetActorClass() const;
-	UClass* GetObjectClass() const;
-
-	/*
-	FText GetItemName() const;
-	FText GetItemDesc() const;
-	*/
-
-	FIntPoint GetItemSize() const;
-
-	bool IsUsable() const;
-	bool IsDroppable() const;
-	bool IsStackable() const;
-
-	uint16 GetMaxStack() const;
+	bool IsSimilar(const UItemObject* OtherItemObject) const;
 	
+	FORCEINLINE uint32 GetItemId() const;
+	FORCEINLINE FItemParams GetItemParams() const;
+
+	FORCEINLINE FName GetItemRowName() const;
+
+	FORCEINLINE FGameplayTag GetItemTag() const;
+	FORCEINLINE UClass* GetActorClass() const;
+	FORCEINLINE UClass* GetObjectClass() const;
+
+	FORCEINLINE FIntPoint GetItemSize() const;
+
+	FORCEINLINE bool IsUsable() const;
+	FORCEINLINE bool IsDroppable() const;
+	FORCEINLINE bool IsStackable() const;
+
 protected:
 	template <typename Struct>
 	Struct* GetRow() const

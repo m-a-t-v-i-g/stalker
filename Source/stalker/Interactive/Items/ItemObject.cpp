@@ -15,17 +15,23 @@ void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
 
 void UItemObject::SetupItemProperties()
 {
-	if (IsStackable())
-	{
-		if (ItemParams.Amount > GetMaxStack())
-		{
-			ItemParams.Amount = GetMaxStack();
-		}
-	}
-	else
+	if (!IsStackable())
 	{
 		ItemParams.Amount = 1;
 	}
+}
+
+void UItemObject::AddAmount(uint32 Amount)
+{
+	if (IsStackable())
+	{
+		ItemParams.Amount += Amount;
+	}
+}
+
+bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
+{
+	return ItemRowName == OtherItemObject->GetItemRowName();
 }
 
 uint32 UItemObject::GetItemId() const
@@ -36,6 +42,11 @@ uint32 UItemObject::GetItemId() const
 FItemParams UItemObject::GetItemParams() const
 {
 	return ItemParams;
+}
+
+FName UItemObject::GetItemRowName() const
+{
+	return ItemRowName;
 }
 
 FGameplayTag UItemObject::GetItemTag() const
@@ -128,14 +139,4 @@ bool UItemObject::IsStackable() const
 		bIsStackable = GetRow<FTableRowItems>()->bStackable;
 	}
 	return bIsStackable;
-}
-
-uint16 UItemObject::GetMaxStack() const
-{
-	int MaxStack = 1;
-	if (GetRow<FTableRowItems>())
-	{
-		MaxStack = GetRow<FTableRowItems>()->MaxStack;
-	}
-	return MaxStack;
 }

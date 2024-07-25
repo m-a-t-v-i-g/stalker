@@ -58,9 +58,6 @@ struct FTableRowItems : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	bool bStackable = false;
-
-	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
-	uint16 MaxStack = 1;
 };
 
 USTRUCT(BlueprintType)

@@ -17,6 +17,9 @@ class STALKER_API UEquipmentSlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+	                          UDragDropOperation* InOperation) override;
+	
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
 	FString SlotName = "Default";
 	
@@ -24,11 +27,15 @@ protected:
 	TObjectPtr<class UCanvasPanel> SlotCanvas;
 
 private:
+	TWeakObjectPtr<UCharacterInventoryComponent> OwnEquipment;
 	TWeakObjectPtr<UEquipmentSlot> OwnSlot;
 	
 public:
-	void SetupEquipmentSlot(const UCharacterInventoryComponent* CharInventoryComp);
+	void SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp);
 
 protected:
-	void OnSlotEquipped(const FGameplayTag& ItemTag, UItemObject* BoundObject);
+	void OnSlotChanged(const FGameplayTag& ItemTag, UItemObject* BoundObject);
+	
+	void OnCompleteDragOperation(UItemObject* DraggedItem);
+	void OnReverseDragOperation(UItemObject* DraggedItem);
 };

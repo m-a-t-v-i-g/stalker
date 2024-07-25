@@ -3,7 +3,7 @@
 #include "CharacterEquipmentWidget.h"
 #include "EquipmentSlotWidget.h"
 
-void UCharacterEquipmentWidget::InitializeCharacterEquipment(const UCharacterInventoryComponent* CharInventoryComp) const
+void UCharacterEquipmentWidget::InitializeCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const
 {
 	ArmorSlot->SetupEquipmentSlot(CharInventoryComp);
 	MainSlot->SetupEquipmentSlot(CharInventoryComp);

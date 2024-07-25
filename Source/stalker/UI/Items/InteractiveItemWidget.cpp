@@ -40,8 +40,19 @@ void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
 	DragDropOperation->DefaultDragVisual = this;
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
 	OutOperation = DragDropOperation;
-	
+
+	RemoveFromParent();
 	BeginDragOperation();
+}
+
+bool UInteractiveItemWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+                                          UDragDropOperation* InOperation)
+{
+	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
+	{
+		
+	}
+	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, UItemObject* BindObject, FIntPoint Size)

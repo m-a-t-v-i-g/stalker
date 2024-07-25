@@ -30,7 +30,7 @@ bool UEquipmentSlot::EquipSlot(const FGameplayTag& InItemTag, UItemObject* BindO
 		BoundObject = BindObject;
 		bWasEquipped = true;
 		
-		OnSlotEquipped.Broadcast(InItemTag, BindObject);
+		OnSlotChanged.Broadcast(InItemTag, BindObject);
 	}
 	return bWasEquipped;
 }
@@ -39,9 +39,19 @@ void UEquipmentSlot::UnEquipSlot()
 {
 	if (BoundObject.IsValid())
 	{
-		OnSlotUnequipped.Broadcast(ItemTag, BoundObject.Get());
-		
 		ItemTag = FGameplayTag::EmptyTag;
 		BoundObject.Reset();
+		
+		OnSlotChanged.Broadcast(ItemTag, BoundObject.Get());
 	}
+}
+
+bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
+{
+	return ItemObject->GetItemTag().MatchesAny(CategoryTags);
+}
+
+void UEquipmentSlot::UpdateSlot() const
+{
+	OnSlotChanged.Broadcast(ItemTag, BoundObject.Get());
 }

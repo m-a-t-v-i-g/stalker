@@ -7,35 +7,85 @@
 #include "Interactive/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
 #include "UI/Items/InteractiveItemWidget.h"
+#include "UI/Items/ItemDragDropOperation.h"
 
-void UEquipmentSlotWidget::SetupEquipmentSlot(const UCharacterInventoryComponent* CharInventoryComp)
+bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+                                        UDragDropOperation* InOperation)
 {
-	if (auto EquipmentSlot = CharInventoryComp->FindEquipmentSlotByName(SlotName))
+	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
-		OwnSlot = EquipmentSlot;
-		OwnSlot->OnSlotEquipped.AddUObject(this, &UEquipmentSlotWidget::OnSlotEquipped);
+		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
+		{
+			if (OwnSlot.IsValid() && OwnSlot->CanEquipItem(Payload))
+			{
+				if (OwnSlot->IsEquipped())
+				{
+					OwnEquipment->TryAddItem(OwnSlot->GetBoundObject());
+				}
+				DragDropOperation->CompleteDragDropOperation();
+				OwnSlot->EquipSlot(Payload->GetItemTag(), Payload);
+			}
+			else
+			{
+				DragDropOperation->ReverseDragDropOperation();
+			}
+		}
+	}
+	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+}
+
+void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp)
+{
+	OwnEquipment = CharInventoryComp;
+	OwnSlot = CharInventoryComp->FindEquipmentSlotByName(SlotName);
+	
+	if (OwnSlot.IsValid())
+	{
+		OwnSlot->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotChanged);
 
 		if (OwnSlot->IsEquipped())
 		{
-			OnSlotEquipped(OwnSlot->GetItemTag(), OwnSlot->GetBoundObject());
+			OnSlotChanged(OwnSlot->GetItemTag(), OwnSlot->GetBoundObject());
 		}
 	}
 }
 
-void UEquipmentSlotWidget::OnSlotEquipped(const FGameplayTag& ItemTag, UItemObject* BoundObject)
+void UEquipmentSlotWidget::OnSlotChanged(const FGameplayTag& ItemTag, UItemObject* BoundObject)
 {
+	if (OwnSlot.IsValid() && !OwnSlot->IsEquipped()) return;
+
+	SlotCanvas->ClearChildren();
+	
 	if (auto ItemObject = Cast<UItemObject>(BoundObject))
 	{
 		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemTag, ItemObject, ItemObject->GetItemSize());
+			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
+			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnReverseDragOperation);
 			
 			if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 			{
-				FVector2D ItemSize = ItemObject->GetItemSize() * 50.0f;
+				FVector2D ItemSize = ItemObject->GetItemSize() * APlayerHUD::TileSize;
 				CanvasPanelSlot->SetSize(ItemSize);
 			}
 		}
+	}
+}
+
+void UEquipmentSlotWidget::OnCompleteDragOperation(UItemObject* DraggedItem)
+{
+	if (OwnEquipment.IsValid())
+	{
+		OwnEquipment->UnEquipSlot(OwnSlot->GetSlotName(), OwnSlot->GetBoundObject());
+	}
+}
+
+void UEquipmentSlotWidget::OnReverseDragOperation(UItemObject* DraggedItem)
+{
+	if (OwnSlot.IsValid())
+	{
+		OwnSlot->UpdateSlot();
 	}
 }

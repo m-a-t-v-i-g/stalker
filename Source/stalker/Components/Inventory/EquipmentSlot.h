@@ -36,18 +36,21 @@ protected:
 	bool bAvailable = true;
 
 public:
-	FOnSlotChangedSignature OnSlotEquipped;
-	FOnSlotChangedSignature OnSlotUnequipped;
-
+	FOnSlotChangedSignature OnSlotChanged;
+	
 	void SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec);
 
 	bool EquipSlot(const FGameplayTag& InItemTag, UItemObject* BindObject);
 	void UnEquipSlot();
 
+	bool CanEquipItem(const UItemObject* ItemObject) const;
+	
 	bool IsEquipped() const { return ItemTag.IsValid() && BoundObject != nullptr; }
 	
 	const FString& GetSlotName() const { return SlotName; }
 
 	const FGameplayTag& GetItemTag() const { return ItemTag; }
 	UItemObject* GetBoundObject() const { return BoundObject.Get(); }
+
+	void UpdateSlot() const;
 };

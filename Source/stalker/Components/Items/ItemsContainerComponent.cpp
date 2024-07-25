@@ -12,7 +12,7 @@ UItemsContainerComponent::UItemsContainerComponent()
 
 void UItemsContainerComponent::InitializeContainer()
 {
-	ItemsContainerSlots.SetNum(Columns * Capacity);
+	ItemsSlots.SetNum(Columns * Capacity);
 	AddStartingData();
 }
 
@@ -67,6 +67,23 @@ bool UItemsContainerComponent::TryAddItem(UItemObject* ItemObject)
 	return false;
 }
 
+void UItemsContainerComponent::StackItemAt(const UItemObject* ItemObject, uint32 Index)
+{
+	check(ItemObject);
+
+	if (CanStackAtIndex(ItemObject, Index))
+	{
+		uint32 ItemId = ItemsSlots[Index];
+		if (auto FoundItem = FindItemById(ItemId))
+		{
+			if (FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable())
+			{
+				FoundItem->AddAmount(ItemObject->GetItemParams().Amount);
+			}
+		}
+	}
+}
+
 void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 {
 	check(ItemObject);
@@ -78,9 +95,19 @@ void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 	{
 		ItemsContainer.Add(ItemObject);
 	}
-	FillRoom(ItemsContainerSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
+	FillRoom(ItemsSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
 	UpdateItemsMap();
-	OnItemAddedToContainer.Broadcast(ItemObject, Tile);
+}
+
+void UItemsContainerComponent::DragItem(const UItemObject* ItemObject)
+{
+	for (int i = 0; i < ItemsSlots.Num(); i++)
+	{
+		if (ItemsSlots[i] == ItemObject->GetItemId())
+		{
+			ItemsSlots[i] = 0;
+		}
+	}
 }
 
 void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
@@ -91,29 +118,37 @@ void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
 	{
 		ItemsContainer.Remove(ItemObject);
 	}
-
-	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
-	{
-		if (ItemsContainerSlots[i] == ItemObject->GetItemId())
-		{
-			ItemsContainerSlots[i] = 0;
-		}
-	}
-	
 	UpdateItemsMap();
-	OnItemRemovedFromContainer.Broadcast(ItemObject);
 }
 
 void UItemsContainerComponent::UpdateItemsMap()
 {
 	ItemsMap.Empty();
-	for (int i = 0; i < ItemsContainer.Num(); i++)
+	for (int i = 0; i < ItemsSlots.Num(); i++)
 	{
-		if (!ItemsMap.Contains(ItemsContainer[i]))
+		if (ItemsSlots[i] != 0)
 		{
-			ItemsMap.Add(ItemsContainer[i], TileFromIndex(i, Columns));
+			if (!ItemsMap.Contains(ItemsSlots[i]))
+			{
+				ItemsMap.Add(ItemsSlots[i], TileFromIndex(i, Columns));
+			}
 		}
 	}
+	OnItemsContainerUpdated.Broadcast();
+}
+
+bool UItemsContainerComponent::CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex)
+{
+	bool bResult = false;
+	if (ItemObject)
+	{
+		uint32 ItemId = ItemsSlots[RoomIndex];
+		if (auto FoundItem = FindItemById(ItemId))
+		{
+			bResult = FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable();
+		}
+	}
+	return bResult;
 }
 
 bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32& FindIndex)
@@ -132,7 +167,7 @@ bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32&
 
 bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex)
 {
-	for (int i = 0; i < ItemsContainerSlots.Num(); i++)
+	for (int i = 0; i < ItemsSlots.Num(); i++)
 	{
 		if (CheckRoom(ItemObject, (uint32)i))
 		{
@@ -148,7 +183,20 @@ bool UItemsContainerComponent::CheckRoom(const UItemObject* ItemObject, uint32 I
 	const FIntPoint Tile = TileFromIndex(Index, Columns);
 	const FIntPoint ItemSize = {Tile.X + (ItemObject->GetItemSize().X - 1), Tile.Y + (ItemObject->GetItemSize().Y - 1)};
 
-	return IsRoomValid(ItemsContainerSlots, Tile, ItemSize, Columns);
+	return IsRoomValid(ItemsSlots, Tile, ItemSize, Columns);
+}
+
+UItemObject* UItemsContainerComponent::FindItemById(uint32 ItemId) const
+{
+	UItemObject* FoundItem = nullptr;
+	for (auto EachItem : ItemsContainer)
+	{
+		if (EachItem->GetItemId() == ItemId)
+		{
+			FoundItem = EachItem;
+		}
+	}
+	return FoundItem;
 }
 
 FIntPoint UItemsContainerComponent::TileFromIndex(uint32 Index, uint8 Width)

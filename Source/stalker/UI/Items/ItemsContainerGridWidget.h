@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "ItemsContainerGridWidget.generated.h"
 
+class UItemObject;
+
 UCLASS()
 class STALKER_API UItemsContainerGridWidget : public UUserWidget
 {
@@ -32,8 +34,6 @@ protected:
 	TWeakObjectPtr<class UItemsContainerComponent> ItemsContainerRef;
 
 private:
-	TMap<const uint32, class UInteractiveItemWidget*> ItemWidgetsMap;
-
 	FIntPoint DraggedTile;
 
 	bool bDrawDropLocation = false;
@@ -41,11 +41,12 @@ private:
 public:
 	void SetupContainerGrid(UItemsContainerComponent* OwnContainerComp);
 	
-	void OnItemAddedToContainer(class UItemObject* ItemObject, FIntPoint Tile);
-	void OnItemRemovedFromContainer(UItemObject* ItemObject);
-
+	void OnItemsContainerUpdated();
+	
 protected:
+	void OnBeginDragOperation(UItemObject* DraggedItem);
 	void OnCompleteDragOperation(UItemObject* DraggedItem);
+	void OnReverseDragOperation(UItemObject* DraggedItem);
 	
 	void SetupSize();
 	

@@ -23,12 +23,13 @@ int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeom
 		if (auto DragDropOperation = Cast<UItemDragDropOperation>(UWidgetBlueprintLibrary::GetDragDroppingContent()))
 		{
 			USlateBrushAsset* SlateBrush = Cast<USlateBrushAsset>(USlateBrushAsset::StaticClass()->GetDefaultObject());
-			FLinearColor SlotColor {1.0f, 0.0f, 0.0f, 0.35f};	
+			FLinearColor SlotColor {1.0f, 0.0f, 0.0f, 0.35f};
 			
 			uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
 			if (auto ItemObject = DragDropOperation->GetPayload<UItemObject>())
 			{
-				if (ItemsContainerRef.IsValid() && ItemsContainerRef->CheckRoom(ItemObject, RoomIndex))
+				if (ItemsContainerRef.IsValid() && ItemsContainerRef->CheckRoom(ItemObject, RoomIndex) ||
+					ItemsContainerRef->CanStackAtIndex(ItemObject, RoomIndex))
 				{
 					SlotColor = FLinearColor(0.0f, 1.0f, 0.0f, 0.35f); 
 				}
@@ -56,7 +57,7 @@ bool UItemsContainerGridWidget::NativeOnDragOver(const FGeometry& InGeometry, co
 
 		if (UItemObject* Payload = Cast<UItemObject>(DragDropOperation->Payload))
 		{
-			int8 DimensionX = FMath::Clamp(Payload->GetItemSize().X - SelectX, 0, Payload->GetItemSize().Y - SelectX);
+			int8 DimensionX = FMath::Clamp(Payload->GetItemSize().X - SelectX, 0, Payload->GetItemSize().X - SelectX);
 			int8 DimensionY = FMath::Clamp(Payload->GetItemSize().X - SelectX, 0, Payload->GetItemSize().Y - SelectY);
 
 			FIntPoint MakeIntPoint = FIntPoint(DimensionX / 2, DimensionY / 2);
@@ -93,6 +94,11 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 				DragDropOperation->CompleteDragDropOperation();
 				ItemsContainerRef->AddItemAt(Payload, RoomIndex);
 			}
+			else if (ItemsContainerRef->CanStackAtIndex(Payload, RoomIndex))
+			{
+				ItemsContainerRef->StackItemAt(Payload, RoomIndex);
+				DragDropOperation->CompleteDragDropOperation();
+			}
 			else
 			{
 				DragDropOperation->ReverseDragDropOperation();
@@ -107,50 +113,53 @@ void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* Own
 {
 	if (ItemsContainerRef.IsValid())
 	{
-		ItemsContainerRef->OnItemAddedToContainer.RemoveAll(this);
+		ItemsContainerRef->OnItemsContainerUpdated.RemoveAll(this);
 	}
 	
 	ItemsContainerRef = OwnContainerComp;
-	
-	ItemsContainerRef->OnItemAddedToContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemAddedToContainer);
-	ItemsContainerRef->OnItemRemovedFromContainer.AddUObject(this, &UItemsContainerGridWidget::OnItemRemovedFromContainer);
+	ItemsContainerRef->OnItemsContainerUpdated.AddUObject(this, &UItemsContainerGridWidget::OnItemsContainerUpdated);
 	
 	SetupSize();
 
+	OnItemsContainerUpdated();
+}
+
+void UItemsContainerGridWidget::OnItemsContainerUpdated()
+{
+	GridCanvas->ClearChildren();
+	
 	auto ItemsMap = ItemsContainerRef->GetItemsMap();
 	for (auto EachItem : ItemsMap)
 	{
-		OnItemAddedToContainer(EachItem.Key, EachItem.Value);
-	}
-}
+		auto ItemId = EachItem.Key;
+		FIntPoint Tile = EachItem.Value;
 
-void UItemsContainerGridWidget::OnItemAddedToContainer(UItemObject* ItemObject, FIntPoint Tile)
-{
-	if (!IsValid(ItemObject)) return;
-	
-	if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(this, APlayerHUD::StaticInteractiveItemWidgetClass))
-	{
-		ItemWidget->InitItemWidget(ItemObject->GetItemTag(), ItemObject, ItemObject->GetItemSize());
-		ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
-		
-		FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
+		auto ItemObject = ItemsContainerRef->FindItemById(ItemId);
+		if (!IsValid(ItemObject)) return;
 
-		ItemWidgetsMap.Add(ItemObject->GetItemId(), ItemWidget);
-		
-		if (UCanvasPanelSlot* CanvasPanelSlot = GridCanvas->AddChildToCanvas(ItemWidget))
+		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
+			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
-			CanvasPanelSlot->SetAutoSize(true);
-			CanvasPanelSlot->SetPosition(WidgetPosition);
+			ItemWidget->InitItemWidget(ItemObject->GetItemTag(), ItemObject, ItemObject->GetItemSize());
+			ItemWidget->OnBeginDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
+			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
+			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnReverseDragOperation);
+
+			FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
+			if (UCanvasPanelSlot* CanvasPanelSlot = GridCanvas->AddChildToCanvas(ItemWidget))
+			{
+				CanvasPanelSlot->SetAutoSize(true);
+				CanvasPanelSlot->SetPosition(WidgetPosition);
+			}
 		}
 	}
 }
 
-void UItemsContainerGridWidget::OnItemRemovedFromContainer(UItemObject* ItemObject)
+void UItemsContainerGridWidget::OnBeginDragOperation(UItemObject* DraggedItem)
 {
-	if (auto FindWidget = ItemWidgetsMap.FindChecked(ItemObject->GetItemId()))
+	if (ItemsContainerRef.IsValid())
 	{
-		FindWidget->RemoveFromParent();
-		ItemWidgetsMap.Remove(ItemObject->GetItemId());
+		ItemsContainerRef->DragItem(DraggedItem);
 	}
 }
 
@@ -162,6 +171,14 @@ void UItemsContainerGridWidget::OnCompleteDragOperation(UItemObject* DraggedItem
 	}
 }
 
+void UItemsContainerGridWidget::OnReverseDragOperation(UItemObject* DraggedItem)
+{
+	if (ItemsContainerRef.IsValid())
+	{
+		ItemsContainerRef->TryAddItem(DraggedItem);
+	}
+}
+
 void UItemsContainerGridWidget::SetupSize()
 {
 	uint16 Width = ItemsContainerRef->GetColumns() * APlayerHUD::TileSize;
@@ -170,7 +187,7 @@ void UItemsContainerGridWidget::SetupSize()
 
 bool UItemsContainerGridWidget::IsMouseOnTile(float MousePosition)
 {
-	if (FGenericPlatformMath::Fmod(MousePosition, APlayerHUD::TileSize) > APlayerHUD::TileSize)
+	if (FGenericPlatformMath::Fmod(MousePosition, APlayerHUD::TileSize) > APlayerHUD::TileSize / 2.0f)
 	{
 		return true;
 	}
