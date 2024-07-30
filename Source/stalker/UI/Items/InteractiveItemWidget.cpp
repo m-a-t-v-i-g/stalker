@@ -8,23 +8,28 @@
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Interactive/Items/ItemObject.h"
-#include "Library/GeneralLibrary.h"
 #include "Player/PlayerHUD.h"
 
 FReply UInteractiveItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-	
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
 		return HandleLeftMouseButtonDown(InMouseEvent, EKeys::LeftMouseButton);
 	}
-	
 	if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
 	{
 		return HandleRightMouseButtonDown(InMouseEvent, EKeys::RightMouseButton);
 	}
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UInteractiveItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+	{
+		return HandleLeftMouseButtonDownDoubleClick(InMouseEvent, EKeys::LeftMouseButton);
+	}
+	return Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
 }
 
 void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
@@ -55,9 +60,8 @@ bool UInteractiveItemWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, UItemObject* BindObject, FIntPoint Size)
+void UInteractiveItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
 {
-	ItemTag = InItemTag;
 	BoundObject = BindObject;
 
 	FVector2D GridSize = {Size.X * APlayerHUD::TileSize, Size.Y * APlayerHUD::TileSize};
@@ -67,20 +71,14 @@ void UInteractiveItemWidget::InitItemWidget(const FGameplayTag& InItemTag, UItem
 
 	TextAmount->VisibilityDelegate.BindDynamic(this, &UInteractiveItemWidget::GetAmountVisibility);
 	TextAmount->TextDelegate.BindDynamic(this, &UInteractiveItemWidget::GetAmountText);
-	
-	auto DescTable = DescriptionsTable.LoadSynchronous();
-	if (!DescTable) return;
-	
-	if (auto Row = DescTable->FindRow<FTableRowDescriptions>(ItemTag.GetTagName(), ""))
-	{
-		auto Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(Row->Thumbnail.LoadSynchronous());
-		ItemImage->SetBrush(Icon);
-	}
+
+	auto Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
+	ItemImage->SetBrush(Icon);
 }
 
 FReply UInteractiveItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
-	FEventReply Reply (true);
+	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
 	{
 		TSharedPtr<SWidget> SlateWidgetDetectingDrag = this->GetCachedWidget();
@@ -92,13 +90,28 @@ FReply UInteractiveItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& In
 	return Reply.NativeReply;
 }
 
+FReply UInteractiveItemWidget::HandleLeftMouseButtonDownDoubleClick(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+{
+	FEventReply Reply(true);
+	if (InMouseEvent.GetEffectingButton() == DragKey)
+	{
+		DoubleClick();
+	}
+	return Reply.NativeReply;
+}
+
 FReply UInteractiveItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
-	FEventReply Reply (true);
+	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
 	{
 	}
 	return Reply.NativeReply;
+}
+
+void UInteractiveItemWidget::DoubleClick()
+{
+	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
 }
 
 void UInteractiveItemWidget::BeginDragOperation()

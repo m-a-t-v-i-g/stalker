@@ -3,9 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffect.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataTable.h"
 #include "ItemsLibrary.generated.h"
+
+class UItemObject;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerItemOperationSignature, UItemObject*)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemOperationSignature, const FString&)
+
+UENUM(BlueprintType)
+enum class EItemDragResult : uint8
+{
+	Remove,
+	Subtract
+};
 
 USTRUCT(BlueprintType)
 struct FItemParams
@@ -17,6 +30,15 @@ struct FItemParams
 	
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"))
 	uint16 Amount = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FArmorParams
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ForceUnits = "%"))
+	float Condition = 100.0f;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -42,10 +64,19 @@ struct FTableRowItems : public FTableRowBase
 	FGameplayTag Tag;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
-	TSubclassOf<class AItemActor> ActorClass = nullptr;
+	TSubclassOf<class AItemActor> ActorClass;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
-	TSubclassOf<class UItemObject> ObjectClass = nullptr;
+	TSubclassOf<UItemObject> ObjectClass;
+
+	UPROPERTY(EditAnywhere, Category = "Description")
+	FText Name;
+
+	UPROPERTY(EditAnywhere, Category = "Description")
+	FText Description;
+
+	UPROPERTY(EditAnywhere, Category = "Description")
+	TSoftObjectPtr<UTexture2D> Thumbnail;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	FIntPoint Size = {0, 0};
@@ -58,6 +89,24 @@ struct FTableRowItems : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	bool bStackable = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
+	uint32 StackAmount = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FTableRowArmor : public FTableRowItems
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TSubclassOf<UGameplayEffect> ArmorEffect;
+};
+
+USTRUCT(BlueprintType)
+struct FTableRowAmmo : public FTableRowItems
+{
+	GENERATED_USTRUCT_BODY()
 };
 
 USTRUCT(BlueprintType)
@@ -73,7 +122,7 @@ struct FTableRowFood : public FTableRowItems
 };
 
 USTRUCT(BlueprintType)
-struct FTableRowAmmo : public FTableRowItems
+struct FTableRowWeapon : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
 };

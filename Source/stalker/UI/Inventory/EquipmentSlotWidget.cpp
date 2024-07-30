@@ -18,12 +18,8 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (OwnSlot.IsValid() && OwnSlot->CanEquipItem(Payload))
 			{
-				if (OwnSlot->IsEquipped())
-				{
-					OwnEquipment->TryAddItem(OwnSlot->GetBoundObject());
-				}
+				OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload);
 				DragDropOperation->CompleteDragDropOperation();
-				OwnSlot->EquipSlot(Payload->GetItemTag(), Payload);
 			}
 			else
 			{
@@ -45,23 +41,24 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* Char
 
 		if (OwnSlot->IsEquipped())
 		{
-			OnSlotChanged(OwnSlot->GetItemTag(), OwnSlot->GetBoundObject());
+			OnSlotChanged(OwnSlot->GetBoundObject());
 		}
 	}
 }
 
-void UEquipmentSlotWidget::OnSlotChanged(const FGameplayTag& ItemTag, UItemObject* BoundObject)
+void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject)
 {
-	if (OwnSlot.IsValid() && !OwnSlot->IsEquipped()) return;
-
 	SlotCanvas->ClearChildren();
+	
+	if (OwnSlot.IsValid() && !OwnSlot->IsEquipped()) return;
 	
 	if (auto ItemObject = Cast<UItemObject>(BoundObject))
 	{
 		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
-			ItemWidget->InitItemWidget(ItemTag, ItemObject, ItemObject->GetItemSize());
+			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+			ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
 			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnReverseDragOperation);
 			
@@ -74,11 +71,16 @@ void UEquipmentSlotWidget::OnSlotChanged(const FGameplayTag& ItemTag, UItemObjec
 	}
 }
 
+void UEquipmentSlotWidget::OnDoubleClick(UItemObject* ClickedItem)
+{
+	OnItemWidgetDoubleClick.Broadcast(SlotName);
+}
+
 void UEquipmentSlotWidget::OnCompleteDragOperation(UItemObject* DraggedItem)
 {
 	if (OwnEquipment.IsValid())
 	{
-		OwnEquipment->UnEquipSlot(OwnSlot->GetSlotName(), OwnSlot->GetBoundObject());
+		OwnEquipment->UnEquipSlot(OwnSlot->GetSlotName(), false);
 	}
 }
 

@@ -5,13 +5,15 @@
 #include "AbilitySystem/Attributes/OrganicAttributeSet.h"
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Components/Inventory/InventoryComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
 FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
 FName ABaseOrganic::CapsuleName {"OrganicCollision"};
-FName ABaseOrganic::AbilitySystemComponentName {"OrganicAbilityComp"};
+FName ABaseOrganic::AbilitySystemComponentName {"AbilityComp"};
+FName ABaseOrganic::InventoryComponentName {"InventoryComp"};
 
 const FName NAME_RotationAmount("RotationAmount");
 const FName NAME_YawOffset("YawOffset");
@@ -69,11 +71,13 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		OrganicMovement->UpdatedComponent = CapsuleComponent;
 	}
 	
-	AbilitySystemComponent = CreateDefaultSubobject<UStalkerAbilityComponent>("AbilityComponent");
+	AbilitySystemComponent = CreateDefaultSubobject<UStalkerAbilityComponent>(AbilitySystemComponentName);
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
 	
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");

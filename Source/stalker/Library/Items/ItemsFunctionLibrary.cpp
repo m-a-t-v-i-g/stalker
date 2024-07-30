@@ -23,3 +23,14 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(const FItemData& ItemData
 	}
 	return ItemObject;
 }
+
+UItemObject* UItemsFunctionLibrary::GenerateItemObject(const UItemObject* ItemObject)
+{
+	UItemObject* NewItemObject = NewObject<UItemObject>(GetTransientPackage(), ItemObject->GetObjectClass());
+	if (NewItemObject)
+	{
+		LastItemId++;
+		NewItemObject->InitItem(LastItemId, ItemObject);
+	}
+	return NewItemObject;
+}

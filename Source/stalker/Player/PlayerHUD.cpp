@@ -41,3 +41,16 @@ void APlayerHUD::ToggleTab(EActivateTab Tab)
 
 	ActiveTab = Tab;
 }
+
+void APlayerHUD::StartLooting(UInventoryComponent* LootInventory)
+{
+	GetOwningPlayerController()->SetInputMode(FInputModeUIOnly());
+	GetOwningPlayerController()->SetShowMouseCursor(true);
+	
+	ToggleTab(EActivateTab::Inventory);
+	
+	if (MainWidget)
+	{
+		MainWidget->StartLooting(LootInventory);
+	}
+}

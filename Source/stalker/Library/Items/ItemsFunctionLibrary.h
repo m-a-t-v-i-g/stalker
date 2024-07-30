@@ -14,6 +14,7 @@ class STALKER_API UItemsFunctionLibrary : public UBlueprintFunctionLibrary
 
 public:
 	static UItemObject* GenerateItemObject(const FItemData& ItemData);
+	static UItemObject* GenerateItemObject(const UItemObject* ItemObject);
 
 private:
 	static uint32 LastItemId;

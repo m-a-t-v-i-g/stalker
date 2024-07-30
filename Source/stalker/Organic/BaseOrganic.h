@@ -38,7 +38,8 @@ public:
 	static FName OrganicMovementName;
 	static FName CapsuleName;
 	static FName AbilitySystemComponentName;
-	
+	static FName InventoryComponentName;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Mesh;
@@ -52,6 +53,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStalkerAbilityComponent> AbilitySystemComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInventoryComponent> InventoryComponent;
+	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	TObjectPtr<class UArrowComponent> ArrowComponent;
@@ -257,9 +261,30 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE UOrganicMovementComponent* GetOrganicMovement() const { return OrganicMovement; }
 	
+	template <class T>
+	T* GetOrganicMovement() const
+	{
+		return Cast<T>(GetOrganicMovement());
+	}
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 
+	template <class T>
+	T* GetCapsuleComponent() const
+	{
+		return Cast<T>(GetCapsuleComponent());
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	template <class T>
+	T* GetInventoryComponent() const
+	{
+		return Cast<T>(GetInventoryComponent());
+	}
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE FVector GetAcceleration() const { return Acceleration; }
 

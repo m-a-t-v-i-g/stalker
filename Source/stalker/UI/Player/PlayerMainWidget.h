@@ -33,4 +33,6 @@ public:
 	void InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	
 	void ToggleTab(EActivateTab ActivateTab);
+
+	void StartLooting(UInventoryComponent* LootInventory);
 };

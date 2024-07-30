@@ -2,25 +2,92 @@
 
 #include "StalkerCharacter.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
+#include "Components/Inventory/EquipmentSlot.h"
+#include "Interactive/Items/ItemObject.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
+AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(
+	ObjectInitializer.Get().SetDefaultSubobjectClass<UCharacterInventoryComponent>(InventoryComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
-}
-
-void AStalkerCharacter::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-
-	InventoryComponent = GetComponentByClass<UCharacterInventoryComponent>();
 }
 
 void AStalkerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	if (GetInventoryComponent())
+	
+	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
 	{
-		GetInventoryComponent()->InitializeContainer();
+		CharacterInventory->PreInitializeContainer();
+
+		if (auto ArmorSlot = CharacterInventory->FindEquipmentSlotByName(ArmorSlotName))
+		{
+			ArmorSlot->OnSlotChanged.AddUObject(this, &AStalkerCharacter::OnArmorSlotChanged);
+		}
+		
+		if (auto MainSlot = CharacterInventory->FindEquipmentSlotByName(MainSlotName))
+		{
+			MainSlot->OnSlotChanged.AddUObject(this, &AStalkerCharacter::OnMainSlotChanged);
+		}
+		
+		if (auto SecondarySlot = CharacterInventory->FindEquipmentSlotByName(SecondarySlotName))
+		{
+			SecondarySlot->OnSlotChanged.AddUObject(this, &AStalkerCharacter::OnSecondarySlotChanged);
+		}
+		
+		if (auto DetectorSlot = CharacterInventory->FindEquipmentSlotByName(DetectorSlotName))
+		{
+			DetectorSlot->OnSlotChanged.AddUObject(this, &AStalkerCharacter::OnDetectorSlotChanged);
+		}
+
+		CharacterInventory->PostInitializeContainer();
+	}
+}
+
+void AStalkerCharacter::OnArmorSlotChanged(UItemObject* ItemObject)
+{
+	if (IsValid(ItemObject))
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Armor equipped!"), true, false);
+	}
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Armor unequipped!"), true, false);
+	}
+}
+
+void AStalkerCharacter::OnMainSlotChanged(UItemObject* ItemObject)
+{
+	if (IsValid(ItemObject))
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Rifle equipped!"), true, false);
+	}
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Rifle unequipped!"), true, false);
+	}
+}
+
+void AStalkerCharacter::OnSecondarySlotChanged(UItemObject* ItemObject)
+{
+	if (IsValid(ItemObject))
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Pistol equipped!"), true, false);
+	}
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Pistol unequipped!"), true, false);
+	}
+}
+
+void AStalkerCharacter::OnDetectorSlotChanged(UItemObject* ItemObject)
+{
+	if (IsValid(ItemObject))
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Detector equipped!"), true, false);
+	}
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, FString("Detector unequipped!"), true, false);
 	}
 }

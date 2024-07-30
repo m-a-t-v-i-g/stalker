@@ -14,44 +14,62 @@ class STALKER_API UItemObject : public UObject
 
 public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	FItemParams ItemParams;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	const UDataTable* ItemDataTable;
 
-	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	FName ItemRowName;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
+	bool bStackable = false;
 	
 public:
 	void InitItem(const uint32 ItemId, const FItemData& ItemData);
+	void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	
 protected:
 	virtual void SetupItemProperties();
 	
 public:
-	void AddAmount(uint32 Amount);
+	virtual void SetInventoriedMode();
+	virtual void SetEquippedMode();
 
+	void SetAmount(uint32 Amount);
+	void AddAmount(uint32 Amount);
+	void RemoveAmount(uint32 Amount);
+
+	void SetStackable(bool bNewStackable) { bStackable = bNewStackable; }
+	
 	bool IsSimilar(const UItemObject* OtherItemObject) const;
 	
 	FORCEINLINE uint32 GetItemId() const;
 	FORCEINLINE FItemParams GetItemParams() const;
 
+	FORCEINLINE const UDataTable* GetItemDataTable() const;
 	FORCEINLINE FName GetItemRowName() const;
 
 	FORCEINLINE FGameplayTag GetItemTag() const;
 	FORCEINLINE UClass* GetActorClass() const;
 	FORCEINLINE UClass* GetObjectClass() const;
 
+	FORCEINLINE FText GetItemName() const;
+	FORCEINLINE FText GetItemDesc() const;
+	FORCEINLINE UTexture2D* GetThumbnail() const;
+	
 	FORCEINLINE FIntPoint GetItemSize() const;
 
 	FORCEINLINE bool IsUsable() const;
 	FORCEINLINE bool IsDroppable() const;
 	FORCEINLINE bool IsStackable() const;
 
-protected:
+	FORCEINLINE uint32 GetStackAmount() const;
+
 	template <typename Struct>
 	Struct* GetRow() const
 	{

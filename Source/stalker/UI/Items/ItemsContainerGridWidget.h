@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Library/Items/ItemsLibrary.h"
 #include "ItemsContainerGridWidget.generated.h"
 
 class UItemObject;
@@ -39,13 +40,16 @@ private:
 	bool bDrawDropLocation = false;
 	
 public:
+	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
+	
 	void SetupContainerGrid(UItemsContainerComponent* OwnContainerComp);
+	void ClearContainerGrid() const;
 	
 	void OnItemsContainerUpdated();
 	
 protected:
+	void OnDoubleClick(UItemObject* ClickedItem);
 	void OnBeginDragOperation(UItemObject* DraggedItem);
-	void OnCompleteDragOperation(UItemObject* DraggedItem);
 	void OnReverseDragOperation(UItemObject* DraggedItem);
 	
 	void SetupSize();

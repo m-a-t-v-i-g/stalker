@@ -17,4 +17,6 @@ protected:
 	
 public:
 	void InitializeInventory(class UItemsContainerComponent* ItemsContainerComponent);
+
+	FORCEINLINE UItemsContainerGridWidget* GetItemsGrid() const { return ItemsGrid; }
 };

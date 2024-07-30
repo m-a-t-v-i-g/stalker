@@ -3,6 +3,8 @@
 #include "Player/PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PlayerHUD.h"
+#include "StalkerPlayerController.h"
 #include "DataAssets/InputDataAsset.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
@@ -111,4 +113,9 @@ void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 void APlayerCharacter::SetupCharacterLocally()
 {
 	
+}
+
+void APlayerCharacter::StartLooting(UInventoryComponent* LootInventory)
+{
+	GetController<AStalkerPlayerController>()->GetHUD<APlayerHUD>()->StartLooting(LootInventory);
 }

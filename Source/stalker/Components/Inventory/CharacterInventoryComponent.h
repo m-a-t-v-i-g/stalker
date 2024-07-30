@@ -46,7 +46,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
-	virtual void InitializeContainer() override;
+	virtual void PreInitializeContainer() override;
 
 	virtual void AddStartingData() override;
 
@@ -62,15 +62,17 @@ private:
 	TArray<class UEquipmentSlot*> EquipmentSlots;
 
 public:
-	void EquipSlot(const FString& SlotName, const FGameplayTag& ItemTag, UItemObject* BoundObject);
+	void EquipSlot(const FString& SlotName, UItemObject* BoundObject);
 
 	UFUNCTION(Server, Reliable)
-	void Server_EquipSlot(const FString& SlotName, const FGameplayTag& ItemTag, UItemObject* BoundObject);
+	void Server_EquipSlot(const FString& SlotName, UItemObject* BoundObject);
 	
-	void UnEquipSlot(const FString& SlotName, UItemObject* OldBoundObject);
+	void UnEquipSlot(const FString& SlotName, bool bTryAddItem);
 
 	UFUNCTION(Server, Reliable)
-	void Server_UnEquipSlot(const FString& SlotName, UItemObject* OldBoundObject);
+	void Server_UnEquipSlot(const FString& SlotName, bool bTryAddItem);
 	
+	void UseItem(UItemObject* ItemObject);
+
 	UEquipmentSlot* FindEquipmentSlotByName(const FString& SlotName) const;
 };

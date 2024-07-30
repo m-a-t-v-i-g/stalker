@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
+#include "Library/Items/ItemsLibrary.h"
 #include "EquipmentSlotWidget.generated.h"
 
 class UCharacterInventoryComponent;
@@ -31,11 +31,14 @@ private:
 	TWeakObjectPtr<UEquipmentSlot> OwnSlot;
 	
 public:
+	FOnEquippedItemOperationSignature OnItemWidgetDoubleClick;
+	
 	void SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp);
 
 protected:
-	void OnSlotChanged(const FGameplayTag& ItemTag, UItemObject* BoundObject);
-	
+	void OnSlotChanged(UItemObject* BoundObject);
+
+	void OnDoubleClick(UItemObject* ClickedItem);
 	void OnCompleteDragOperation(UItemObject* DraggedItem);
 	void OnReverseDragOperation(UItemObject* DraggedItem);
 };

@@ -4,6 +4,7 @@
 #include "EquipmentSlot.h"
 #include "Engine/ActorChannel.h"
 #include "Interactive/Items/ItemObject.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Library/Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -33,10 +34,10 @@ bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, F
 	{
 		ReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
 	}
-	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	return ReplicateSomething;
 }
 
-void UCharacterInventoryComponent::InitializeContainer()
+void UCharacterInventoryComponent::PreInitializeContainer()
 {
 	if (EquipmentSlotSpecs.Num() > 0)
 	{
@@ -48,13 +49,11 @@ void UCharacterInventoryComponent::InitializeContainer()
 			EquipmentSlots.Add(NewEquipmentSlot);
 		}
 	}
-	Super::InitializeContainer();
+	Super::PreInitializeContainer();
 }
 
 void UCharacterInventoryComponent::AddStartingData()
 {
-	Super::AddStartingData();
-
 	for (auto EachSlotSpec : EquipmentSlotSpecs)
 	{
 		if (EachSlotSpec.StartingData.IsValid())
@@ -68,42 +67,81 @@ void UCharacterInventoryComponent::AddStartingData()
 
 			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData))
 			{
-				EquipSlot(EachSlotSpec.SlotName, ItemObject->GetItemTag(), ItemObject);
+				EquipSlot(EachSlotSpec.SlotName, ItemObject);
 			}
-			// TODO: Generate items and equip at slots
 		}
 	}
+	Super::AddStartingData();
 }
 
-void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, const FGameplayTag& ItemTag,
-                                             UItemObject* BoundObject)
+void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObject* BoundObject)
 {
-	if (auto Slot = FindEquipmentSlotByName(SlotName))
-	{
-		Slot->EquipSlot(ItemTag, BoundObject);
-
-		if (!EquippedItems.Contains(BoundObject))
-		{
-			EquippedItems.Add(BoundObject);
-		}
-	}
+	check(BoundObject);
 	
-	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	Server_EquipSlot(SlotName, BoundObject);
+}
+
+void UCharacterInventoryComponent::Server_EquipSlot_Implementation(const FString& SlotName, UItemObject* BoundObject)
+{
+	check(BoundObject);
+	
+	if (auto Slot = FindEquipmentSlotByName(SlotName))
 	{
-		Server_EquipSlot(SlotName, ItemTag, BoundObject);
+		UItemObject* PrevBoundObject = nullptr;
+		if (Slot->IsEquipped())
+		{
+			PrevBoundObject = Slot->GetBoundObject();
+			UnEquipSlot(SlotName, false);
+		}
+
+		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(BoundObject))
+		{
+			ItemObject->SetEquippedMode();
+			Slot->EquipSlot(ItemObject);
+
+			if (!EquippedItems.Contains(ItemObject))
+			{
+				EquippedItems.Add(ItemObject);
+			}
+		}
+		
+		if (BoundObject->GetItemParams().Amount > 1)
+		{
+			RemoveAmountFromItem(BoundObject, 1);
+			FindAvailablePlace(BoundObject);
+		}
+		else
+		{
+			DragItem(BoundObject);
+			RemoveItem(BoundObject);
+			BoundObject->MarkAsGarbage();
+		}
+
+		if (PrevBoundObject)
+		{
+			FindAvailablePlace(PrevBoundObject);
+		}
 	}
 }
 
-void UCharacterInventoryComponent::Server_EquipSlot_Implementation(const FString& SlotName, const FGameplayTag& ItemTag,
-                                                                   UItemObject* BoundObject)
+void UCharacterInventoryComponent::UnEquipSlot(const FString& SlotName, bool bTryAddItem)
 {
-	EquipSlot(SlotName, ItemTag, BoundObject);
+	Server_UnEquipSlot(SlotName, bTryAddItem);
 }
 
-void UCharacterInventoryComponent::UnEquipSlot(const FString& SlotName, UItemObject* OldBoundObject)
+void UCharacterInventoryComponent::Server_UnEquipSlot_Implementation(const FString& SlotName, bool bTryAddItem)
 {
 	if (auto Slot = FindEquipmentSlotByName(SlotName))
 	{
+		if (!Slot->IsEquipped()) return;
+
+		auto OldBoundObject = Slot->GetBoundObject();
+		check(OldBoundObject);
+
+		if (bTryAddItem)
+		{
+			TryAddItem(OldBoundObject);
+		}
 		Slot->UnEquipSlot();
 
 		if (EquippedItems.Contains(OldBoundObject))
@@ -111,16 +149,31 @@ void UCharacterInventoryComponent::UnEquipSlot(const FString& SlotName, UItemObj
 			EquippedItems.Remove(OldBoundObject);
 		}
 	}
-	
-	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
-	{
-		Server_UnEquipSlot(SlotName, OldBoundObject);
-	}
 }
 
-void UCharacterInventoryComponent::Server_UnEquipSlot_Implementation(const FString& SlotName, UItemObject* OldBoundObject)
+void UCharacterInventoryComponent::UseItem(UItemObject* ItemObject)
 {
-	UnEquipSlot(SlotName, OldBoundObject);
+	for (auto EquipmentSlot : EquipmentSlots)
+	{
+		if (!IsValid(EquipmentSlot)) continue;
+
+		if (auto SlotObject = EquipmentSlot->GetBoundObject())
+		{
+			if (SlotObject->IsSimilar(ItemObject))
+			{
+				UKismetSystemLibrary::PrintString(
+					this, FString("Equipped item is identical to the item you are trying to put on!"), true, false,
+					FLinearColor::Red, 5.0f);
+				return;
+			}
+		}
+		
+		if (EquipmentSlot->CanEquipItem(ItemObject))
+		{
+			EquipSlot(EquipmentSlot->GetSlotName(), ItemObject);
+			return;
+		}
+	}
 }
 
 UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlotByName(const FString& SlotName) const

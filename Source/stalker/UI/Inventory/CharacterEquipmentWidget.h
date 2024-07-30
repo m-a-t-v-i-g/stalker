@@ -27,4 +27,6 @@ protected:
 	
 public:
 	void InitializeCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const;
+
+	TArray<UEquipmentSlotWidget*> GetAllSlotWidgets() const;
 };

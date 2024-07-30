@@ -21,9 +21,6 @@ struct FItemsContainerStartingData
 	UPROPERTY(EditAnywhere, Category = "Starting Data")
 	FItemParams ItemParams;
 
-	UPROPERTY(EditAnywhere, Category = "Starting Data", meta = (ClampMin = "1"))
-	int Quantity = 1;
-
 	bool IsValid() const
 	{
 		return !ItemRow.IsNull();
@@ -40,6 +37,9 @@ class STALKER_API UItemsContainerComponent : public UActorComponent
 public:
 	UItemsContainerComponent();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	FGameplayTagContainer CategoryTags;
@@ -47,13 +47,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Items Container")
 	uint8 Columns = 9;
 
-	UPROPERTY(EditAnywhere, Category = "Items Container")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Items Container")
 	uint8 Capacity = 70;
 
-	UPROPERTY(EditInstanceOnly, Category = "Items Container")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Items Container")
 	TArray<UItemObject*> ItemsContainer;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = "OnRep_ItemsSlots", Category = "Items Container")
 	TArray<uint32> ItemsSlots;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Items Container")
@@ -64,25 +64,67 @@ protected:
 
 public:
 	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
-	
-	virtual void InitializeContainer();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void PreInitializeContainer();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void PostInitializeContainer();
 	
 	virtual void AddStartingData();
-	
-	bool FindAvailablePlace(UItemObject* ItemObject);
 
+	bool FindAvailablePlace(UItemObject* ItemObject);
+	bool TryStackItem(UItemObject* ItemObject);
 	bool TryAddItem(UItemObject* ItemObject);
 
-	void StackItemAt(const UItemObject* ItemObject, uint32 Index);
+	void StackItem(UItemObject* SourceObject, UItemObject* TargetItem);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_StackItem(UItemObject* SourceObject, UItemObject* TargetItem);
+	
+	void StackItemAt(UItemObject* ItemObject, uint32 Index);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_StackItemAt(UItemObject* ItemObject, uint32 Index);
+	
+	void SplitItem(UItemObject* ItemObject);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_SplitItem(UItemObject* ItemObject);
+	
 	void AddItemAt(UItemObject* ItemObject, uint32 Index);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_AddItemAt(UItemObject* ItemObject, uint32 Index);
+	
 	void DragItem(const UItemObject* ItemObject);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_DragItem(const UItemObject* ItemObject);
+	
 	void RemoveItem(UItemObject* ItemObject);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveItem(UItemObject* ItemObject);
+	
+	void RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount);
+	
+	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainerComponent* OtherContainer);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainerComponent* OtherContainer);
+	
 	void UpdateItemsMap();
 
+	bool CanStackAtRoom(const UItemObject* ItemObject, uint32 RoomIndex);
 	bool CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex);
-	bool CanAddItem(const UItemObject* ItemObject, uint32& FindIndex);
+	bool CanAddItem(const UItemObject* ItemObject) const;
 
-	bool FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex);
+	UItemObject* FindAvailableStack(const UItemObject* ItemObject);
+	uint32 FindAvailableRoom(const UItemObject* ItemObject);
 	
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 
@@ -93,7 +135,12 @@ public:
 	FORCEINLINE TArray<UItemObject*> GetItemsContainer() const { return ItemsContainer; }
 	FORCEINLINE TArray<uint32> GetItemsSlots() const { return ItemsSlots; }
 	FORCEINLINE TMap<uint32, FIntPoint> GetItemsMap() const { return ItemsMap; }
+
+protected:
+	UFUNCTION()
+	void OnRep_ItemsSlots();
 	
+public:
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, int Width);
 	

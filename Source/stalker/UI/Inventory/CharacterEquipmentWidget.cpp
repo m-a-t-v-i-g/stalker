@@ -10,3 +10,13 @@ void UCharacterEquipmentWidget::InitializeCharacterEquipment(UCharacterInventory
 	SecondarySlot->SetupEquipmentSlot(CharInventoryComp);
 	DetectorSlot->SetupEquipmentSlot(CharInventoryComp);
 }
+
+TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlotWidgets() const
+{
+	TArray<UEquipmentSlotWidget*> Array;
+	Array.Add(ArmorSlot);
+	Array.Add(MainSlot);
+	Array.Add(SecondarySlot);
+	Array.Add(DetectorSlot);
+	return Array;
+}

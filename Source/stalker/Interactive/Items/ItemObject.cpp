@@ -2,6 +2,17 @@
 
 #include "ItemObject.h"
 #include "ItemActor.h"
+#include "Net/UnrealNetwork.h"
+
+void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UItemObject, ItemParams,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, ItemDataTable, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, ItemRowName,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, bStackable,	COND_OwnerOnly);
+}
 
 void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
 {
@@ -13,20 +24,56 @@ void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
 	SetupItemProperties();
 }
 
+void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
+{
+	ItemParams = ItemObject->GetItemParams();
+	ItemParams.ItemId = ItemId;
+
+	ItemDataTable = ItemObject->GetItemDataTable();
+	ItemRowName = ItemObject->GetItemRowName();
+	SetupItemProperties();
+}
+
 void UItemObject::SetupItemProperties()
 {
+	bStackable = GetRow<FTableRowItems>()->bStackable;
+	
 	if (!IsStackable())
 	{
 		ItemParams.Amount = 1;
 	}
 }
 
+void UItemObject::SetInventoriedMode()
+{
+	if (GetRow<FTableRowItems>())
+	{
+		bStackable = GetRow<FTableRowItems>()->bStackable;
+	}
+}
+
+void UItemObject::SetEquippedMode()
+{
+	SetAmount(1);
+	bStackable = false;
+}
+
+void UItemObject::SetAmount(uint32 Amount)
+{
+	ItemParams.Amount = Amount;
+	//ItemParams.Amount = FMath::Clamp(Amount, 1, UINT32_MAX);
+}
+
 void UItemObject::AddAmount(uint32 Amount)
 {
-	if (IsStackable())
-	{
-		ItemParams.Amount += Amount;
-	}
+	ItemParams.Amount += Amount;
+	//ItemParams.Amount = FMath::Clamp(ItemParams.Amount + Amount, 1, UINT32_MAX);
+}
+
+void UItemObject::RemoveAmount(uint32 Amount)
+{
+	ItemParams.Amount -= Amount;
+	//ItemParams.Amount = FMath::Clamp(ItemParams.Amount - Amount, 1, UINT32_MAX);
 }
 
 bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
@@ -42,6 +89,11 @@ uint32 UItemObject::GetItemId() const
 FItemParams UItemObject::GetItemParams() const
 {
 	return ItemParams;
+}
+
+const UDataTable* UItemObject::GetItemDataTable() const
+{
+	return ItemDataTable;
 }
 
 FName UItemObject::GetItemRowName() const
@@ -79,7 +131,6 @@ UClass* UItemObject::GetObjectClass() const
 	return ObjectClass;
 }
 
-/*
 FText UItemObject::GetItemName() const
 {
 	FText Name;
@@ -99,7 +150,16 @@ FText UItemObject::GetItemDesc() const
 	}
 	return Description;
 }
-*/
+
+UTexture2D* UItemObject::GetThumbnail() const
+{
+	UTexture2D* Thumbnail = nullptr;
+	if (GetRow<FTableRowItems>())
+	{
+		Thumbnail = GetRow<FTableRowItems>()->Thumbnail.LoadSynchronous();
+	}
+	return Thumbnail;
+}
 
 FIntPoint UItemObject::GetItemSize() const
 {
@@ -138,5 +198,15 @@ bool UItemObject::IsStackable() const
 	{
 		bIsStackable = GetRow<FTableRowItems>()->bStackable;
 	}
-	return bIsStackable;
+	return bStackable & bIsStackable;
+}
+
+uint32 UItemObject::GetStackAmount() const
+{
+	uint32 StackAmount = 1;
+	if (GetRow<FTableRowItems>())
+	{
+		StackAmount = GetRow<FTableRowItems>()->StackAmount;
+	}
+	return StackAmount;
 }

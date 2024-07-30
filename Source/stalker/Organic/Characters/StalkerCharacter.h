@@ -14,13 +14,24 @@ class STALKER_API AStalkerCharacter : public ABaseCharacter
 public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
-	virtual void PreInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
-	TObjectPtr<class UCharacterInventoryComponent> InventoryComponent;
+	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
+	FString ArmorSlotName = "Armor";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
+	FString MainSlotName = "Main";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
+	FString SecondarySlotName = "Secondary";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
+	FString DetectorSlotName = "Detector";
 	
 public:
-	FORCEINLINE UCharacterInventoryComponent* GetInventoryComponent() const { return InventoryComponent.Get(); }
+	void OnArmorSlotChanged(class UItemObject* ItemObject);
+	void OnMainSlotChanged(UItemObject* ItemObject);
+	void OnSecondarySlotChanged(UItemObject* ItemObject);
+	void OnDetectorSlotChanged(UItemObject* ItemObject);
 };

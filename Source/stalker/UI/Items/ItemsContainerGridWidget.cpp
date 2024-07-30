@@ -17,25 +17,32 @@ int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeom
                                              int32 LayerId, const FWidgetStyle& InWidgetStyle,
                                              bool bParentEnabled) const
 {
-	FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled};
-	if (UWidgetBlueprintLibrary::IsDragDropping() && bDrawDropLocation)
+	if (ItemsContainerRef.IsValid())
 	{
-		if (auto DragDropOperation = Cast<UItemDragDropOperation>(UWidgetBlueprintLibrary::GetDragDroppingContent()))
+		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled};
+		if (UWidgetBlueprintLibrary::IsDragDropping() && bDrawDropLocation)
 		{
-			USlateBrushAsset* SlateBrush = Cast<USlateBrushAsset>(USlateBrushAsset::StaticClass()->GetDefaultObject());
-			FLinearColor SlotColor {1.0f, 0.0f, 0.0f, 0.35f};
-			
-			uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
-			if (auto ItemObject = DragDropOperation->GetPayload<UItemObject>())
+			if (auto DragDropOperation = Cast<UItemDragDropOperation>(UWidgetBlueprintLibrary::GetDragDroppingContent()))
 			{
-				if (ItemsContainerRef.IsValid() && ItemsContainerRef->CheckRoom(ItemObject, RoomIndex) ||
-					ItemsContainerRef->CanStackAtIndex(ItemObject, RoomIndex))
+				USlateBrushAsset* SlateBrush = Cast<USlateBrushAsset>(USlateBrushAsset::StaticClass()->GetDefaultObject());
+				FLinearColor SlotColor {1.0f, 0.0f, 0.0f, 0.35f};
+				if (DraggedTile.X >= 0 && DraggedTile.Y >= 0)
 				{
-					SlotColor = FLinearColor(0.0f, 1.0f, 0.0f, 0.35f); 
+					uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
+					if (auto ItemObject = DragDropOperation->GetPayload<UItemObject>())
+					{
+						if (ItemsContainerRef->CheckRoom(ItemObject, RoomIndex) || ItemsContainerRef->CanStackAtIndex(
+							ItemObject, RoomIndex))
+						{
+							SlotColor = FLinearColor(0.0f, 1.0f, 0.0f, 0.35f); 
+						}
+						UWidgetBlueprintLibrary::DrawBox(Context, FVector2D(DraggedTile) * APlayerHUD::TileSize,
+						                                 FVector2D(ItemObject->GetItemSize().X * APlayerHUD::TileSize,
+						                                           ItemObject->GetItemSize().Y * APlayerHUD::TileSize),
+						                                 SlateBrush, SlotColor);
+					}
 				}
 			}
-			UWidgetBlueprintLibrary::DrawBox(Context, FVector2D(DraggedTile) * APlayerHUD::TileSize,
-											 FVector2D(APlayerHUD::TileSize, APlayerHUD::TileSize), SlateBrush, SlotColor);
 		}
 	}
 	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle,
@@ -91,8 +98,8 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 			uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
 			if (ItemsContainerRef->CheckRoom(Payload, RoomIndex))
 			{
-				DragDropOperation->CompleteDragDropOperation();
 				ItemsContainerRef->AddItemAt(Payload, RoomIndex);
+				DragDropOperation->CompleteDragDropOperation();
 			}
 			else if (ItemsContainerRef->CanStackAtIndex(Payload, RoomIndex))
 			{
@@ -111,10 +118,7 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 
 void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* OwnContainerComp)
 {
-	if (ItemsContainerRef.IsValid())
-	{
-		ItemsContainerRef->OnItemsContainerUpdated.RemoveAll(this);
-	}
+	ClearContainerGrid();
 	
 	ItemsContainerRef = OwnContainerComp;
 	ItemsContainerRef->OnItemsContainerUpdated.AddUObject(this, &UItemsContainerGridWidget::OnItemsContainerUpdated);
@@ -122,6 +126,15 @@ void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* Own
 	SetupSize();
 
 	OnItemsContainerUpdated();
+}
+
+void UItemsContainerGridWidget::ClearContainerGrid() const
+{
+	if (ItemsContainerRef.IsValid())
+	{
+		ItemsContainerRef->OnItemsContainerUpdated.RemoveAll(this);
+	}
+	GridCanvas->ClearChildren();
 }
 
 void UItemsContainerGridWidget::OnItemsContainerUpdated()
@@ -140,9 +153,9 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
-			ItemWidget->InitItemWidget(ItemObject->GetItemTag(), ItemObject, ItemObject->GetItemSize());
+			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+			ItemWidget->OnDoubleClick.BindUObject(this, &UItemsContainerGridWidget::OnDoubleClick);
 			ItemWidget->OnBeginDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
-			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnReverseDragOperation);
 
 			FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
@@ -155,19 +168,16 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 	}
 }
 
+void UItemsContainerGridWidget::OnDoubleClick(UItemObject* ClickedItem)
+{
+	OnItemWidgetDoubleClick.Broadcast(ClickedItem);
+}
+
 void UItemsContainerGridWidget::OnBeginDragOperation(UItemObject* DraggedItem)
 {
 	if (ItemsContainerRef.IsValid())
 	{
 		ItemsContainerRef->DragItem(DraggedItem);
-	}
-}
-
-void UItemsContainerGridWidget::OnCompleteDragOperation(UItemObject* DraggedItem)
-{
-	if (ItemsContainerRef.IsValid())
-	{
-		ItemsContainerRef->RemoveItem(DraggedItem);
 	}
 }
 

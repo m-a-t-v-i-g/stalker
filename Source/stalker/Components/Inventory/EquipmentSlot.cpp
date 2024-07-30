@@ -10,7 +10,6 @@ void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, CategoryTags,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, SlotName,		COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UEquipmentSlot, ItemTag,		COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, BoundObject,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, bAvailable,		COND_OwnerOnly);
 }
@@ -21,16 +20,15 @@ void UEquipmentSlot::SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec)
 	SlotName = EquipmentSlotSpec->SlotName;
 }
 
-bool UEquipmentSlot::EquipSlot(const FGameplayTag& InItemTag, UItemObject* BindObject)
+bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 {
 	bool bWasEquipped = false;
 	if (BindObject)
 	{
-		ItemTag = InItemTag;
 		BoundObject = BindObject;
 		bWasEquipped = true;
 		
-		OnSlotChanged.Broadcast(InItemTag, BindObject);
+		OnSlotChanged.Broadcast(BindObject);
 	}
 	return bWasEquipped;
 }
@@ -39,10 +37,9 @@ void UEquipmentSlot::UnEquipSlot()
 {
 	if (BoundObject.IsValid())
 	{
-		ItemTag = FGameplayTag::EmptyTag;
 		BoundObject.Reset();
 		
-		OnSlotChanged.Broadcast(ItemTag, BoundObject.Get());
+		OnSlotChanged.Broadcast(BoundObject.Get());
 	}
 }
 
@@ -53,5 +50,10 @@ bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
 
 void UEquipmentSlot::UpdateSlot() const
 {
-	OnSlotChanged.Broadcast(ItemTag, BoundObject.Get());
+	OnSlotChanged.Broadcast(BoundObject.Get());
+}
+
+void UEquipmentSlot::OnRep_EquipmentSlot()
+{
+	UpdateSlot();
 }

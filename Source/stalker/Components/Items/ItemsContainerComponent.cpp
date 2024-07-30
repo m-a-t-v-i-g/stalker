@@ -1,8 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemsContainerComponent.h"
+#include "Engine/ActorChannel.h"
 #include "Interactive/Items/ItemObject.h"
 #include "Library/Items/ItemsFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 UItemsContainerComponent::UItemsContainerComponent()
 {
@@ -10,9 +12,33 @@ UItemsContainerComponent::UItemsContainerComponent()
 	bWantsInitializeComponent = true;
 }
 
-void UItemsContainerComponent::InitializeContainer()
+void UItemsContainerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UItemsContainerComponent, Capacity);
+	DOREPLIFETIME_CONDITION(UItemsContainerComponent, ItemsContainer,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemsContainerComponent, ItemsSlots,		COND_OwnerOnly);
+}
+
+bool UItemsContainerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch,
+                                                   FReplicationFlags* RepFlags)
+{
+	bool ReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	for (UItemObject* EachItem : ItemsContainer)
+	{
+		ReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
+	}
+	return ReplicateSomething;
+}
+
+void UItemsContainerComponent::PreInitializeContainer()
 {
 	ItemsSlots.SetNum(Columns * Capacity);
+}
+
+void UItemsContainerComponent::PostInitializeContainer()
+{
 	AddStartingData();
 }
 
@@ -22,16 +48,13 @@ void UItemsContainerComponent::AddStartingData()
 	{
 		if (!ItemToAdd.IsValid()) continue;
 
-		for (int i = 0; i < ItemToAdd.Quantity; i++)
-		{
-			FItemData ItemData;
-			ItemData.ItemRow = ItemToAdd.ItemRow;
-			ItemData.ItemParams = ItemToAdd.ItemParams;
-		
-			auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData);
-			if (!ItemObject) continue;
+		FItemData ItemData;
+		ItemData.ItemRow = ItemToAdd.ItemRow;
+		ItemData.ItemParams = ItemToAdd.ItemParams;
 
-			if (!TryAddItem(ItemObject))
+		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData))
+		{
+			if (!FindAvailablePlace(ItemObject))
 			{
 				ItemObject->MarkAsGarbage();
 			}
@@ -43,10 +66,25 @@ bool UItemsContainerComponent::FindAvailablePlace(UItemObject* ItemObject)
 {
 	if (ItemObject)
 	{
-		uint32 Index;
-		if (CanAddItem(ItemObject, Index))
+		if (TryStackItem(ItemObject))
 		{
-			AddItemAt(ItemObject, Index);
+			return true;
+		}
+		if (TryAddItem(ItemObject))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UItemsContainerComponent::TryStackItem(UItemObject* ItemObject)
+{
+	if (ItemObject)
+	{
+		if (auto FoundItem = FindAvailableStack(ItemObject))
+		{
+			StackItem(ItemObject, FoundItem);
 			return true;
 		}
 	}
@@ -57,29 +95,100 @@ bool UItemsContainerComponent::TryAddItem(UItemObject* ItemObject)
 {
 	if (ItemObject)
 	{
-		uint32 Index;
-		if (CanAddItem(ItemObject, Index))
+		uint32 FoundIndex = FindAvailableRoom(ItemObject);
+		if (CanAddItem(ItemObject))
 		{
-			AddItemAt(ItemObject, Index);
+			AddItemAt(ItemObject, FoundIndex);
 			return true;
 		}
 	}
 	return false;
 }
 
-void UItemsContainerComponent::StackItemAt(const UItemObject* ItemObject, uint32 Index)
+void UItemsContainerComponent::StackItem(UItemObject* SourceObject, UItemObject* TargetItem)
+{
+	check(SourceObject);
+
+	if (TargetItem->IsSimilar(SourceObject) && TargetItem->IsStackable())
+	{
+		TargetItem->AddAmount(SourceObject->GetItemParams().Amount);
+		
+		for (int i = 0; i < ItemsSlots.Num(); i++)
+		{
+			if (ItemsSlots[i] == SourceObject->GetItemId())
+			{
+				ItemsSlots[i] = 0;
+			}
+		}
+	
+		if (ItemsContainer.Contains(SourceObject))
+		{
+			ItemsContainer.Remove(SourceObject);
+		}
+		// TODO: SourceObject->MarkAsGarbage();
+	}
+
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_StackItem(SourceObject, TargetItem);
+	}
+}
+
+void UItemsContainerComponent::Server_StackItem_Implementation(UItemObject* SourceObject, UItemObject* TargetItem)
+{
+	StackItem(SourceObject, TargetItem);
+}
+
+void UItemsContainerComponent::StackItemAt(UItemObject* ItemObject, uint32 Index)
 {
 	check(ItemObject);
 
-	if (CanStackAtIndex(ItemObject, Index))
+	uint32 ItemId = ItemsSlots[Index];
+	if (auto FoundItem = FindItemById(ItemId))
 	{
-		uint32 ItemId = ItemsSlots[Index];
-		if (auto FoundItem = FindItemById(ItemId))
+		if (FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable())
 		{
-			if (FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable())
+			FoundItem->AddAmount(ItemObject->GetItemParams().Amount);
+			
+			if (ItemsContainer.Contains(ItemObject))
 			{
-				FoundItem->AddAmount(ItemObject->GetItemParams().Amount);
+				ItemsContainer.Remove(ItemObject);
 			}
+		}
+	}
+
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_StackItemAt(ItemObject, Index);
+	}
+}
+
+void UItemsContainerComponent::Server_StackItemAt_Implementation(UItemObject* ItemObject, uint32 Index)
+{
+	StackItemAt(ItemObject, Index);
+}
+
+void UItemsContainerComponent::SplitItem(UItemObject* ItemObject)
+{
+	check(ItemObject);
+
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_SplitItem(ItemObject);
+	}
+}
+
+void UItemsContainerComponent::Server_SplitItem_Implementation(UItemObject* ItemObject)
+{
+	ItemObject->RemoveAmount(ItemObject->GetItemParams().Amount / 2);
+	
+	if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemObject))
+	{
+		TryAddItem(NewItemObject);
+		
+		if (!ItemsContainer.Contains(NewItemObject))
+		{
+			ItemsContainer.Add(NewItemObject);
 		}
 	}
 }
@@ -95,12 +204,27 @@ void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 	{
 		ItemsContainer.Add(ItemObject);
 	}
+	
 	FillRoom(ItemsSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
 	UpdateItemsMap();
+
+	ItemObject->SetInventoriedMode();
+	
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_AddItemAt(ItemObject, Index);
+	}
+}
+
+void UItemsContainerComponent::Server_AddItemAt_Implementation(UItemObject* ItemObject, uint32 Index)
+{
+	AddItemAt(ItemObject, Index);
 }
 
 void UItemsContainerComponent::DragItem(const UItemObject* ItemObject)
 {
+	check(ItemObject);
+	
 	for (int i = 0; i < ItemsSlots.Num(); i++)
 	{
 		if (ItemsSlots[i] == ItemObject->GetItemId())
@@ -108,6 +232,16 @@ void UItemsContainerComponent::DragItem(const UItemObject* ItemObject)
 			ItemsSlots[i] = 0;
 		}
 	}
+
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_DragItem(ItemObject);
+	}
+}
+
+void UItemsContainerComponent::Server_DragItem_Implementation(const UItemObject* ItemObject)
+{
+	DragItem(ItemObject);
 }
 
 void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
@@ -119,6 +253,64 @@ void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
 		ItemsContainer.Remove(ItemObject);
 	}
 	UpdateItemsMap();
+	
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_RemoveItem(ItemObject);
+	}
+}
+
+void UItemsContainerComponent::Server_RemoveItem_Implementation(UItemObject* ItemObject)
+{
+	RemoveItem(ItemObject);
+}
+
+void UItemsContainerComponent::RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount)
+{
+	check(ItemObject);
+	
+	ItemObject->RemoveAmount(Amount);
+	
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_RemoveAmountFromItem(ItemObject, Amount);
+	}
+}
+
+void UItemsContainerComponent::Server_RemoveAmountFromItem_Implementation(UItemObject* ItemObject, uint16 Amount)
+{
+	RemoveAmountFromItem(ItemObject, Amount);
+}
+
+void UItemsContainerComponent::MoveItemToOtherContainer(UItemObject* ItemObject,
+                                                        UItemsContainerComponent* OtherContainer)
+{
+	check(ItemObject);
+	
+	Server_MoveItemToOtherContainer(ItemObject, OtherContainer);
+}
+
+void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
+	UItemObject* ItemObject, UItemsContainerComponent* OtherContainer)
+{
+	check(OtherContainer);
+
+	if (ItemObject->GetItemParams().Amount > ItemObject->GetStackAmount())
+	{
+		RemoveAmountFromItem(ItemObject, ItemObject->GetStackAmount());
+		
+		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemObject))
+		{
+			NewItemObject->SetAmount(NewItemObject->GetStackAmount());
+			OtherContainer->FindAvailablePlace(NewItemObject);
+		}
+	}
+	else
+	{
+		OtherContainer->FindAvailablePlace(ItemObject);
+		DragItem(ItemObject);
+		RemoveItem(ItemObject);
+	}
 }
 
 void UItemsContainerComponent::UpdateItemsMap()
@@ -137,6 +329,19 @@ void UItemsContainerComponent::UpdateItemsMap()
 	OnItemsContainerUpdated.Broadcast();
 }
 
+bool UItemsContainerComponent::CanStackAtRoom(const UItemObject* ItemObject, uint32 RoomIndex)
+{
+	bool bResult = false;
+	if (ItemObject)
+	{
+		if (auto FoundItem = ItemsContainer[RoomIndex])
+		{
+			bResult = FoundItem != ItemObject && FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable();
+		}
+	}
+	return bResult;
+}
+
 bool UItemsContainerComponent::CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex)
 {
 	bool bResult = false;
@@ -151,31 +356,40 @@ bool UItemsContainerComponent::CanStackAtIndex(const UItemObject* ItemObject, ui
 	return bResult;
 }
 
-bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject, uint32& FindIndex)
+bool UItemsContainerComponent::CanAddItem(const UItemObject* ItemObject) const
 {
-	bool bResult = false;
-	if (ItemObject)
+	if (!ItemObject)
 	{
-		auto ItemSize = ItemObject->GetItemSize();
-		if (Columns >= ItemSize.X)
-		{
-			bResult = FindAvailableRoom(ItemObject, FindIndex) & ItemObject->GetItemTag().MatchesAny(CategoryTags);
-		}
+		return false;
 	}
+	
+	bool bResult = ItemObject->GetItemTag().MatchesAny(CategoryTags);
+	bResult &= Columns >= ItemObject->GetItemSize().X;
 	return bResult;
 }
 
-bool UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject, uint32& FindIndex)
+UItemObject* UItemsContainerComponent::FindAvailableStack(const UItemObject* ItemObject)
+{
+	for (int i = 0; i < ItemsContainer.Num(); i++)
+	{
+		if (CanStackAtRoom(ItemObject, i))
+		{
+			return ItemsContainer[i];
+		}
+	}
+	return nullptr;
+}
+
+uint32 UItemsContainerComponent::FindAvailableRoom(const UItemObject* ItemObject)
 {
 	for (int i = 0; i < ItemsSlots.Num(); i++)
 	{
-		if (CheckRoom(ItemObject, (uint32)i))
+		if (CheckRoom(ItemObject, i))
 		{
-			FindIndex = i;
-			return true;
+			return i;
 		}
 	}
-	return false;
+	return 0;
 }
 
 bool UItemsContainerComponent::CheckRoom(const UItemObject* ItemObject, uint32 Index)
@@ -197,6 +411,11 @@ UItemObject* UItemsContainerComponent::FindItemById(uint32 ItemId) const
 		}
 	}
 	return FoundItem;
+}
+
+void UItemsContainerComponent::OnRep_ItemsSlots()
+{
+	UpdateItemsMap();
 }
 
 FIntPoint UItemsContainerComponent::TileFromIndex(uint32 Index, uint8 Width)

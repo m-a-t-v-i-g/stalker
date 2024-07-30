@@ -53,4 +53,7 @@ protected:
 	
 public:
 	virtual void SetupCharacterLocally();
+
+	UFUNCTION(BlueprintCallable)
+	void StartLooting(UInventoryComponent* LootInventory);
 };

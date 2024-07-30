@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "EquipmentSlot.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotChangedSignature, const FGameplayTag&, UItemObject*)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, UItemObject*)
 
 UCLASS()
 class STALKER_API UEquipmentSlot : public UObject
@@ -26,10 +26,7 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Equipment Slot")
 	FString SlotName = "Default";
 	
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
-	FGameplayTag ItemTag;
-
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_EquipmentSlot", Category = "Equipment Slot")
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
@@ -40,17 +37,20 @@ public:
 	
 	void SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec);
 
-	bool EquipSlot(const FGameplayTag& InItemTag, UItemObject* BindObject);
+	bool EquipSlot(UItemObject* BindObject);
 	void UnEquipSlot();
 
 	bool CanEquipItem(const UItemObject* ItemObject) const;
 	
-	bool IsEquipped() const { return ItemTag.IsValid() && BoundObject != nullptr; }
+	bool IsEquipped() const { return BoundObject.IsValid(); }
 	
 	const FString& GetSlotName() const { return SlotName; }
 
-	const FGameplayTag& GetItemTag() const { return ItemTag; }
 	UItemObject* GetBoundObject() const { return BoundObject.Get(); }
 
 	void UpdateSlot() const;
+
+protected:
+	UFUNCTION()
+	void OnRep_EquipmentSlot();
 };

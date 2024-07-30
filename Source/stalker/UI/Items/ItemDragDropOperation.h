@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
+#include "Library/Items/ItemsLibrary.h"
 #include "ItemDragDropOperation.generated.h"
 
 UCLASS()

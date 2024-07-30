@@ -8,6 +8,7 @@
 
 class UStalkerAbilityComponent;
 class UCharacterInventoryComponent;
+class UInventoryComponent;
 
 UENUM()
 enum class EActivateTab : uint8
@@ -44,4 +45,6 @@ public:
 	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void ToggleTab(EActivateTab Tab);
+
+	void StartLooting(UInventoryComponent* LootInventory);
 };

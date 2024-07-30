@@ -33,3 +33,8 @@ void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)
 		break;
 	}
 }
+
+void UPlayerMainWidget::StartLooting(UInventoryComponent* LootInventory)
+{
+	Manager->StartLooting(LootInventory);
+}
