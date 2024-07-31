@@ -221,7 +221,7 @@ void UItemsContainerComponent::Server_AddItemAt_Implementation(UItemObject* Item
 	AddItemAt(ItemObject, Index);
 }
 
-void UItemsContainerComponent::DragItem(const UItemObject* ItemObject)
+void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
 {
 	check(ItemObject);
 	
@@ -232,21 +232,6 @@ void UItemsContainerComponent::DragItem(const UItemObject* ItemObject)
 			ItemsSlots[i] = 0;
 		}
 	}
-
-	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
-	{
-		Server_DragItem(ItemObject);
-	}
-}
-
-void UItemsContainerComponent::Server_DragItem_Implementation(const UItemObject* ItemObject)
-{
-	DragItem(ItemObject);
-}
-
-void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
-{
-	check(ItemObject);
 	
 	if (ItemsContainer.Contains(ItemObject))
 	{
@@ -308,9 +293,21 @@ void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 	else
 	{
 		OtherContainer->FindAvailablePlace(ItemObject);
-		DragItem(ItemObject);
 		RemoveItem(ItemObject);
 	}
+}
+
+void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject)
+{
+	if (ItemObject->GetItemParams().Amount > 1)
+	{
+		RemoveAmountFromItem(ItemObject, 1);
+	}
+	else
+	{
+		RemoveItem(ItemObject);
+	}
+	UpdateItemsMap();
 }
 
 void UItemsContainerComponent::UpdateItemsMap()

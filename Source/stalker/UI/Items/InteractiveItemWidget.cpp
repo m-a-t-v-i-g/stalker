@@ -47,17 +47,6 @@ void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
 	OutOperation = DragDropOperation;
 
 	RemoveFromParent();
-	BeginDragOperation();
-}
-
-bool UInteractiveItemWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-                                          UDragDropOperation* InOperation)
-{
-	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
-	{
-		
-	}
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UInteractiveItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
@@ -114,19 +103,14 @@ void UInteractiveItemWidget::DoubleClick()
 	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
 }
 
-void UInteractiveItemWidget::BeginDragOperation()
-{
-	OnBeginDragDropOperation.ExecuteIfBound(BoundObject.Get());
-}
-
-void UInteractiveItemWidget::CompleteDragOperation()
-{
-	OnCompleteDragDropOperation.ExecuteIfBound(BoundObject.Get());
-}
-
 void UInteractiveItemWidget::ReverseDragOperation()
 {
 	OnReverseDragDropOperation.ExecuteIfBound(BoundObject.Get());
+}
+
+void UInteractiveItemWidget::CompleteDragOperation(EDragDropOperationResult OperationResult)
+{
+	OnCompleteDragDropOperation.ExecuteIfBound(BoundObject.Get(), OperationResult);
 }
 
 ESlateVisibility UInteractiveItemWidget::GetAmountVisibility()

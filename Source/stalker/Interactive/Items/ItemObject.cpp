@@ -14,6 +14,11 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME_CONDITION(UItemObject, bStackable,	COND_OwnerOnly);
 }
 
+void UItemObject::Use(UObject* Source)
+{
+	IUsableInterface::Use(Source);
+}
+
 void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
 {
 	ItemParams = ItemData.ItemParams;

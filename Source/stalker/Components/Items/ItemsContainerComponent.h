@@ -97,11 +97,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_AddItemAt(UItemObject* ItemObject, uint32 Index);
 	
-	void DragItem(const UItemObject* ItemObject);
-	
-	UFUNCTION(Server, Reliable)
-	void Server_DragItem(const UItemObject* ItemObject);
-	
 	void RemoveItem(UItemObject* ItemObject);
 	
 	UFUNCTION(Server, Reliable)
@@ -116,6 +111,8 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void Server_MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainerComponent* OtherContainer);
+	
+	void SubtractOrRemoveItem(UItemObject* ItemObject);
 	
 	void UpdateItemsMap();
 

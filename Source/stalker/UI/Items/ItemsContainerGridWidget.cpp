@@ -31,8 +31,7 @@ int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeom
 					uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
 					if (auto ItemObject = DragDropOperation->GetPayload<UItemObject>())
 					{
-						if (ItemsContainerRef->CheckRoom(ItemObject, RoomIndex) || ItemsContainerRef->CanStackAtIndex(
-							ItemObject, RoomIndex))
+						if (ItemsContainerRef->CheckRoom(ItemObject, RoomIndex))
 						{
 							SlotColor = FLinearColor(0.0f, 1.0f, 0.0f, 0.35f); 
 						}
@@ -98,13 +97,8 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 			uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
 			if (ItemsContainerRef->CheckRoom(Payload, RoomIndex))
 			{
+				DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Remove);
 				ItemsContainerRef->AddItemAt(Payload, RoomIndex);
-				DragDropOperation->CompleteDragDropOperation();
-			}
-			else if (ItemsContainerRef->CanStackAtIndex(Payload, RoomIndex))
-			{
-				ItemsContainerRef->StackItemAt(Payload, RoomIndex);
-				DragDropOperation->CompleteDragDropOperation();
 			}
 			else
 			{
@@ -155,8 +149,8 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 			ItemWidget->OnDoubleClick.BindUObject(this, &UItemsContainerGridWidget::OnDoubleClick);
-			ItemWidget->OnBeginDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnReverseDragOperation);
+			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
 
 			FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
 			if (UCanvasPanelSlot* CanvasPanelSlot = GridCanvas->AddChildToCanvas(ItemWidget))
@@ -168,31 +162,40 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 	}
 }
 
+void UItemsContainerGridWidget::SetupSize()
+{
+	uint16 Width = ItemsContainerRef->GetColumns() * APlayerHUD::TileSize;
+	GridSizeBox->SetWidthOverride(Width);
+}
+
 void UItemsContainerGridWidget::OnDoubleClick(UItemObject* ClickedItem)
 {
 	OnItemWidgetDoubleClick.Broadcast(ClickedItem);
-}
-
-void UItemsContainerGridWidget::OnBeginDragOperation(UItemObject* DraggedItem)
-{
-	if (ItemsContainerRef.IsValid())
-	{
-		ItemsContainerRef->DragItem(DraggedItem);
-	}
 }
 
 void UItemsContainerGridWidget::OnReverseDragOperation(UItemObject* DraggedItem)
 {
 	if (ItemsContainerRef.IsValid())
 	{
-		ItemsContainerRef->TryAddItem(DraggedItem);
+		ItemsContainerRef->UpdateItemsMap();
 	}
 }
 
-void UItemsContainerGridWidget::SetupSize()
+void UItemsContainerGridWidget::OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult)
 {
-	uint16 Width = ItemsContainerRef->GetColumns() * APlayerHUD::TileSize;
-	GridSizeBox->SetWidthOverride(Width);
+	if (ItemsContainerRef.IsValid())
+	{
+		switch (OperationResult)
+		{
+		case EDragDropOperationResult::Remove:
+			ItemsContainerRef->RemoveItem(DraggedItem);
+			break;
+		case EDragDropOperationResult::Subtract:
+			ItemsContainerRef->SubtractOrRemoveItem(DraggedItem);
+			break;
+		default: break;
+		}
+	}
 }
 
 bool UItemsContainerGridWidget::IsMouseOnTile(float MousePosition)

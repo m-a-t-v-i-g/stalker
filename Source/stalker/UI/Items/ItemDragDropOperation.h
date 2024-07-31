@@ -15,8 +15,9 @@ class STALKER_API UItemDragDropOperation : public UDragDropOperation
 public:
 	TObjectPtr<class UInteractiveItemWidget> ItemWidgetRef;
 	
-	void CompleteDragDropOperation();
 	void ReverseDragDropOperation();
+	
+	void CompleteDragDropOperation(EDragDropOperationResult OperationResult);
 	
 	template <class T>
 	T* GetPayload() const

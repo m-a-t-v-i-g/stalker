@@ -6,6 +6,8 @@
 #include "Components/Items/ItemsContainerComponent.h"
 #include "InventoryComponent.generated.h"
 
+class UItemObject;
+
 UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UInventoryComponent : public UItemsContainerComponent
 {
@@ -15,4 +17,9 @@ public:
 	UInventoryComponent();
 
 	void DropItem(UItemObject* ItemObject);
+	
+	void UseItem(UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable)
+	void Server_UseItem(UItemObject* ItemObject);
 };

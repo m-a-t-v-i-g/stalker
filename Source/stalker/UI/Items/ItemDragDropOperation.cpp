@@ -3,9 +3,9 @@
 #include "ItemDragDropOperation.h"
 #include "InteractiveItemWidget.h"
 
-void UItemDragDropOperation::CompleteDragDropOperation()
+void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult)
 {
-	ItemWidgetRef->CompleteDragOperation();
+	ItemWidgetRef->CompleteDragOperation(OperationResult);
 }
 
 void UItemDragDropOperation::ReverseDragDropOperation()

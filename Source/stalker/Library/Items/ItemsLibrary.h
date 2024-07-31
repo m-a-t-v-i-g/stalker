@@ -14,7 +14,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerItemOperationSignature, UItemObj
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemOperationSignature, const FString&)
 
 UENUM(BlueprintType)
-enum class EItemDragResult : uint8
+enum class EDragDropOperationResult : uint8
 {
 	Remove,
 	Subtract

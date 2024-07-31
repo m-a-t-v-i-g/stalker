@@ -3,18 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Interfaces/UsableInterface.h"
 #include "Library/Items/ItemsLibrary.h"
 #include "UObject/Object.h"
 #include "ItemObject.generated.h"
 
 UCLASS(BlueprintType, Blueprintable)
-class STALKER_API UItemObject : public UObject
+class STALKER_API UItemObject : public UObject, public IUsableInterface
 {
 	GENERATED_BODY()
 
 public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void Use(UObject* Source) override;
 	
 protected:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")

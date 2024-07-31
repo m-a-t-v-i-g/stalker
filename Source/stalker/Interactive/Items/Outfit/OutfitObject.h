@@ -10,4 +10,7 @@ UCLASS()
 class STALKER_API UOutfitObject : public UItemObject
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void Use(UObject* Source) override;
 };

@@ -18,8 +18,8 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (OwnSlot.IsValid() && OwnSlot->CanEquipItem(Payload))
 			{
-				OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload);
-				DragDropOperation->CompleteDragDropOperation();
+				OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false);
+				DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Subtract);
 			}
 			else
 			{
@@ -59,8 +59,8 @@ void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject)
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 			ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
-			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnReverseDragOperation);
+			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
 			
 			if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 			{
@@ -76,18 +76,18 @@ void UEquipmentSlotWidget::OnDoubleClick(UItemObject* ClickedItem)
 	OnItemWidgetDoubleClick.Broadcast(SlotName);
 }
 
-void UEquipmentSlotWidget::OnCompleteDragOperation(UItemObject* DraggedItem)
-{
-	if (OwnEquipment.IsValid())
-	{
-		OwnEquipment->UnEquipSlot(OwnSlot->GetSlotName(), false);
-	}
-}
-
 void UEquipmentSlotWidget::OnReverseDragOperation(UItemObject* DraggedItem)
 {
 	if (OwnSlot.IsValid())
 	{
 		OwnSlot->UpdateSlot();
+	}
+}
+
+void UEquipmentSlotWidget::OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult)
+{
+	if (OwnEquipment.IsValid())
+	{
+		OwnEquipment->UnEquipSlot(OwnSlot->GetSlotName(), false);
 	}
 }

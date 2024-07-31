@@ -62,17 +62,17 @@ private:
 	TArray<class UEquipmentSlot*> EquipmentSlots;
 
 public:
-	void EquipSlot(const FString& SlotName, UItemObject* BoundObject);
+	void TryEquipItem(UItemObject* BoundObject);
+	
+	void EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
 
 	UFUNCTION(Server, Reliable)
-	void Server_EquipSlot(const FString& SlotName, UItemObject* BoundObject);
+	void Server_EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
 	
 	void UnEquipSlot(const FString& SlotName, bool bTryAddItem);
 
 	UFUNCTION(Server, Reliable)
 	void Server_UnEquipSlot(const FString& SlotName, bool bTryAddItem);
 	
-	void UseItem(UItemObject* ItemObject);
-
 	UEquipmentSlot* FindEquipmentSlotByName(const FString& SlotName) const;
 };

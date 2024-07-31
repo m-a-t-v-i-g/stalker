@@ -48,11 +48,11 @@ public:
 	void OnItemsContainerUpdated();
 	
 protected:
-	void OnDoubleClick(UItemObject* ClickedItem);
-	void OnBeginDragOperation(UItemObject* DraggedItem);
-	void OnReverseDragOperation(UItemObject* DraggedItem);
-	
 	void SetupSize();
+	
+	void OnDoubleClick(UItemObject* ClickedItem);
+	void OnReverseDragOperation(UItemObject* DraggedItem);
+	void OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult);
 	
 	static bool IsMouseOnTile(float MousePosition);
 };

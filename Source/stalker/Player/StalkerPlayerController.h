@@ -33,6 +33,9 @@ protected:
 	TObjectPtr<class APlayerHUD> StalkerHUD;
 	
 	TObjectPtr<class APlayerCharacter> Stalker;
+
+private:
+	bool bIsStalkerInitialized = false;
 	
 public:
 	virtual void OnPossess(APawn* InPawn) override;

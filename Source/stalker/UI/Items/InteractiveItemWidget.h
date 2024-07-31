@@ -9,7 +9,8 @@
 
 class UItemObject;
 
-DECLARE_DELEGATE_OneParam(FOnItemOperationSignature, UItemObject*);
+DECLARE_DELEGATE_OneParam(FDragDropOperationSignature, UItemObject*);
+DECLARE_DELEGATE_TwoParams(FDragDropOperationResultSignature, UItemObject*, EDragDropOperationResult);
 
 UCLASS()
 class STALKER_API UInteractiveItemWidget : public UUserWidget
@@ -22,9 +23,7 @@ protected:
 	
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
-	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	                          UDragDropOperation* InOperation) override;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Interactive Item")
 	TSubclassOf<class UItemDraggedWidget> ItemDraggedWidgetClass;
 	
@@ -41,10 +40,10 @@ private:
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 public:
-	FOnItemOperationSignature OnDoubleClick;
-	FOnItemOperationSignature OnBeginDragDropOperation;
-	FOnItemOperationSignature OnCompleteDragDropOperation;
-	FOnItemOperationSignature OnReverseDragDropOperation;
+	FDragDropOperationSignature OnDoubleClick;
+	FDragDropOperationSignature OnReverseDragDropOperation;
+	
+	FDragDropOperationResultSignature OnCompleteDragDropOperation;
 
 	virtual void InitItemWidget(UItemObject* BindObject, FIntPoint Size);
 
@@ -56,9 +55,8 @@ protected:
 
 public:
 	void DoubleClick();
-	void BeginDragOperation();
-	void CompleteDragOperation();
 	void ReverseDragOperation();
+	void CompleteDragOperation(EDragDropOperationResult OperationResult);
 	
 	const UItemObject* GetBoundObject() const { return BoundObject.Get(); }
 

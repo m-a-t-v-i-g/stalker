@@ -39,6 +39,6 @@ protected:
 	void OnSlotChanged(UItemObject* BoundObject);
 
 	void OnDoubleClick(UItemObject* ClickedItem);
-	void OnCompleteDragOperation(UItemObject* DraggedItem);
 	void OnReverseDragOperation(UItemObject* DraggedItem);
+	void OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult);
 };
