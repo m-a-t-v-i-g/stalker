@@ -1,16 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "InteractiveItemWidget.h"
+#include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
-#include "ItemDraggedWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
-#include "Interactive/Items/ItemObject.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
 
-FReply UInteractiveItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -23,7 +22,7 @@ FReply UInteractiveItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
-FReply UInteractiveItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -32,7 +31,7 @@ FReply UInteractiveItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& I
 	return Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
 }
 
-void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                                   UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
@@ -49,7 +48,7 @@ void UInteractiveItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, c
 	RemoveFromParent();
 }
 
-void UInteractiveItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
+void UItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
 {
 	BoundObject = BindObject;
 
@@ -58,14 +57,14 @@ void UInteractiveItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint S
 	SizeBox->SetWidthOverride(GridSize.X);
 	SizeBox->SetHeightOverride(GridSize.Y);
 
-	TextAmount->VisibilityDelegate.BindDynamic(this, &UInteractiveItemWidget::GetAmountVisibility);
-	TextAmount->TextDelegate.BindDynamic(this, &UInteractiveItemWidget::GetAmountText);
+	TextAmount->VisibilityDelegate.BindDynamic(this, &UItemWidget::GetAmountVisibility);
+	TextAmount->TextDelegate.BindDynamic(this, &UItemWidget::GetAmountText);
 
 	auto Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
 	ItemImage->SetBrush(Icon);
 }
 
-FReply UInteractiveItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+FReply UItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
 	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
@@ -79,7 +78,7 @@ FReply UInteractiveItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& In
 	return Reply.NativeReply;
 }
 
-FReply UInteractiveItemWidget::HandleLeftMouseButtonDownDoubleClick(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+FReply UItemWidget::HandleLeftMouseButtonDownDoubleClick(const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
 	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
@@ -89,7 +88,7 @@ FReply UInteractiveItemWidget::HandleLeftMouseButtonDownDoubleClick(const FPoint
 	return Reply.NativeReply;
 }
 
-FReply UInteractiveItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+FReply UItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
 	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
@@ -98,22 +97,22 @@ FReply UInteractiveItemWidget::HandleRightMouseButtonDown(const FPointerEvent& I
 	return Reply.NativeReply;
 }
 
-void UInteractiveItemWidget::DoubleClick()
+void UItemWidget::DoubleClick()
 {
 	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
 }
 
-void UInteractiveItemWidget::ReverseDragOperation()
+void UItemWidget::ReverseDragOperation()
 {
 	OnReverseDragDropOperation.ExecuteIfBound(BoundObject.Get());
 }
 
-void UInteractiveItemWidget::CompleteDragOperation(EDragDropOperationResult OperationResult)
+void UItemWidget::CompleteDragOperation(EDragDropOperationResult OperationResult)
 {
 	OnCompleteDragDropOperation.ExecuteIfBound(BoundObject.Get(), OperationResult);
 }
 
-ESlateVisibility UInteractiveItemWidget::GetAmountVisibility()
+ESlateVisibility UItemWidget::GetAmountVisibility()
 {
 	ESlateVisibility AmountVisibility = ESlateVisibility::Collapsed;
 	{
@@ -128,7 +127,7 @@ ESlateVisibility UInteractiveItemWidget::GetAmountVisibility()
 	return AmountVisibility;
 }
 
-FText UInteractiveItemWidget::GetAmountText()
+FText UItemWidget::GetAmountText()
 {
 	FText AmountText;
 	if (auto ItemObject = GetBoundObject<UItemObject>())

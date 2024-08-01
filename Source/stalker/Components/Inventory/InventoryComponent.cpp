@@ -1,11 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryComponent.h"
-#include "Interactive/Items/ItemObject.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Interfaces/UsableInterface.h"
 
 UInventoryComponent::UInventoryComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UInventoryComponent::DropItem(UItemObject* ItemObject)

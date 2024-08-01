@@ -7,6 +7,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/Inventory/InventoryComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
+#include "Components/Weapons/WeaponComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -15,6 +16,7 @@ FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
 FName ABaseOrganic::CapsuleName {"OrganicCollision"};
 FName ABaseOrganic::AbilitySystemComponentName {"AbilityComp"};
 FName ABaseOrganic::InventoryComponentName {"InventoryComp"};
+FName ABaseOrganic::WeaponComponentName {"WeaponComp"};
 
 const FName NAME_RotationAmount("RotationAmount");
 const FName NAME_YawOffset("YawOffset");
@@ -79,6 +81,8 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 	OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
+	
+	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(WeaponComponentName);
 	
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");

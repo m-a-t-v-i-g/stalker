@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "EquipmentSlot.h"
-#include "Interactive/Items/ItemObject.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Net/UnrealNetwork.h"
 
 void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

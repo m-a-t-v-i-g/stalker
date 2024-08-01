@@ -4,10 +4,10 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Inventory/EquipmentSlot.h"
-#include "Interactive/Items/ItemObject.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
-#include "UI/Items/InteractiveItemWidget.h"
-#include "UI/Items/ItemDragDropOperation.h"
+#include "UI/Inventory/ItemWidget.h"
+#include "UI/Inventory/ItemDragDropOperation.h"
 
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
@@ -53,7 +53,7 @@ void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModifie
 	
 	if (auto ItemObject = Cast<UItemObject>(BoundObject))
 	{
-		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
+		if (UItemWidget* ItemWidget = CreateWidget<UItemWidget>(
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());

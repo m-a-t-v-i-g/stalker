@@ -7,8 +7,8 @@
 #include "UI/Inventory/CharacterEquipmentWidget.h"
 #include "UI/Inventory/EquipmentSlotWidget.h"
 #include "UI/Inventory/InventoryWidget.h"
-#include "UI/Items/ItemDragDropOperation.h"
-#include "UI/Items/ItemsContainerGridWidget.h"
+#include "UI/Inventory/ItemDragDropOperation.h"
+#include "UI/Inventory/ItemsContainerGridWidget.h"
 
 bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)

@@ -5,4 +5,5 @@
 AItemActor::AItemActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }

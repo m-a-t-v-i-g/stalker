@@ -39,6 +39,7 @@ public:
 	static FName CapsuleName;
 	static FName AbilitySystemComponentName;
 	static FName InventoryComponentName;
+	static FName WeaponComponentName;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
@@ -55,6 +56,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInventoryComponent> InventoryComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWeaponComponent> WeaponComponent;
 	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()
@@ -283,6 +287,15 @@ public:
 	T* GetInventoryComponent() const
 	{
 		return Cast<T>(GetInventoryComponent());
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	FORCEINLINE UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
+
+	template <class T>
+	T* GetWeaponComponent() const
+	{
+		return Cast<T>(GetWeaponComponent());
 	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")

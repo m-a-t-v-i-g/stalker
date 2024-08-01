@@ -2,7 +2,7 @@
 
 #include "ItemsContainerComponent.h"
 #include "Engine/ActorChannel.h"
-#include "Interactive/Items/ItemObject.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Library/Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 

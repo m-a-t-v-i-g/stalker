@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Library/Items/ItemsLibrary.h"
+#include "Items/ItemsLibrary.h"
 #include "WeaponComponent.generated.h"
 
 class AItemActor;
@@ -25,7 +25,7 @@ struct FWeaponSlotSpec
 };
 
 USTRUCT(Blueprintable)
-struct FWeaponSlotHandle
+struct FWeaponSlot
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -39,23 +39,23 @@ struct FWeaponSlotHandle
 	UItemObject* ArmedItemObject = nullptr;
 	
 	FWeaponSlotSpec* WeaponSlotPtr = nullptr;
-	FWeaponParams* WeaponParams = nullptr;
-
-	FWeaponSlotHandle()
+	
+	FWeaponSlot()
 	{
 	}
 
-	FWeaponSlotHandle(uint8 Index, FWeaponSlotSpec& SlotSpec)
+	FWeaponSlot(uint8 Index, FWeaponSlotSpec& SlotSpec)
 	{
 		Handle = Index;
 		WeaponSlotPtr = &SlotSpec;
 	}
 	
 	const FString& GetSlotName() const { return WeaponSlotPtr->SlotName; }
+	const FName& GetAttachmentSocketName() const { return WeaponSlotPtr->AttachmentSocketName; }
 
 	bool IsArmed() const { return ArmedItemActor != nullptr && ArmedItemObject != nullptr; }
 	
-	friend uint8 GetTypeHash(const FWeaponSlotHandle& Handle)
+	friend uint8 GetTypeHash(const FWeaponSlot& Handle)
 	{
 		return GetTypeHash(Handle.Handle);
 	}
@@ -71,7 +71,7 @@ public:
 	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<FWeaponSlotHandle> WeaponSlots;
+	TArray<FWeaponSlot> WeaponSlots;
 	
 private:
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Weapon Slots", Category = "Weapon")
@@ -87,12 +87,13 @@ public:
 	bool ActivateSlot(uint8 SlotIndex);
 
 	void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
+	void DisarmSlot(const FString& SlotName);
 
 	void Attack();
 
 protected:
-	AItemActor* SpawnWeapon(const UItemObject* ItemObject) const;
+	AItemActor* SpawnWeapon(const FWeaponSlot* WeaponSlot, const UItemObject* ItemObject) const;
 	
 public:
-	FORCEINLINE FWeaponSlotHandle* FindWeaponSlot(const FString& SlotName);
+	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
 };

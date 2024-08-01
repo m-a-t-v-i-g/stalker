@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interactive/Items/ItemObject.h"
-#include "OutfitObject.generated.h"
+#include "InteractiveObjects/Items/ItemObject.h"
+#include "ArmorObject.generated.h"
 
 UCLASS()
-class STALKER_API UOutfitObject : public UItemObject
+class STALKER_API UArmorObject : public UItemObject
 {
 	GENERATED_BODY()
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/Items/ItemsContainerComponent.h"
+#include "Components/Inventory/ItemsContainerComponent.h"
 #include "InventoryComponent.generated.h"
 
 class UItemObject;

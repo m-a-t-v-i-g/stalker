@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/PlayerHUD.h"
-#include "UI/Items/InteractiveItemWidget.h"
+#include "UI/Inventory/ItemWidget.h"
 #include "UI/Player/PlayerMainWidget.h"
 
 UClass* APlayerHUD::StaticInteractiveItemWidgetClass {nullptr};

@@ -21,7 +21,13 @@ public class stalker : ModuleRules
 		
 		PublicIncludePaths.AddRange(new[]
 		{
-			"stalker/"
+			"stalker/",
+			"stalker/Components",
+			"stalker/InteractiveObjects",
+			"stalker/InteractiveObjects/Items",
+			"stalker/Interfaces",
+			"stalker/Library",
+			"stalker/UI"
 		});
 	}
 }

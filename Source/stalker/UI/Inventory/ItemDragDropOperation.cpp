@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemDragDropOperation.h"
-#include "InteractiveItemWidget.h"
+#include "ItemWidget.h"
 
 void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult)
 {

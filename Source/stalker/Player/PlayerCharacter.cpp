@@ -26,7 +26,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		
 		Subsystem->AddMappingContext(InputMappingContext, 1, Options);
 	}
-	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 

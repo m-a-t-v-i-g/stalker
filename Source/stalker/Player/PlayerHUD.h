@@ -23,7 +23,7 @@ protected:
 	TSubclassOf<class UPlayerMainWidget> MainWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
-	TSubclassOf<class UInteractiveItemWidget> InteractiveItemWidgetClass; 
+	TSubclassOf<class UItemWidget> InteractiveItemWidgetClass; 
 
 	UPROPERTY(EditInstanceOnly, Category = "HUD")
 	TObjectPtr<UPlayerMainWidget> MainWidget;

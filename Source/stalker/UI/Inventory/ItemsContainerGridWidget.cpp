@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemsContainerGridWidget.h"
-#include "InteractiveItemWidget.h"
+#include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/SizeBox.h"
-#include "Components/Items/ItemsContainerComponent.h"
-#include "Interactive/Items/ItemObject.h"
+#include "Components/Inventory/ItemsContainerComponent.h"
+#include "InteractiveObjects/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
 #include "Slate/SlateBrushAsset.h"
 
@@ -143,7 +143,7 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 		auto ItemObject = ItemsContainerRef->FindItemById(ItemId);
 		if (!IsValid(ItemObject)) return;
 
-		if (UInteractiveItemWidget* ItemWidget = CreateWidget<UInteractiveItemWidget>(
+		if (UItemWidget* ItemWidget = CreateWidget<UItemWidget>(
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());

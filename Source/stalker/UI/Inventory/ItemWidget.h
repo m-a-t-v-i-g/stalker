@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Library/Items/ItemsLibrary.h"
-#include "InteractiveItemWidget.generated.h"
+#include "ItemWidget.generated.h"
 
 class UItemObject;
 
@@ -13,7 +13,7 @@ DECLARE_DELEGATE_OneParam(FDragDropOperationSignature, UItemObject*);
 DECLARE_DELEGATE_TwoParams(FDragDropOperationResultSignature, UItemObject*, EDragDropOperationResult);
 
 UCLASS()
-class STALKER_API UInteractiveItemWidget : public UUserWidget
+class STALKER_API UItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -24,9 +24,6 @@ protected:
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
 
-	UPROPERTY(EditAnywhere, Category = "Interactive Item")
-	TSubclassOf<class UItemDraggedWidget> ItemDraggedWidgetClass;
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> SizeBox;
 	

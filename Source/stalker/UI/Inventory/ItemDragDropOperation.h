@@ -13,7 +13,7 @@ class STALKER_API UItemDragDropOperation : public UDragDropOperation
 	GENERATED_BODY()
 
 public:
-	TObjectPtr<class UInteractiveItemWidget> ItemWidgetRef;
+	TObjectPtr<class UItemWidget> ItemWidgetRef;
 
 	bool bWasSuccessful = false;
 	

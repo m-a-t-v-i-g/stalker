@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "OutfitObject.h"
+#include "ArmorObject.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
 
-void UOutfitObject::Use(UObject* Source)
+void UArmorObject::Use(UObject* Source)
 {
 	Super::Use(Source);
 
@@ -13,7 +13,7 @@ void UOutfitObject::Use(UObject* Source)
 	}
 }
 
-USkeletalMesh* UOutfitObject::GetDefaultMesh() const
+USkeletalMesh* UArmorObject::GetDefaultMesh() const
 {
 	USkeletalMesh* SkeletalMesh = nullptr;
 	if (GetRow<FTableRowArmor>())
@@ -23,7 +23,7 @@ USkeletalMesh* UOutfitObject::GetDefaultMesh() const
 	return SkeletalMesh;
 }
 
-USkeletalMesh* UOutfitObject::GetHelmetMesh() const
+USkeletalMesh* UArmorObject::GetHelmetMesh() const
 {
 	USkeletalMesh* SkeletalMesh = nullptr;
 	if (GetRow<FTableRowArmor>())
