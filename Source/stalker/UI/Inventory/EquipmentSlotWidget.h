@@ -36,7 +36,7 @@ public:
 	void SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp);
 
 protected:
-	void OnSlotChanged(UItemObject* BoundObject);
+	void OnSlotChanged(UItemObject* BoundObject, bool bModified);
 
 	void OnDoubleClick(UItemObject* ClickedItem);
 	void OnReverseDragOperation(UItemObject* DraggedItem);

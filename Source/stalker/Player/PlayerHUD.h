@@ -3,20 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StalkerPlayerController.h"
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
 class UStalkerAbilityComponent;
 class UCharacterInventoryComponent;
-class UInventoryComponent;
-
-UENUM()
-enum class EActivateTab : uint8
-{
-	HUD,
-	Inventory,
-	PDA
-};
+class UItemsContainerComponent;
 
 UCLASS()
 class STALKER_API APlayerHUD : public AHUD
@@ -36,7 +29,7 @@ protected:
 	TObjectPtr<UPlayerMainWidget> MainWidget;
 
 private:
-	EActivateTab ActiveTab = EActivateTab::HUD;
+	EHUDTab ActiveTab = EHUDTab::HUD;
 	
 public:
 	static UClass* StaticInteractiveItemWidgetClass;
@@ -44,7 +37,7 @@ public:
 	
 	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
-	void ToggleTab(EActivateTab Tab);
-
-	void StartLooting(UInventoryComponent* LootInventory);
+	void ToggleTab(EHUDTab& Tab, bool bForce = false);
+	
+	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 };

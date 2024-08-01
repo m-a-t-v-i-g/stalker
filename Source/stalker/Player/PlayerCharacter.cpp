@@ -110,12 +110,22 @@ void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 	}
 }
 
-void APlayerCharacter::SetupCharacterLocally()
+void APlayerCharacter::SetupCharacterLocally(AStalkerPlayerController* NewController)
 {
-	
+	if (!NewController) return;
+
+	//NewController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
 }
 
-void APlayerCharacter::StartLooting(UInventoryComponent* LootInventory)
+void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
 {
-	GetController<AStalkerPlayerController>()->GetHUD<APlayerHUD>()->StartLooting(LootInventory);
+	switch (Tab)
+	{
+	case EHUDTab::Inventory:
+		SetRotationMode(EOrganicRotationMode::VelocityDirection);
+		break;
+	default:
+		SetRotationMode(GetInputRotationMode());
+		break;
+	}
 }

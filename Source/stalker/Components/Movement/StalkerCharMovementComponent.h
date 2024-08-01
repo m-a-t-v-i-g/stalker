@@ -6,8 +6,7 @@
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "StalkerCharMovementComponent.generated.h"
 
-
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UStalkerCharMovementComponent : public UOrganicMovementComponent
 {
 	GENERATED_BODY()

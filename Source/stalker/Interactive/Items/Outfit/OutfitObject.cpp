@@ -12,3 +12,23 @@ void UOutfitObject::Use(UObject* Source)
 		CharInventory->TryEquipItem(this);
 	}
 }
+
+USkeletalMesh* UOutfitObject::GetDefaultMesh() const
+{
+	USkeletalMesh* SkeletalMesh = nullptr;
+	if (GetRow<FTableRowArmor>())
+	{
+		SkeletalMesh = GetRow<FTableRowArmor>()->DefaultMesh;
+	}
+	return SkeletalMesh;
+}
+
+USkeletalMesh* UOutfitObject::GetHelmetMesh() const
+{
+	USkeletalMesh* SkeletalMesh = nullptr;
+	if (GetRow<FTableRowArmor>())
+	{
+		SkeletalMesh = GetRow<FTableRowArmor>()->HelmetMesh;
+	}
+	return SkeletalMesh;
+}

@@ -7,6 +7,16 @@
 #include "InputMappingContext.h"
 #include "StalkerPlayerController.generated.h"
 
+UENUM()
+enum class EHUDTab : uint8
+{
+	HUD,
+	Inventory,
+	PDA
+};
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDTabChanged, EHUDTab);
+
 UCLASS()
 class STALKER_API AStalkerPlayerController : public AGenPlayerController
 {
@@ -34,6 +44,9 @@ protected:
 	
 	TObjectPtr<class APlayerCharacter> Stalker;
 
+public:
+	FOnHUDTabChanged OnHUDTabChanged;
+	
 private:
 	bool bIsStalkerInitialized = false;
 	
@@ -46,4 +59,6 @@ public:
 protected:
 	void IA_Inventory(const FInputActionValue& Value);
 	void IA_PDA(const FInputActionValue& Value);
+	
+	void ToggleHUD(EHUDTab Tab, bool bForce = false) const;
 };

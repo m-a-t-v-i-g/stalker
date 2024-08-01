@@ -6,6 +6,9 @@
 #include "BaseCharacter.h"
 #include "StalkerCharacter.generated.h"
 
+class UWeaponComponent;
+class UItemObject;
+
 UCLASS()
 class STALKER_API AStalkerCharacter : public ABaseCharacter
 {
@@ -15,7 +18,9 @@ public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PossessedBy(AController* NewController) override;
-
+	
+	static FName WeaponComponentName;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
 	FString ArmorSlotName = "Armor";
@@ -28,10 +33,13 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character|Equipment")
 	FString DetectorSlotName = "Detector";
+
+	UPROPERTY(EditAnywhere, Category = "Character")
+	TObjectPtr<UWeaponComponent> CharacterWeapon;
 	
 public:
-	void OnArmorSlotChanged(class UItemObject* ItemObject);
-	void OnMainSlotChanged(UItemObject* ItemObject);
-	void OnSecondarySlotChanged(UItemObject* ItemObject);
-	void OnDetectorSlotChanged(UItemObject* ItemObject);
+	void OnArmorSlotChanged(UItemObject* ItemObject, bool bModified);
+	void OnMainSlotChanged(UItemObject* ItemObject, bool bModified);
+	void OnSecondarySlotChanged(UItemObject* ItemObject, bool bModified);
+	void OnDetectorSlotChanged(UItemObject* ItemObject, bool bModified);
 };

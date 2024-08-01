@@ -7,7 +7,22 @@
 #include "UI/Inventory/CharacterEquipmentWidget.h"
 #include "UI/Inventory/EquipmentSlotWidget.h"
 #include "UI/Inventory/InventoryWidget.h"
+#include "UI/Items/ItemDragDropOperation.h"
 #include "UI/Items/ItemsContainerGridWidget.h"
+
+bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+                                        UDragDropOperation* InOperation)
+{
+	bool bResult = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
+	{
+		if (!DragDropOperation->bWasSuccessful)
+		{
+			DragDropOperation->ReverseDragDropOperation();
+		}
+	}
+	return bResult;
+}
 
 void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityComp,
                                              UCharacterInventoryComponent* CharInventoryComp)
@@ -29,12 +44,12 @@ void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityCo
 	ClearTabs();
 }
 
-void UPlayerManagerWidget::StartLooting(UInventoryComponent* LootInventory)
+void UPlayerManagerWidget::StartLooting(UItemsContainerComponent* LootItemsContainer)
 {
-	LootingInventoryComponent = LootInventory;
-	check(LootingInventoryComponent.IsValid());
+	LootingItemsContainer = LootItemsContainer;
+	check(LootingItemsContainer.IsValid());
 	
-	Looting->InitializeInventory(LootingInventoryComponent.Get());
+	Looting->InitializeInventory(LootingItemsContainer.Get());
 	Looting->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnLootingItemDoubleClick);
 	
 	ActivateTab(EPlayerManagerTab::Looting);
@@ -49,7 +64,7 @@ void UPlayerManagerWidget::ClearTabs()
 {
 	ActivateTab(EPlayerManagerTab::Inventory);
 	
-	LootingInventoryComponent.Reset();
+	LootingItemsContainer.Reset();
 }
 
 void UPlayerManagerWidget::ActivateTab(EPlayerManagerTab TabToActivate)
@@ -78,7 +93,7 @@ void UPlayerManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObject
 		OwnInventoryComponent->UseItem(ItemObject);
 		break;
 	case EPlayerManagerTab::Looting:
-		OwnInventoryComponent->MoveItemToOtherContainer(ItemObject, LootingInventoryComponent.Get());
+		OwnInventoryComponent->MoveItemToOtherContainer(ItemObject, LootingItemsContainer.Get());
 		break;
 	case EPlayerManagerTab::Upgrading:
 		break;
@@ -96,8 +111,8 @@ void UPlayerManagerWidget::OnOwnEquippedItemDoubleClick(const FString& SlotName)
 
 void UPlayerManagerWidget::OnLootingItemDoubleClick(UItemObject* ItemObject)
 {
-	if (LootingInventoryComponent.IsValid())
+	if (LootingItemsContainer.IsValid())
 	{
-		LootingInventoryComponent->MoveItemToOtherContainer(ItemObject, OwnInventoryComponent.Get());
+		LootingItemsContainer->MoveItemToOtherContainer(ItemObject, OwnInventoryComponent.Get());
 	}
 }

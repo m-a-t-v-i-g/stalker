@@ -7,7 +7,7 @@
 #include "Library/OrganicLibrary.h"
 #include "OrganicMovementComponent.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponent
 {
 	GENERATED_BODY()

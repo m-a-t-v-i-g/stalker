@@ -90,7 +90,8 @@ void UItemsContainerGridWidget::NativeOnDragLeave(const FDragDropEvent& InDragDr
 bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                              UDragDropOperation* InOperation)
 {
-	bool bResult = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	bDrawDropLocation = false;
+	
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
@@ -98,15 +99,14 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 			uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
 			if (ItemsContainerRef->CheckRoom(Payload, RoomIndex))
 			{
+				DragDropOperation->bWasSuccessful = true;
 				DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Remove);
+				
 				ItemsContainerRef->AddItemAt(Payload, RoomIndex);
-				return bResult;
 			}
 		}
-		DragDropOperation->ReverseDragDropOperation();
 	}
-	bDrawDropLocation = false;
-	return bResult;
+	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UItemsContainerGridWidget::SetupContainerGrid(UItemsContainerComponent* OwnContainerComp)

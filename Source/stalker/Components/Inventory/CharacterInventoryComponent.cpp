@@ -58,7 +58,7 @@ void UCharacterInventoryComponent::AddStartingData()
 	{
 		if (EachSlotSpec.StartingData.IsValid())
 		{
-			auto Slot = FindEquipmentSlotByName(EachSlotSpec.SlotName);
+			auto Slot = FindEquipmentSlot(EachSlotSpec.SlotName);
 			if (!Slot) continue;
 
 			FItemData ItemData;
@@ -91,7 +91,7 @@ bool UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObjec
 {
 	check(BoundObject);
 	
-	if (auto Slot = FindEquipmentSlotByName(SlotName))
+	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (auto SlotObject = Slot->GetBoundObject())
 		{
@@ -113,7 +113,7 @@ void UCharacterInventoryComponent::Server_EquipSlot_Implementation(const FString
 {
 	check(BoundObject);
 	
-	if (auto Slot = FindEquipmentSlotByName(SlotName))
+	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(BoundObject))
 		{
@@ -145,7 +145,7 @@ void UCharacterInventoryComponent::UnEquipSlot(const FString& SlotName, bool bTr
 
 void UCharacterInventoryComponent::Server_UnEquipSlot_Implementation(const FString& SlotName, bool bTryAddItem)
 {
-	if (auto Slot = FindEquipmentSlotByName(SlotName))
+	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (Slot->IsEquipped())
 		{
@@ -167,7 +167,7 @@ void UCharacterInventoryComponent::Server_UnEquipSlot_Implementation(const FStri
 	}
 }
 
-UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlotByName(const FString& SlotName) const
+UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& SlotName) const
 {
 	UEquipmentSlot* FoundSlot = nullptr;
 	if (EquipmentSlots.Num() > 0)

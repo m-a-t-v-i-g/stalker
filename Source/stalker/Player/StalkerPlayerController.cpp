@@ -31,7 +31,7 @@ void AStalkerPlayerController::OnPossess(APawn* InPawn)
 	{
 		if (bIsStalkerInitialized) return;
 		
-		Stalker->SetupCharacterLocally();
+		Stalker->SetupCharacterLocally(this);
 		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
 		                                Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
 		bIsStalkerInitialized = true;
@@ -49,7 +49,7 @@ void AStalkerPlayerController::OnRep_Pawn()
 	{
 		if (bIsStalkerInitialized) return;
 		
-		Stalker->SetupCharacterLocally();
+		Stalker->SetupCharacterLocally(this);
 		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
 		                                Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
 		bIsStalkerInitialized = true;
@@ -80,19 +80,20 @@ void AStalkerPlayerController::SetupInputComponent()
 
 void AStalkerPlayerController::IA_Inventory(const FInputActionValue& Value)
 {
-	if (StalkerHUD)
-	{
-		StalkerHUD->ToggleTab(EActivateTab::Inventory);
-	}
-	FInputModeUIOnly InputMode;
-	SetInputMode(InputMode);
-	SetShowMouseCursor(true);
+	ToggleHUD(EHUDTab::Inventory, false);
 }
 
 void AStalkerPlayerController::IA_PDA(const FInputActionValue& Value)
 {
+	ToggleHUD(EHUDTab::PDA, false);
+}
+
+void AStalkerPlayerController::ToggleHUD(EHUDTab Tab, bool bForce) const
+{
 	if (StalkerHUD)
 	{
-		StalkerHUD->ToggleTab(EActivateTab::PDA);
+		EHUDTab DesiredTab = Tab;
+		StalkerHUD->ToggleTab(DesiredTab, bForce);
+		OnHUDTabChanged.Broadcast(DesiredTab);
 	}
 }

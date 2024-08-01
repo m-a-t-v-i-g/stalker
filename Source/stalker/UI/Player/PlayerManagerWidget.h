@@ -6,7 +6,12 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerManagerWidget.generated.h"
 
-UENUM(BlueprintType)
+class UStalkerAbilityComponent;
+class UCharacterInventoryComponent;
+class UItemsContainerComponent;
+class UItemObject;
+
+UENUM()
 enum class EPlayerManagerTab : uint8
 {
 	Inventory,
@@ -14,17 +19,15 @@ enum class EPlayerManagerTab : uint8
 	Upgrading
 };
 
-class UStalkerAbilityComponent;
-class UInventoryComponent;
-class UCharacterInventoryComponent;
-class UItemObject;
-
 UCLASS()
 class STALKER_API UPlayerManagerWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 protected:
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+	                          UDragDropOperation* InOperation) override;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UWidgetSwitcher> TabSwitcher;
 
@@ -44,14 +47,14 @@ private:
 	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 	
-	TWeakObjectPtr<UInventoryComponent> LootingInventoryComponent;
+	TWeakObjectPtr<UItemsContainerComponent> LootingItemsContainer;
 
 	EPlayerManagerTab ActiveTab;
 	
 public:
 	void InitializeManager(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
-	void StartLooting(UInventoryComponent* LootInventory);
+	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 	void StartUpgrading();
 
 	void ClearTabs();

@@ -12,7 +12,6 @@
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
-	bool bResult = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
@@ -21,20 +20,19 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			{
 				if (OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false))
 				{
+					DragDropOperation->bWasSuccessful = true;
 					DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Subtract);
-					return bResult;
 				}
 			}
 		}
-		DragDropOperation->ReverseDragDropOperation();
 	}
-	return bResult;
+	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp)
 {
 	OwnEquipment = CharInventoryComp;
-	OwnSlot = CharInventoryComp->FindEquipmentSlotByName(SlotName);
+	OwnSlot = CharInventoryComp->FindEquipmentSlot(SlotName);
 	
 	if (OwnSlot.IsValid())
 	{
@@ -42,12 +40,12 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* Char
 
 		if (OwnSlot->IsEquipped())
 		{
-			OnSlotChanged(OwnSlot->GetBoundObject());
+			OnSlotChanged(OwnSlot->GetBoundObject(), true);
 		}
 	}
 }
 
-void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject)
+void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModified)
 {
 	SlotCanvas->ClearChildren();
 	
@@ -81,7 +79,7 @@ void UEquipmentSlotWidget::OnReverseDragOperation(UItemObject* DraggedItem)
 {
 	if (OwnSlot.IsValid())
 	{
-		OwnSlot->UpdateSlot();
+		OwnSlot->UpdateSlot(false);
 	}
 }
 

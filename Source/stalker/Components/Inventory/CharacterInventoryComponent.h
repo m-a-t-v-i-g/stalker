@@ -51,15 +51,15 @@ public:
 	virtual void AddStartingData() override;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, DisplayName = "Equipment Slots", Category = "Equipment")
-	TArray<FEquipmentSlotSpec> EquipmentSlotSpecs;
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
+	TArray<class UEquipmentSlot*> EquipmentSlots;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
 	TArray<UItemObject*> EquippedItems;
 
 private:
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
-	TArray<class UEquipmentSlot*> EquipmentSlots;
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Equipment Slots", Category = "Equipment")
+	TArray<FEquipmentSlotSpec> EquipmentSlotSpecs;
 
 public:
 	void TryEquipItem(UItemObject* BoundObject);
@@ -74,5 +74,5 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_UnEquipSlot(const FString& SlotName, bool bTryAddItem);
 	
-	UEquipmentSlot* FindEquipmentSlotByName(const FString& SlotName) const;
+	UEquipmentSlot* FindEquipmentSlot(const FString& SlotName) const;
 };

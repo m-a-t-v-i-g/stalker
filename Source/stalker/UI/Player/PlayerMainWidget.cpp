@@ -18,14 +18,14 @@ void UPlayerMainWidget::InitializeMainWidget(UStalkerAbilityComponent* AbilityCo
 	Manager->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
 }
 
-void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)
+void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)
 {
 	switch (ActivateTab)
 	{
-	case EActivateTab::Inventory:
+	case EHUDTab::Inventory:
 		TabSwitcher->SetActiveWidget(Manager);
 		break;
-	case EActivateTab::PDA:
+	case EHUDTab::PDA:
 		TabSwitcher->SetActiveWidget(PDA);
 		break;
 	default:
@@ -34,7 +34,7 @@ void UPlayerMainWidget::ToggleTab(EActivateTab ActivateTab)
 	}
 }
 
-void UPlayerMainWidget::StartLooting(UInventoryComponent* LootInventory)
+void UPlayerMainWidget::StartLooting(UItemsContainerComponent* LootItemsContainer)
 {
-	Manager->StartLooting(LootInventory);
+	Manager->StartLooting(LootItemsContainer);
 }

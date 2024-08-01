@@ -28,18 +28,17 @@ bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 		BoundObject = BindObject;
 		bWasEquipped = true;
 		
-		OnSlotChanged.Broadcast(BindObject);
+		OnSlotChanged.Broadcast(BindObject, true);
 	}
 	return bWasEquipped;
 }
 
 void UEquipmentSlot::UnEquipSlot()
 {
-	if (BoundObject.IsValid())
+	if (BoundObject)
 	{
-		BoundObject.Reset();
-		
-		OnSlotChanged.Broadcast(BoundObject.Get());
+		BoundObject = nullptr;
+		OnSlotChanged.Broadcast(BoundObject, true);
 	}
 }
 
@@ -48,12 +47,12 @@ bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
 	return ItemObject->GetItemTag().MatchesAny(CategoryTags);
 }
 
-void UEquipmentSlot::UpdateSlot() const
+void UEquipmentSlot::UpdateSlot(bool bModified) const
 {
-	OnSlotChanged.Broadcast(BoundObject.Get());
+	OnSlotChanged.Broadcast(BoundObject, bModified);
 }
 
-void UEquipmentSlot::OnRep_EquipmentSlot()
+void UEquipmentSlot::OnRep_EquipmentSlot(UItemObject* PrevItemObject)
 {
-	UpdateSlot();
+	UpdateSlot(PrevItemObject != BoundObject);
 }

@@ -25,20 +25,41 @@ struct FItemParams
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditInstanceOnly, meta = (ClampMin = "1"))
+	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ClampMin = "1"))
 	uint32 ItemId = 1;
 	
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "Item", meta = (ClampMin = "1"))
 	uint16 Amount = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Item", meta = (ClampMin = "0.0", ForceUnits = "%"))
+	float Condition = 100.0f;
 };
 
 USTRUCT(BlueprintType)
 struct FArmorParams
 {
 	GENERATED_USTRUCT_BODY()
+};
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ForceUnits = "%"))
-	float Condition = 100.0f;
+USTRUCT(BlueprintType)
+struct FWeaponParams
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TArray<TSubclassOf<UItemObject>> AmmoClasses;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	int MagElapsed = 0;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float ReloadTime = 0.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	bool bAutomatic = false;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -92,6 +113,9 @@ struct FTableRowItems : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
 	uint32 StackAmount = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
+	float Weight = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -134,4 +158,19 @@ USTRUCT(BlueprintType)
 struct FTableRowWeapon : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TArray<TSubclassOf<UItemObject>> AmmoClasses;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "1"))
+	int MagSize = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float ReloadTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	bool bAutomatic = false;
 };

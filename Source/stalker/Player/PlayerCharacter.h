@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
+#include "StalkerPlayerController.h"
 #include "Organic/Characters/StalkerCharacter.h"
 #include "PlayerCharacter.generated.h"
 
@@ -52,8 +53,7 @@ protected:
 	void IA_Sprint(const FInputActionValue& Value);
 	
 public:
-	virtual void SetupCharacterLocally();
+	virtual void SetupCharacterLocally(AStalkerPlayerController* NewController);
 
-	UFUNCTION(BlueprintCallable)
-	void StartLooting(UInventoryComponent* LootInventory);
+	void OnHUDTabChanged(EHUDTab Tab);
 };

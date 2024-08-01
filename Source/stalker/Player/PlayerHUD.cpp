@@ -19,7 +19,9 @@ void APlayerHUD::PostInitializeComponents()
 		if (MainWidget && !MainWidget->IsInViewport())
 		{
 			MainWidget->AddToViewport();
-			ToggleTab(EActivateTab::HUD);
+			
+			EHUDTab DesiredTab = EHUDTab::HUD;
+			ToggleTab(DesiredTab, true);
 		}
 	}
 }
@@ -32,25 +34,36 @@ void APlayerHUD::InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCha
 	}
 }
 
-void APlayerHUD::ToggleTab(EActivateTab Tab)
+void APlayerHUD::ToggleTab(EHUDTab& Tab, bool bForce)
 {
 	if (!MainWidget) return;
 	
-	Tab = ActiveTab != Tab ? Tab : EActivateTab::HUD;
-	MainWidget->ToggleTab(Tab);
+	Tab = ActiveTab != Tab || bForce ? Tab : EHUDTab::HUD;
 
+	MainWidget->ToggleTab(Tab);
 	ActiveTab = Tab;
+	
+	switch (ActiveTab)
+	{
+	case EHUDTab::Inventory:
+	case EHUDTab::PDA:
+		GetOwningPlayerController()->SetInputMode(FInputModeGameAndUI());
+		GetOwningPlayerController()->SetShowMouseCursor(true);
+		break;
+	default:
+		GetOwningPlayerController()->SetInputMode(FInputModeGameOnly());
+		GetOwningPlayerController()->SetShowMouseCursor(false);
+		break;
+	}
 }
 
-void APlayerHUD::StartLooting(UInventoryComponent* LootInventory)
+void APlayerHUD::StartLooting(UItemsContainerComponent* LootItemsContainer)
 {
-	GetOwningPlayerController()->SetInputMode(FInputModeUIOnly());
-	GetOwningPlayerController()->SetShowMouseCursor(true);
-	
-	ToggleTab(EActivateTab::Inventory);
+	EHUDTab DesiredTab = EHUDTab::Inventory;
+	ToggleTab(DesiredTab, true);
 	
 	if (MainWidget)
 	{
-		MainWidget->StartLooting(LootInventory);
+		MainWidget->StartLooting(LootItemsContainer);
 	}
 }

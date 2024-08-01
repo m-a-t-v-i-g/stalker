@@ -14,6 +14,8 @@ class STALKER_API UItemDragDropOperation : public UDragDropOperation
 
 public:
 	TObjectPtr<class UInteractiveItemWidget> ItemWidgetRef;
+
+	bool bWasSuccessful = false;
 	
 	void ReverseDragDropOperation();
 	

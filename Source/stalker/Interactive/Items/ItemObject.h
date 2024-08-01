@@ -33,8 +33,8 @@ protected:
 	bool bStackable = false;
 	
 public:
-	void InitItem(const uint32 ItemId, const FItemData& ItemData);
-	void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
+	virtual void InitItem(const uint32 ItemId, const FItemData& ItemData);
+	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	
 protected:
 	virtual void SetupItemProperties();

@@ -65,10 +65,7 @@ protected:
 public:
 	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
 
-	UFUNCTION(BlueprintCallable)
 	virtual void PreInitializeContainer();
-
-	UFUNCTION(BlueprintCallable)
 	virtual void PostInitializeContainer();
 	
 	virtual void AddStartingData();

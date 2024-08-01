@@ -32,7 +32,7 @@ private:
 public:
 	void InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	
-	void ToggleTab(EActivateTab ActivateTab);
+	void ToggleTab(EHUDTab ActivateTab);
 
-	void StartLooting(UInventoryComponent* LootInventory);
+	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 };
