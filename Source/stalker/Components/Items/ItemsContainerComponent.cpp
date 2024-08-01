@@ -113,19 +113,17 @@ void UItemsContainerComponent::StackItem(UItemObject* SourceObject, UItemObject*
 	{
 		TargetItem->AddAmount(SourceObject->GetItemParams().Amount);
 		
-		for (int i = 0; i < ItemsSlots.Num(); i++)
-		{
-			if (ItemsSlots[i] == SourceObject->GetItemId())
-			{
-				ItemsSlots[i] = 0;
-			}
-		}
+		ClearSlotsByItemId(SourceObject->GetItemId());
 	
 		if (ItemsContainer.Contains(SourceObject))
 		{
 			ItemsContainer.Remove(SourceObject);
 		}
-		// TODO: SourceObject->MarkAsGarbage();
+		
+		if (GetOwner()->HasAuthority())
+		{
+			SourceObject->MarkAsGarbage();
+		}
 	}
 
 	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
@@ -196,19 +194,19 @@ void UItemsContainerComponent::Server_SplitItem_Implementation(UItemObject* Item
 void UItemsContainerComponent::AddItemAt(UItemObject* ItemObject, uint32 Index)
 {
 	check(ItemObject);
+	ItemObject->SetInventoriedMode();
 	
 	const FIntPoint Tile = TileFromIndex(Index, Columns);
 	const FIntPoint ItemSize = {Tile.X + (ItemObject->GetItemSize().X - 1), Tile.Y + (ItemObject->GetItemSize().Y - 1)};
+	
+	FillRoom(ItemsSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
 	
 	if (!ItemsContainer.Contains(ItemObject))
 	{
 		ItemsContainer.Add(ItemObject);
 	}
 	
-	FillRoom(ItemsSlots, ItemObject->GetItemId(), Tile, ItemSize, Columns);
 	UpdateItemsMap();
-
-	ItemObject->SetInventoriedMode();
 	
 	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
 	{
@@ -221,56 +219,37 @@ void UItemsContainerComponent::Server_AddItemAt_Implementation(UItemObject* Item
 	AddItemAt(ItemObject, Index);
 }
 
-void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject)
+void UItemsContainerComponent::RemoveItem(UItemObject* ItemObject, bool bUpdateItemsMap)
 {
 	check(ItemObject);
 	
-	for (int i = 0; i < ItemsSlots.Num(); i++)
-	{
-		if (ItemsSlots[i] == ItemObject->GetItemId())
-		{
-			ItemsSlots[i] = 0;
-		}
-	}
+	ClearSlotsByItemId(ItemObject->GetItemId());
 	
 	if (ItemsContainer.Contains(ItemObject))
 	{
 		ItemsContainer.Remove(ItemObject);
 	}
-	UpdateItemsMap();
+
+	if (bUpdateItemsMap)
+	{
+		UpdateItemsMap();
+	}
 	
 	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
 	{
-		Server_RemoveItem(ItemObject);
+		Server_RemoveItem(ItemObject, bUpdateItemsMap);
 	}
 }
 
-void UItemsContainerComponent::Server_RemoveItem_Implementation(UItemObject* ItemObject)
+void UItemsContainerComponent::Server_RemoveItem_Implementation(UItemObject* ItemObject, bool bUpdateItemsMap)
 {
-	RemoveItem(ItemObject);
-}
-
-void UItemsContainerComponent::RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount)
-{
-	check(ItemObject);
-	
-	ItemObject->RemoveAmount(Amount);
-	
-	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
-	{
-		Server_RemoveAmountFromItem(ItemObject, Amount);
-	}
-}
-
-void UItemsContainerComponent::Server_RemoveAmountFromItem_Implementation(UItemObject* ItemObject, uint16 Amount)
-{
-	RemoveAmountFromItem(ItemObject, Amount);
+	RemoveItem(ItemObject, bUpdateItemsMap);
 }
 
 void UItemsContainerComponent::MoveItemToOtherContainer(UItemObject* ItemObject,
                                                         UItemsContainerComponent* OtherContainer)
 {
-	check(ItemObject);
+	check(ItemObject && OtherContainer);
 	
 	Server_MoveItemToOtherContainer(ItemObject, OtherContainer);
 }
@@ -278,11 +257,9 @@ void UItemsContainerComponent::MoveItemToOtherContainer(UItemObject* ItemObject,
 void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 	UItemObject* ItemObject, UItemsContainerComponent* OtherContainer)
 {
-	check(OtherContainer);
-
 	if (ItemObject->GetItemParams().Amount > ItemObject->GetStackAmount())
 	{
-		RemoveAmountFromItem(ItemObject, ItemObject->GetStackAmount());
+		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
 		
 		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemObject))
 		{
@@ -299,15 +276,43 @@ void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 
 void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject)
 {
+	check(ItemObject);
+
 	if (ItemObject->GetItemParams().Amount > 1)
 	{
-		RemoveAmountFromItem(ItemObject, 1);
+		ItemObject->RemoveAmount(1);
 	}
 	else
 	{
-		RemoveItem(ItemObject);
+		if (GetOwner()->HasAuthority())
+		{
+			RemoveItem(ItemObject, false);
+			ItemObject->MarkAsGarbage();
+		}
 	}
+	
 	UpdateItemsMap();
+	
+	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
+	{
+		Server_SubtractOrRemoveItem(ItemObject);
+	}
+}
+
+void UItemsContainerComponent::Server_SubtractOrRemoveItem_Implementation(UItemObject* ItemObject)
+{
+	SubtractOrRemoveItem(ItemObject);
+}
+
+void UItemsContainerComponent::ClearSlotsByItemId(uint32 ItemId)
+{
+	for (int i = 0; i < ItemsSlots.Num(); i++)
+	{
+		if (ItemsSlots[i] == ItemId)
+		{
+			ItemsSlots[i] = 0;
+		}
+	}
 }
 
 void UItemsContainerComponent::UpdateItemsMap()
@@ -334,20 +339,6 @@ bool UItemsContainerComponent::CanStackAtRoom(const UItemObject* ItemObject, uin
 		if (auto FoundItem = ItemsContainer[RoomIndex])
 		{
 			bResult = FoundItem != ItemObject && FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable();
-		}
-	}
-	return bResult;
-}
-
-bool UItemsContainerComponent::CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex)
-{
-	bool bResult = false;
-	if (ItemObject)
-	{
-		uint32 ItemId = ItemsSlots[RoomIndex];
-		if (auto FoundItem = FindItemById(ItemId))
-		{
-			bResult = FoundItem->IsSimilar(ItemObject) && FoundItem->IsStackable();
 		}
 	}
 	return bResult;

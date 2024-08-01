@@ -97,15 +97,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_AddItemAt(UItemObject* ItemObject, uint32 Index);
 	
-	void RemoveItem(UItemObject* ItemObject);
+	void RemoveItem(UItemObject* ItemObject, bool bUpdateItemsMap = true);
 	
 	UFUNCTION(Server, Reliable)
-	void Server_RemoveItem(UItemObject* ItemObject);
-	
-	void RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount);
-	
-	UFUNCTION(Server, Reliable)
-	void Server_RemoveAmountFromItem(UItemObject* ItemObject, uint16 Amount);
+	void Server_RemoveItem(UItemObject* ItemObject, bool bUpdateItemsMap);
 	
 	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainerComponent* OtherContainer);
 	
@@ -114,10 +109,13 @@ public:
 	
 	void SubtractOrRemoveItem(UItemObject* ItemObject);
 	
+	UFUNCTION(Server, Reliable)
+	void Server_SubtractOrRemoveItem(UItemObject* ItemObject);
+
+	void ClearSlotsByItemId(uint32 ItemId);
 	void UpdateItemsMap();
 
 	bool CanStackAtRoom(const UItemObject* ItemObject, uint32 RoomIndex);
-	bool CanStackAtIndex(const UItemObject* ItemObject, uint32 RoomIndex);
 	bool CanAddItem(const UItemObject* ItemObject) const;
 
 	UItemObject* FindAvailableStack(const UItemObject* ItemObject);

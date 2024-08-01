@@ -64,7 +64,7 @@ private:
 public:
 	void TryEquipItem(UItemObject* BoundObject);
 	
-	void EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
+	bool EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
 
 	UFUNCTION(Server, Reliable)
 	void Server_EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);

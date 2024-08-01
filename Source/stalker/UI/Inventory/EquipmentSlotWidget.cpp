@@ -12,22 +12,23 @@
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
+	bool bResult = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
 			if (OwnSlot.IsValid() && OwnSlot->CanEquipItem(Payload))
 			{
-				OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false);
-				DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Subtract);
-			}
-			else
-			{
-				DragDropOperation->ReverseDragDropOperation();
+				if (OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false))
+				{
+					DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Subtract);
+					return bResult;
+				}
 			}
 		}
+		DragDropOperation->ReverseDragDropOperation();
 	}
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	return bResult;
 }
 
 void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* CharInventoryComp)

@@ -101,6 +101,15 @@ struct FTableRowArmor : public FTableRowItems
 
 	UPROPERTY(EditAnywhere, Category = "Armor")
 	TSubclassOf<UGameplayEffect> ArmorEffect;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	bool bHasHelmet = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TObjectPtr<USkeletalMesh> DefaultMesh;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor", meta = (EditCondition = "bHasHelmet"))
+	TObjectPtr<USkeletalMesh> HelmetMesh;
 };
 
 USTRUCT(BlueprintType)
