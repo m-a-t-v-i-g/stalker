@@ -8,6 +8,7 @@
 #include "Components/Inventory/InventoryComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
 FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
@@ -156,6 +157,8 @@ void ABaseOrganic::PossessedBy(AController* NewController)
 void ABaseOrganic::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ABaseOrganic, RotationMode, COND_SimulatedOnly);
 }
 
 UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const

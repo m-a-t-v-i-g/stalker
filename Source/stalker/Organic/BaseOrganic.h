@@ -83,10 +83,10 @@ protected:
 
 #pragma region Rotation
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Rotation")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Rotation")
 	EOrganicRotationMode InputRotationMode = EOrganicRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Rotation")
+	UPROPERTY(VisibleInstanceOnly, Replicated, Category = "Base Organic|Rotation")
 	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
 	
 #pragma endregion Rotation

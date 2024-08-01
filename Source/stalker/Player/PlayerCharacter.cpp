@@ -3,7 +3,6 @@
 #include "Player/PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "PlayerHUD.h"
 #include "StalkerPlayerController.h"
 #include "DataAssets/InputDataAsset.h"
 
@@ -114,7 +113,7 @@ void APlayerCharacter::SetupCharacterLocally(AStalkerPlayerController* NewContro
 {
 	if (!NewController) return;
 
-	//NewController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
+	NewController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
 }
 
 void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
@@ -122,10 +121,10 @@ void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
 	switch (Tab)
 	{
 	case EHUDTab::Inventory:
-		SetRotationMode(EOrganicRotationMode::VelocityDirection);
+		SetRotationMode(EOrganicRotationMode::VelocityDirection, true);
 		break;
 	default:
-		SetRotationMode(GetInputRotationMode());
+		SetRotationMode(EOrganicRotationMode::LookingDirection, true);
 		break;
 	}
 }
