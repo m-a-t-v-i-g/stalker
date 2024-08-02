@@ -83,6 +83,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 		if (EquipmentSlot->CanEquipItem(BoundObject))
 		{
 			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject, true);
+			break;
 		}
 	}
 }
