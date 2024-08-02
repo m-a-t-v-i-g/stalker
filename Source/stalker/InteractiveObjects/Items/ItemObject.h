@@ -17,7 +17,7 @@ public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void Use(UObject* Source) override;
+	virtual void Use_Implementation(UObject* Source) override;
 	
 protected:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
@@ -49,7 +49,7 @@ public:
 
 	void SetStackable(bool bNewStackable) { bStackable = bNewStackable; }
 	
-	bool IsSimilar(const UItemObject* OtherItemObject) const;
+	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
 	
 	FORCEINLINE uint32 GetItemId() const;
 	FORCEINLINE FItemParams GetItemParams() const;

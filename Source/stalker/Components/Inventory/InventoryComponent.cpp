@@ -20,8 +20,5 @@ void UInventoryComponent::UseItem(UItemObject* ItemObject)
 
 void UInventoryComponent::Server_UseItem_Implementation(UItemObject* ItemObject)
 {
-	if (IUsableInterface* UsableItem = Cast<IUsableInterface>(ItemObject))
-	{
-		UsableItem->Use(this);
-	}
+	IUsableInterface::Execute_Use(ItemObject, this);
 }

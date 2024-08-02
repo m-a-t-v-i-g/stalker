@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterArmorComponent.h"
-
 #include "ItemObject.h"
 #include "Inventory/CharacterInventoryComponent.h"
 #include "Inventory/EquipmentSlot.h"

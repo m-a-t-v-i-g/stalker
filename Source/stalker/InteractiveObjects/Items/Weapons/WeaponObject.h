@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "Items/ItemObject.h"
 #include "WeaponObject.generated.h"
 
 UCLASS()
@@ -12,7 +12,7 @@ class STALKER_API UWeaponObject : public UItemObject
 	GENERATED_BODY()
 
 protected:
-	virtual void Use(UObject* Source) override;
+	virtual void Use_Implementation(UObject* Source) override;
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -17,5 +17,6 @@ class STALKER_API IUsableInterface
 	GENERATED_BODY()
 
 public:
-	virtual void Use(UObject* Source);
+	UFUNCTION(BlueprintNativeEvent)
+	void Use(UObject* Source);
 };

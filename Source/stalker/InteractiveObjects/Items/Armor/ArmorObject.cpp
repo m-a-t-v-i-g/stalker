@@ -3,9 +3,9 @@
 #include "ArmorObject.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
 
-void UArmorObject::Use(UObject* Source)
+void UArmorObject::Use_Implementation(UObject* Source)
 {
-	Super::Use(Source);
+	Super::Use_Implementation(Source);
 
 	if (auto CharInventory = Cast<UCharacterInventoryComponent>(Source))
 	{

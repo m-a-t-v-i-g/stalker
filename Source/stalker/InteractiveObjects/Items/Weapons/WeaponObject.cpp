@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WeaponObject.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
+#include "Inventory/CharacterInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
-void UWeaponObject::Use(UObject* Source)
+void UWeaponObject::Use_Implementation(UObject* Source)
 {
-	Super::Use(Source);
-	
+	Super::Use_Implementation(Source);
+
 	if (auto CharInventory = Cast<UCharacterInventoryComponent>(Source))
 	{
 		CharInventory->TryEquipItem(this);

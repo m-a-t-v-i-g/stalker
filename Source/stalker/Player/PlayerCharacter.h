@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
 #include "StalkerPlayerController.h"
-#include "Organic/Characters/StalkerCharacter.h"
+#include "Characters/StalkerCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()

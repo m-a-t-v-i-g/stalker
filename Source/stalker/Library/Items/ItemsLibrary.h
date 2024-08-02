@@ -100,6 +100,9 @@ struct FTableRowItems : public FTableRowBase
 	TSoftObjectPtr<UTexture2D> Thumbnail;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
+	TArray<TSubclassOf<UGameplayEffect>> ItemEffects;
+	
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	FIntPoint Size = {0, 0};
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
@@ -123,9 +126,6 @@ struct FTableRowArmor : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Armor")
-	TSubclassOf<UGameplayEffect> ArmorEffect;
-	
 	UPROPERTY(EditAnywhere, Category = "Armor")
 	bool bHasHelmet = false;
 	

@@ -12,7 +12,7 @@ class STALKER_API UArmorObject : public UItemObject
 	GENERATED_BODY()
 
 protected:
-	virtual void Use(UObject* Source) override;
+	virtual void Use_Implementation(UObject* Source) override;
 
 public:
 	FORCEINLINE USkeletalMesh* GetDefaultMesh() const;
