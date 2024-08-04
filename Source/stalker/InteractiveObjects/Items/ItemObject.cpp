@@ -66,19 +66,16 @@ void UItemObject::SetEquippedMode()
 void UItemObject::SetAmount(uint32 Amount)
 {
 	ItemParams.Amount = Amount;
-	//ItemParams.Amount = FMath::Clamp(Amount, 1, UINT32_MAX);
 }
 
 void UItemObject::AddAmount(uint32 Amount)
 {
 	ItemParams.Amount += Amount;
-	//ItemParams.Amount = FMath::Clamp(ItemParams.Amount + Amount, 1, UINT32_MAX);
 }
 
 void UItemObject::RemoveAmount(uint32 Amount)
 {
 	ItemParams.Amount -= Amount;
-	//ItemParams.Amount = FMath::Clamp(ItemParams.Amount - Amount, 1, UINT32_MAX);
 }
 
 bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
@@ -214,4 +211,24 @@ uint32 UItemObject::GetStackAmount() const
 		StackAmount = GetRow<FTableRowItems>()->StackAmount;
 	}
 	return StackAmount;
+}
+
+UStaticMesh* UItemObject::GetStaticMesh() const
+{
+	UStaticMesh* StaticMesh = nullptr;
+	if (GetRow<FTableRowArmor>())
+	{
+		StaticMesh = GetRow<FTableRowArmor>()->StaticMesh.LoadSynchronous();
+	}
+	return StaticMesh;
+}
+
+USkeletalMesh* UItemObject::GetSkeletalMesh() const
+{
+	USkeletalMesh* SkeletalMesh = nullptr;
+	if (GetRow<FTableRowArmor>())
+	{
+		SkeletalMesh = GetRow<FTableRowArmor>()->SkeletalMesh.LoadSynchronous();
+	}
+	return SkeletalMesh;
 }

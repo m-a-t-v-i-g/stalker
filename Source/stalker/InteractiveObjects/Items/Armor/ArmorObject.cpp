@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArmorObject.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
+#include "Inventory/CharacterInventoryComponent.h"
 
 void UArmorObject::Use_Implementation(UObject* Source)
 {
@@ -13,22 +13,12 @@ void UArmorObject::Use_Implementation(UObject* Source)
 	}
 }
 
-USkeletalMesh* UArmorObject::GetDefaultMesh() const
+USkeletalMesh* UArmorObject::GetVisual() const
 {
 	USkeletalMesh* SkeletalMesh = nullptr;
 	if (GetRow<FTableRowArmor>())
 	{
-		SkeletalMesh = GetRow<FTableRowArmor>()->DefaultMesh;
-	}
-	return SkeletalMesh;
-}
-
-USkeletalMesh* UArmorObject::GetHelmetMesh() const
-{
-	USkeletalMesh* SkeletalMesh = nullptr;
-	if (GetRow<FTableRowArmor>())
-	{
-		SkeletalMesh = GetRow<FTableRowArmor>()->HelmetMesh;
+		SkeletalMesh = GetRow<FTableRowArmor>()->Visual.LoadSynchronous();
 	}
 	return SkeletalMesh;
 }

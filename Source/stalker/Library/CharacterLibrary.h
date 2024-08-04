@@ -108,3 +108,12 @@ public:
 		bGettingUp = Action == ECharacterMovementAction::GettingUp;
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FTableRowCharacterOverlays : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere)
+	ECharacterOverlayState OverlayState;
+};

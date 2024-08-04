@@ -10,6 +10,11 @@
 #include "UI/Inventory/ItemDragDropOperation.h"
 #include "UI/Inventory/ItemsContainerGridWidget.h"
 
+FReply UPlayerManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	return FReply::Handled();
+}
+
 bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {

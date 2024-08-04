@@ -51,8 +51,8 @@ bool UWeaponComponent::ActivateSlot(uint8 SlotIndex)
 void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
 	if (!ItemObject) return;
-	
-	if (auto Slot = FindWeaponSlot(SlotName))
+
+	if (auto Slot = &WeaponSlots[ActiveSlot])
 	{
 		Slot->ArmedItemActor = SpawnWeapon(Slot, ItemObject);
 		Slot->ArmedItemObject = ItemObject;
@@ -61,7 +61,7 @@ void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 
 void UWeaponComponent::DisarmSlot(const FString& SlotName)
 {
-	if (auto Slot = FindWeaponSlot(SlotName))
+	if (auto Slot = &WeaponSlots[ActiveSlot])
 	{
 		Slot->ArmedItemObject = nullptr;
 	}

@@ -119,6 +119,15 @@ struct FTableRowItems : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
 	float Weight = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	bool bUseSkeletalMesh = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Visual", meta = (EditCondition = "!bUseSkeletalMesh"))
+	TSoftObjectPtr<UStaticMesh> StaticMesh;
+	
+	UPROPERTY(EditAnywhere, Category = "Visual", meta = (EditCondition = "bUseSkeletalMesh"))
+	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
 };
 
 USTRUCT(BlueprintType)
@@ -127,13 +136,7 @@ struct FTableRowArmor : public FTableRowItems
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	bool bHasHelmet = false;
-	
-	UPROPERTY(EditAnywhere, Category = "Armor")
-	TObjectPtr<USkeletalMesh> DefaultMesh;
-	
-	UPROPERTY(EditAnywhere, Category = "Armor", meta = (EditCondition = "bHasHelmet"))
-	TObjectPtr<USkeletalMesh> HelmetMesh;
+	TSoftObjectPtr<USkeletalMesh> Visual;
 };
 
 USTRUCT(BlueprintType)

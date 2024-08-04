@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interfaces/UsableInterface.h"
-#include "Library/Items/ItemsLibrary.h"
+#include "UsableInterface.h"
+#include "Items/ItemsLibrary.h"
 #include "UObject/Object.h"
 #include "ItemObject.generated.h"
 
@@ -72,6 +72,9 @@ public:
 	FORCEINLINE bool IsStackable() const;
 
 	FORCEINLINE uint32 GetStackAmount() const;
+
+	FORCEINLINE UStaticMesh* GetStaticMesh() const;
+	FORCEINLINE USkeletalMesh* GetSkeletalMesh() const;
 
 	template <typename Struct>
 	Struct* GetRow() const

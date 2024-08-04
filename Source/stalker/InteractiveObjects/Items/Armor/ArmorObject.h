@@ -15,6 +15,5 @@ protected:
 	virtual void Use_Implementation(UObject* Source) override;
 
 public:
-	FORCEINLINE USkeletalMesh* GetDefaultMesh() const;
-	FORCEINLINE USkeletalMesh* GetHelmetMesh() const;
+	FORCEINLINE USkeletalMesh* GetVisual() const;
 };
