@@ -121,13 +121,7 @@ struct FTableRowItems : public FTableRowBase
 	float Weight = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
-	bool bUseSkeletalMesh = false;
-	
-	UPROPERTY(EditAnywhere, Category = "Visual", meta = (EditCondition = "!bUseSkeletalMesh"))
-	TSoftObjectPtr<UStaticMesh> StaticMesh;
-	
-	UPROPERTY(EditAnywhere, Category = "Visual", meta = (EditCondition = "bUseSkeletalMesh"))
-	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
+	TSoftObjectPtr<UStaticMesh> PreviewMesh;
 };
 
 USTRUCT(BlueprintType)

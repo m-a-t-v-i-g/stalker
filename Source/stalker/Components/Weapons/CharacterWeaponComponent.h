@@ -8,6 +8,8 @@
 
 class UCharacterInventoryComponent;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UItemObject*);
+
 UCLASS(meta=(BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
 {
@@ -16,8 +18,12 @@ class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
 public:
 	UCharacterWeaponComponent();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void PreInitializeWeapon() override;
 	virtual void PostInitializeWeapon() override;
+
+	virtual bool CanAttack() const override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -33,7 +39,7 @@ protected:
 	FString GrenadeSlotName = "Grenade";
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString BinocularSlotName = "Binocular";
+	FString BinocularsSlotName = "Binoculars";
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	FString BoltSlotName = "Bolt";
@@ -45,13 +51,34 @@ private:
 	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
 	
 	TObjectPtr<UCharacterInventoryComponent> CharacterInventory;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
+	TObjectPtr<AItemActor> LeftHandItem;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
+	TObjectPtr<AItemActor> RightHandItem;
+
+public:
+	FOnWeaponChanged OnWeaponChanged;
+	
+protected:
+	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
+	bool ArmRightHand(const FString& SlotName, UItemObject* ItemObject);
+	void DisarmLeftHand();
+	void DisarmRightHand();
+	
+	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
+									UItemObject* ItemObject) const;
 	
 public:
-	void OnKnifeSlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnMainSlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnSecondarySlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnGrenadeSlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnBinocularSlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnBoltSlotChanged(UItemObject* ItemObject, bool bModified);
-	void OnDetectorSlotChanged(UItemObject* ItemObject, bool bModified);
+	void OnKnifeSlotEquipped(UItemObject* ItemObject, bool bModified);
+	
+	void OnMainSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnMainSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
+	
+	void OnSecondarySlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnGrenadeSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnBinocularsSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnBoltSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnDetectorSlotEquipped(UItemObject* ItemObject, bool bModified);
 };

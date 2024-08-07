@@ -73,9 +73,8 @@ public:
 
 	FORCEINLINE uint32 GetStackAmount() const;
 
-	FORCEINLINE UStaticMesh* GetStaticMesh() const;
-	FORCEINLINE USkeletalMesh* GetSkeletalMesh() const;
-
+	FORCEINLINE UStaticMesh* GetPreviewMesh() const;
+	
 	template <typename Struct>
 	Struct* GetRow() const
 	{

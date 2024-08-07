@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WeaponComponent.h"
-#include "Items/ItemActor.h"
 #include "Items/ItemObject.h"
 
 UWeaponComponent::UWeaponComponent()
@@ -32,17 +31,31 @@ bool UWeaponComponent::ActivateSlot(const FString& SlotName)
 		if (WeaponSlots[i].GetSlotName() == SlotName)
 		{
 			ActiveSlot = i;
+			OnSlotActivated.Broadcast(SlotName, ActiveSlot, WeaponSlots[i].ArmedItemObject);
 			return true;
 		}
 	}
 	return false;
 }
 
-bool UWeaponComponent::ActivateSlot(uint8 SlotIndex)
+bool UWeaponComponent::ActivateSlot(int8 SlotIndex)
 {
 	if (WeaponSlots.IsValidIndex(SlotIndex))
 	{
 		ActiveSlot = SlotIndex;
+		OnSlotActivated.Broadcast(WeaponSlots[SlotIndex].GetSlotName(), ActiveSlot, WeaponSlots[SlotIndex].ArmedItemObject);
+		return true;
+	}
+	return false;
+}
+
+bool UWeaponComponent::DeactivateSlot()
+{
+	if (ActiveSlot > 0)
+	{
+		OnSlotDeactivated.Broadcast(WeaponSlots[ActiveSlot].GetSlotName(), ActiveSlot,
+		                            WeaponSlots[ActiveSlot].ArmedItemObject);
+		ActiveSlot = -1;
 		return true;
 	}
 	return false;
@@ -52,41 +65,39 @@ void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
 	if (!ItemObject) return;
 
-	if (auto Slot = &WeaponSlots[ActiveSlot])
+	if (auto Slot = FindWeaponSlot(SlotName))
 	{
-		Slot->ArmedItemActor = SpawnWeapon(Slot, ItemObject);
 		Slot->ArmedItemObject = ItemObject;
 	}
 }
 
 void UWeaponComponent::DisarmSlot(const FString& SlotName)
 {
-	if (auto Slot = &WeaponSlots[ActiveSlot])
+	if (auto Slot = FindWeaponSlot(SlotName))
 	{
+		if (!Slot->IsArmed()) return;
+		
 		Slot->ArmedItemObject = nullptr;
 	}
 }
 
-void UWeaponComponent::Attack()
+bool UWeaponComponent::Attack()
 {
-	
+	if (CanAttack())
+	{
+		OnAttack();
+		return true;
+	}
+	return false;
 }
 
-AItemActor* UWeaponComponent::SpawnWeapon(const FWeaponSlot* WeaponSlot, const UItemObject* ItemObject) const
+void UWeaponComponent::OnAttack()
 {
-	AItemActor* SpawnedWeapon = nullptr;
-	if (ItemObject && ItemObject->GetActorClass())
-	{
-		FTransform SpawnTransform = GetOwner()->GetActorTransform();
-		FAttachmentTransformRules AttachmentRules {EAttachmentRule::SnapToTarget, true};
-		
-		SpawnedWeapon = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,
-		                                                           GetOwner(), GetOwner<APawn>(),
-		                                                           ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-		// TODO: SpawnedWeapon->AttachToComponent(nullptr, AttachmentRules, WeaponSlot->GetAttachmentSocketName());
-		SpawnedWeapon->FinishSpawning(SpawnTransform);
-	}
-	return SpawnedWeapon;
+}
+
+bool UWeaponComponent::CanAttack() const
+{
+	return WeaponSlots[ActiveSlot].IsArmed() || bAllowUnarmedAttack;
 }
 
 FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)

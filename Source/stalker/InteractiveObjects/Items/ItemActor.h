@@ -17,25 +17,38 @@ class STALKER_API AItemActor : public AActor
 public:
 	AItemActor();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	static FName SphereComponentName;
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TObjectPtr<USphereComponent> SphereComponent;
 	
-	UPROPERTY(EditAnywhere, Category = "Item")
-	TObjectPtr<UStaticMeshComponent> StaticMesh;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> PreviewMesh;
 	
 	UPROPERTY(EditAnywhere, Category = "Item")
-	TObjectPtr<USkeletalMeshComponent> SkeletalMesh;
+	TObjectPtr<USkeletalMeshComponent> Mesh;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Item")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
 	TObjectPtr<UItemObject> ItemObject;
+	
+	UPROPERTY(EditAnywhere, Category = "Item")
+	bool bHidePreviewMeshWhenHanded = false;
+
+private:
+	bool bHanded = false;
 	
 public:
 	virtual void InitItem(UItemObject* NewItemObject);
 
+	void SetHandedMode();
+	void SetFreeMode();
+	
 protected:
+	void UpdateItem();
+	
 	template <class T>
 	T* GetItemObject() const
 	{

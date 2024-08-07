@@ -10,6 +10,8 @@
 class AItemActor;
 class UItemObject;
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnWeaponSlotSignature, const FString&, int8, UItemObject*);
+
 USTRUCT(Blueprintable)
 struct FWeaponSlotSpec
 {
@@ -33,9 +35,6 @@ struct FWeaponSlot
 	uint8 Handle = 0;
 	
 	UPROPERTY(VisibleInstanceOnly)
-	AItemActor* ArmedItemActor = nullptr;
-	
-	UPROPERTY(VisibleInstanceOnly)
 	UItemObject* ArmedItemObject = nullptr;
 	
 	FWeaponSlotSpec* WeaponSlotPtr = nullptr;
@@ -53,7 +52,7 @@ struct FWeaponSlot
 	const FString& GetSlotName() const { return WeaponSlotPtr->SlotName; }
 	const FName& GetAttachmentSocketName() const { return WeaponSlotPtr->AttachmentSocketName; }
 
-	bool IsArmed() const { return ArmedItemActor != nullptr && ArmedItemObject != nullptr; }
+	bool IsArmed() const { return ArmedItemObject != nullptr; }
 	
 	friend uint8 GetTypeHash(const FWeaponSlot& Handle)
 	{
@@ -68,32 +67,39 @@ class STALKER_API UWeaponComponent : public UActorComponent
 
 public:
 	UWeaponComponent();
-	
-protected:
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<FWeaponSlot> WeaponSlots;
-	
+
 private:
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Weapon Slots", Category = "Weapon")
 	TArray<FWeaponSlotSpec> WeaponSlotSpecs;
 
-	uint8 ActiveSlot = 0;
+protected:
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TArray<FWeaponSlot> WeaponSlots;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	bool bAllowUnarmedAttack = false;
+
+private:
+	int8 ActiveSlot = -1;
 	
 public:
+	FOnWeaponSlotSignature OnSlotActivated;
+	FOnWeaponSlotSignature OnSlotDeactivated;
+	
 	virtual void PreInitializeWeapon();
 	virtual void PostInitializeWeapon();
 	
 	bool ActivateSlot(const FString& SlotName);
-	bool ActivateSlot(uint8 SlotIndex);
-
-	void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
-	void DisarmSlot(const FString& SlotName);
-
-	void Attack();
-
-protected:
-	AItemActor* SpawnWeapon(const FWeaponSlot* WeaponSlot, const UItemObject* ItemObject) const;
+	bool ActivateSlot(int8 SlotIndex);
+	bool DeactivateSlot();
 	
-public:
+	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
+	virtual void DisarmSlot(const FString& SlotName);
+
+	virtual bool Attack();
+	virtual void OnAttack();
+
+	virtual bool CanAttack() const;
+
 	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
 };

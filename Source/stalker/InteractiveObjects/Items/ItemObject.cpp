@@ -213,22 +213,12 @@ uint32 UItemObject::GetStackAmount() const
 	return StackAmount;
 }
 
-UStaticMesh* UItemObject::GetStaticMesh() const
+UStaticMesh* UItemObject::GetPreviewMesh() const
 {
 	UStaticMesh* StaticMesh = nullptr;
-	if (GetRow<FTableRowArmor>())
+	if (GetRow<FTableRowItems>())
 	{
-		StaticMesh = GetRow<FTableRowArmor>()->StaticMesh.LoadSynchronous();
+		StaticMesh = GetRow<FTableRowItems>()->PreviewMesh.LoadSynchronous();
 	}
 	return StaticMesh;
-}
-
-USkeletalMesh* UItemObject::GetSkeletalMesh() const
-{
-	USkeletalMesh* SkeletalMesh = nullptr;
-	if (GetRow<FTableRowArmor>())
-	{
-		SkeletalMesh = GetRow<FTableRowArmor>()->SkeletalMesh.LoadSynchronous();
-	}
-	return SkeletalMesh;
 }

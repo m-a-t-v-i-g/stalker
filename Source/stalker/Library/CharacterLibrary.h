@@ -9,7 +9,7 @@ UENUM(BlueprintType)
 enum class ECharacterOverlayState : uint8
 {
 	Default,
-	Binocular,
+	Binocular
 };
 
 UENUM(BlueprintType)
