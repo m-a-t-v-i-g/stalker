@@ -32,7 +32,7 @@ protected:
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<class UInputDataAsset> InputData;
+	TObjectPtr<class UInputDataAsset> GeneralInputData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputInventoryName;

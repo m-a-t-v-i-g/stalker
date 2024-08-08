@@ -71,9 +71,9 @@ void AStalkerPlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputInventoryName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputInventoryName], ETriggerEvent::Triggered, this,
 										   &AStalkerPlayerController::IA_Inventory);
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputPDAName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputPDAName], ETriggerEvent::Triggered, this,
 										   &AStalkerPlayerController::IA_PDA);
 	}
 }

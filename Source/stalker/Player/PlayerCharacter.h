@@ -28,7 +28,10 @@ protected:
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<class UInputDataAsset> InputData;
+	TObjectPtr<UInputDataAsset> GeneralInputData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputDataAsset> SlotsInputData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputMoveName;

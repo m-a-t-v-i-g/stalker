@@ -33,7 +33,7 @@ void APlayerCharacter::BindDirectionalInput(UInputComponent* PlayerInputComponen
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputMoveName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputMoveName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Move);
 	}
 }
@@ -42,7 +42,7 @@ void APlayerCharacter::BindViewInput(UInputComponent* PlayerInputComponent)
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputViewName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputViewName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_View);
 	}
 }
@@ -51,11 +51,11 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputJumpName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputJumpName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Jump);
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputCrouchName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputCrouchName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Crouch);
-		EnhancedInputComponent->BindAction(InputData->InputMap[InputSprintName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSprintName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Sprint);
 	}
 }
