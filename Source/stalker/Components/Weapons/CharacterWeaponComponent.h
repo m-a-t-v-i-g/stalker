@@ -47,6 +47,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	FString DetectorSlotName = "Detector";
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TObjectPtr<class UCharacterItemsDataAsset> ItemsBehaviorData;
+
 private:
 	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
 	

@@ -4,6 +4,7 @@
 
 #include "ItemActor.h"
 #include "Characters/StalkerCharacter.h"
+#include "DataAssets/CharacterItemsDataAsset.h"
 #include "Inventory/CharacterInventoryComponent.h"
 #include "Inventory/EquipmentSlot.h"
 #include "Items/ItemObject.h"
@@ -199,7 +200,22 @@ void UCharacterWeaponComponent::OnMainSlotActivated(const FString& SlotName, int
 {
 	if (SlotName == MainSlotName)
 	{
-		ArmRightHand(SlotName, ItemObject);
+		const auto ItemBehavior = ItemsBehaviorData->ItemsMap.Find(ItemObject->GetItemRowName());
+		if (!ItemBehavior)
+		{
+			UKismetSystemLibrary::PrintString(this, FString("Behavior for item not found!"), true, false, FLinearColor::Red);
+			return;
+		}
+
+		if (ItemBehavior->bTwoHanded)
+		{
+			ArmRightHand(SlotName, ItemObject);
+			StalkerCharacter->SetOverlayState(ItemBehavior->OverlayState);
+		}
+		else
+		{
+			
+		}
 	}
 }
 

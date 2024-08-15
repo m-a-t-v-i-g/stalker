@@ -139,7 +139,7 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 				auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
 				if (!CharWeapon) return;
 
-				CharWeapon->ActivateSlot(a);
+				CharWeapon->ServerActivateSlot(a);
 				return;
 			}
 			a++;

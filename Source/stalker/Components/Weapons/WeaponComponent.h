@@ -89,9 +89,11 @@ public:
 	virtual void PreInitializeWeapon();
 	virtual void PostInitializeWeapon();
 
-	bool ActivateSlot(const FString& SlotName);
-	bool ActivateSlot(int8 SlotIndex);
-	bool DeactivateSlot();
+	UFUNCTION(Server, Unreliable)
+	void ServerActivateSlot(int8 SlotIndex);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerDeactivateSlot();
 	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);
