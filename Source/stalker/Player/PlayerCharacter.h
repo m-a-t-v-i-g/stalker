@@ -31,9 +31,6 @@ protected:
 	TObjectPtr<UInputDataAsset> GeneralInputData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UInputDataAsset> SlotsInputData;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputMoveName;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -48,12 +45,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputSprintName;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	FString InputSlotName;
+	
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
 	
 	void IA_Jump(const FInputActionValue& Value);
 	void IA_Crouch(const FInputActionValue& Value);
 	void IA_Sprint(const FInputActionValue& Value);
+
+	void IA_Slot(const FInputActionValue& Value);
 	
 public:
 	virtual void SetupCharacterLocally(AStalkerPlayerController* NewController);

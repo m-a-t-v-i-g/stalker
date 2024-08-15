@@ -24,6 +24,9 @@ protected:
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
 
+	UPROPERTY(EditAnywhere, Category = "Item")
+	float DragOpacity = 0.77f;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> SizeBox;
 	
@@ -51,6 +54,9 @@ protected:
 	virtual FReply HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey);
 
 public:
+	void RotateItem();
+	void UnrotateItem();
+	
 	void DoubleClick();
 	void ReverseDragOperation();
 	void CompleteDragOperation(EDragDropOperationResult OperationResult);

@@ -5,6 +5,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "StalkerPlayerController.h"
 #include "DataAssets/InputDataAsset.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Weapons/CharacterWeaponComponent.h"
+#include "Weapons/WeaponComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -57,6 +60,8 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 		                                   &APlayerCharacter::IA_Crouch);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSprintName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Sprint);
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSlotName], ETriggerEvent::Started, this,
+		                                   &APlayerCharacter::IA_Slot);
 	}
 }
 
@@ -105,6 +110,40 @@ void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 	else
 	{
 		Super::StopAction3();
+	}
+}
+
+void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
+{
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+		GetController<APlayerController>()->GetLocalPlayer()))
+	{
+		auto SlotAction = GeneralInputData->InputMap[InputSlotName];
+		if (!SlotAction) return;
+
+		auto Keys = Subsystem->QueryKeysMappedToAction(SlotAction);
+		const auto PressedKey = Keys.FindByPredicate([&](const FKey& Key)
+		{
+			return GetController<APlayerController>()->IsInputKeyDown(Key);
+		});
+
+		if (!PressedKey) return;
+
+		auto Mappings = InputMappingContext->GetMappings();
+		for (int8 i = 0, a = 0; i < Mappings.Num(); i++)
+		{
+			if (Mappings[i].Action != SlotAction) continue;
+
+			if (Mappings[i].Key.ToString() == PressedKey->ToString())
+			{
+				auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
+				if (!CharWeapon) return;
+
+				CharWeapon->ActivateSlot(a);
+				return;
+			}
+			a++;
+		}
 	}
 }
 

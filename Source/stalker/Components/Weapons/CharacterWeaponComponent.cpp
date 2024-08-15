@@ -41,6 +41,7 @@ void UCharacterWeaponComponent::PreInitializeWeapon()
 		{
 			MainSlot->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnMainSlotEquipped);
 			OnSlotActivated.AddUObject(this, &UCharacterWeaponComponent::OnMainSlotActivated);
+			OnSlotDeactivated.AddUObject(this, &UCharacterWeaponComponent::OnMainSlotDeactivated);
 		}
 		
 		if (auto SecondarySlot = CharacterInventory->FindEquipmentSlot(SecondarySlotName))
@@ -170,6 +171,14 @@ void UCharacterWeaponComponent::OnKnifeSlotEquipped(UItemObject* ItemObject, boo
 	}
 }
 
+void UCharacterWeaponComponent::OnKnifeSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject)
+{
+	if (SlotName == KnifeSlotName)
+	{
+		ArmRightHand(SlotName, ItemObject);
+	}
+}
+
 void UCharacterWeaponComponent::OnMainSlotEquipped(UItemObject* ItemObject, bool bModified)
 {
 	if (!bModified) return;
@@ -188,7 +197,18 @@ void UCharacterWeaponComponent::OnMainSlotEquipped(UItemObject* ItemObject, bool
 
 void UCharacterWeaponComponent::OnMainSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject)
 {
-	ArmRightHand(SlotName, ItemObject);
+	if (SlotName == MainSlotName)
+	{
+		ArmRightHand(SlotName, ItemObject);
+	}
+}
+
+void UCharacterWeaponComponent::OnMainSlotDeactivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject)
+{
+	if (SlotName == MainSlotName)
+	{
+		DisarmRightHand();
+	}
 }
 
 void UCharacterWeaponComponent::OnSecondarySlotEquipped(UItemObject* ItemObject, bool bModified)
@@ -204,6 +224,15 @@ void UCharacterWeaponComponent::OnSecondarySlotEquipped(UItemObject* ItemObject,
 	{
 		DisarmSlot(SecondarySlotName);
 		UKismetSystemLibrary::PrintString(this, FString("Pistol unequipped!"), true, false);
+	}
+}
+
+void UCharacterWeaponComponent::OnSecondarySlotActivated(const FString& SlotName, int8 SlotIndex,
+                                                         UItemObject* ItemObject)
+{
+	if (SlotName == SecondarySlotName)
+	{
+		ArmRightHand(SlotName, ItemObject);
 	}
 }
 

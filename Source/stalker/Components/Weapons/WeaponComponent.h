@@ -88,7 +88,7 @@ public:
 	
 	virtual void PreInitializeWeapon();
 	virtual void PostInitializeWeapon();
-	
+
 	bool ActivateSlot(const FString& SlotName);
 	bool ActivateSlot(int8 SlotIndex);
 	bool DeactivateSlot();

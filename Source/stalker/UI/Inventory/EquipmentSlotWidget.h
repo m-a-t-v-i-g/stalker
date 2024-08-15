@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
 	FString SlotName = "Default";
 	
+	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
+	bool bVerticalSlot = false;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCanvasPanel> SlotCanvas;
 

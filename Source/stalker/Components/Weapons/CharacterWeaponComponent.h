@@ -72,11 +72,15 @@ protected:
 	
 public:
 	void OnKnifeSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnKnifeSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
 	
 	void OnMainSlotEquipped(UItemObject* ItemObject, bool bModified);
 	void OnMainSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
+	void OnMainSlotDeactivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
 	
 	void OnSecondarySlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnSecondarySlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
+	
 	void OnGrenadeSlotEquipped(UItemObject* ItemObject, bool bModified);
 	void OnBinocularsSlotEquipped(UItemObject* ItemObject, bool bModified);
 	void OnBoltSlotEquipped(UItemObject* ItemObject, bool bModified);

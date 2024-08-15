@@ -2,6 +2,7 @@
 
 #include "WeaponComponent.h"
 #include "Items/ItemObject.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UWeaponComponent::UWeaponComponent()
 {
@@ -26,13 +27,11 @@ void UWeaponComponent::PostInitializeWeapon()
 
 bool UWeaponComponent::ActivateSlot(const FString& SlotName)
 {
-	for (uint8 i = 0; i < WeaponSlots.Num(); i++)
+	for (int8 i = 0; i < WeaponSlots.Num(); i++)
 	{
 		if (WeaponSlots[i].GetSlotName() == SlotName)
 		{
-			ActiveSlot = i;
-			OnSlotActivated.Broadcast(SlotName, ActiveSlot, WeaponSlots[i].ArmedItemObject);
-			return true;
+			return ActivateSlot(i);
 		}
 	}
 	return false;
@@ -42,8 +41,15 @@ bool UWeaponComponent::ActivateSlot(int8 SlotIndex)
 {
 	if (WeaponSlots.IsValidIndex(SlotIndex))
 	{
-		ActiveSlot = SlotIndex;
-		OnSlotActivated.Broadcast(WeaponSlots[SlotIndex].GetSlotName(), ActiveSlot, WeaponSlots[SlotIndex].ArmedItemObject);
+		if (ActiveSlot == SlotIndex)
+		{
+			DeactivateSlot();
+		}
+		else
+		{
+			ActiveSlot = SlotIndex;
+			OnSlotActivated.Broadcast(WeaponSlots[SlotIndex].GetSlotName(), ActiveSlot, WeaponSlots[SlotIndex].ArmedItemObject);
+		}
 		return true;
 	}
 	return false;
@@ -51,7 +57,7 @@ bool UWeaponComponent::ActivateSlot(int8 SlotIndex)
 
 bool UWeaponComponent::DeactivateSlot()
 {
-	if (ActiveSlot > 0)
+	if (ActiveSlot >= 0)
 	{
 		OnSlotDeactivated.Broadcast(WeaponSlots[ActiveSlot].GetSlotName(), ActiveSlot,
 		                            WeaponSlots[ActiveSlot].ArmedItemObject);

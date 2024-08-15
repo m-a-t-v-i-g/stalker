@@ -61,10 +61,17 @@ void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModifie
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnReverseDragOperation);
 			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
 			
+			if (bVerticalSlot)
+			{
+				ItemWidget->RotateItem();
+			}
+			
 			if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 			{
 				FVector2D ItemSize = ItemObject->GetItemSize() * APlayerHUD::TileSize;
 				CanvasPanelSlot->SetSize(ItemSize);
+				CanvasPanelSlot->SetAnchors(FAnchors(0.5f));
+				CanvasPanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
 			}
 		}
 	}

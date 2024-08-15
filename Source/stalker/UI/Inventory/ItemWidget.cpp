@@ -2,6 +2,7 @@
 
 #include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
+#include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
@@ -35,14 +36,17 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
                                                   UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
+	ItemImage->SetOpacity(DragOpacity);
+	UnrotateItem();
 	
 	UItemDragDropOperation* DragDropOperation = NewObject<UItemDragDropOperation>();
 	check(DragDropOperation);
 
 	DragDropOperation->ItemWidgetRef = this;
 	DragDropOperation->Payload = BoundObject.Get();
-	DragDropOperation->DefaultDragVisual = this;
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
+	DragDropOperation->DefaultDragVisual = this;
 	OutOperation = DragDropOperation;
 
 	RemoveFromParent();
@@ -69,7 +73,7 @@ FReply UItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent,
 	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
 	{
-		TSharedPtr<SWidget> SlateWidgetDetectingDrag = this->GetCachedWidget();
+		TSharedPtr<SWidget> SlateWidgetDetectingDrag = TakeWidget();
 		if (SlateWidgetDetectingDrag.IsValid())
 		{
 			Reply.NativeReply.DetectDrag(SlateWidgetDetectingDrag.ToSharedRef(), DragKey);
@@ -95,6 +99,16 @@ FReply UItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent
 	{
 	}
 	return Reply.NativeReply;
+}
+
+void UItemWidget::RotateItem()
+{
+	ItemImage->SetRenderTransformAngle(-90.0f);
+}
+
+void UItemWidget::UnrotateItem()
+{
+	ItemImage->SetRenderTransformAngle(0.0f);
 }
 
 void UItemWidget::DoubleClick()
