@@ -10,7 +10,6 @@
 #include "Components/Inventory/ItemsContainerComponent.h"
 #include "InteractiveObjects/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
-#include "Slate/SlateBrushAsset.h"
 
 int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
                                              const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
@@ -19,28 +18,16 @@ int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeom
 {
 	if (ItemsContainerRef.IsValid())
 	{
-		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled};
-		if (UWidgetBlueprintLibrary::IsDragDropping() && bDrawDropLocation)
+		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, 100, InWidgetStyle, bParentEnabled};
+		if (bHighlightItem && HoveredItem.IsValid())
 		{
-			if (auto DragDropOperation = Cast<UItemDragDropOperation>(UWidgetBlueprintLibrary::GetDragDroppingContent()))
+			auto ItemsMap = ItemsContainerRef->GetItemsMap();
+			if (auto Tile = ItemsMap.Find(HoveredItem.Get()->GetItemId()))
 			{
-				USlateBrushAsset* SlateBrush = Cast<USlateBrushAsset>(USlateBrushAsset::StaticClass()->GetDefaultObject());
-				FLinearColor SlotColor {1.0f, 0.0f, 0.0f, 0.35f};
-				if (DraggedTile.X >= 0 && DraggedTile.Y >= 0)
-				{
-					uint32 RoomIndex = UItemsContainerComponent::IndexFromTile(DraggedTile, ItemsContainerRef->GetColumns());
-					if (auto ItemObject = DragDropOperation->GetPayload<UItemObject>())
-					{
-						if (ItemsContainerRef->CheckRoom(ItemObject, RoomIndex))
-						{
-							SlotColor = FLinearColor(0.0f, 1.0f, 0.0f, 0.35f); 
-						}
-						UWidgetBlueprintLibrary::DrawBox(Context, FVector2D(DraggedTile) * APlayerHUD::TileSize,
-						                                 FVector2D(ItemObject->GetItemSize().X * APlayerHUD::TileSize,
-						                                           ItemObject->GetItemSize().Y * APlayerHUD::TileSize),
-						                                 SlateBrush, SlotColor);
-					}
-				}
+				UWidgetBlueprintLibrary::DrawBox(Context, *Tile * APlayerHUD::TileSize,
+												 FVector2D(HoveredItem->GetItemSize().X * APlayerHUD::TileSize,
+														   HoveredItem->GetItemSize().Y * APlayerHUD::TileSize),
+												 GridFillingBrush, GridHighlightColor);
 			}
 		}
 	}
@@ -76,22 +63,18 @@ bool UItemsContainerGridWidget::NativeOnDragOver(const FGeometry& InGeometry, co
 void UItemsContainerGridWidget::NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                                   UDragDropOperation* InOperation)
 {
-	bDrawDropLocation = true;
 	Super::NativeOnDragEnter(InGeometry, InDragDropEvent, InOperation);
 }
 
 void UItemsContainerGridWidget::NativeOnDragLeave(const FDragDropEvent& InDragDropEvent,
                                                   UDragDropOperation* InOperation)
 {
-	bDrawDropLocation = false;
 	Super::NativeOnDragLeave(InDragDropEvent, InOperation);
 }
 
 bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                              UDragDropOperation* InOperation)
 {
-	bDrawDropLocation = false;
-	
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
@@ -147,7 +130,11 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 			this, APlayerHUD::StaticInteractiveItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+			ItemWidget->OnMouseEnter.BindUObject(this, &UItemsContainerGridWidget::OnItemMouseEnter);
+			ItemWidget->OnMouseLeave.BindUObject(this, &UItemsContainerGridWidget::OnItemMouseLeave);
 			ItemWidget->OnDoubleClick.BindUObject(this, &UItemsContainerGridWidget::OnDoubleClick);
+
+			ItemWidget->OnBeginDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnReverseDragOperation);
 			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
 
@@ -167,9 +154,26 @@ void UItemsContainerGridWidget::SetupSize()
 	GridSizeBox->SetWidthOverride(Width);
 }
 
+void UItemsContainerGridWidget::OnItemMouseEnter(UItemObject* HoverItem)
+{
+	bHighlightItem = true;
+	HoveredItem = HoverItem;
+}
+
+void UItemsContainerGridWidget::OnItemMouseLeave(UItemObject* HoverItem)
+{
+	bHighlightItem = false;
+	HoveredItem = HoverItem;
+}
+
 void UItemsContainerGridWidget::OnDoubleClick(UItemObject* ClickedItem)
 {
 	OnItemWidgetDoubleClick.Broadcast(ClickedItem);
+}
+
+void UItemsContainerGridWidget::OnBeginDragOperation(UItemObject* DraggedItem)
+{
+	bHighlightItem = false;
 }
 
 void UItemsContainerGridWidget::OnReverseDragOperation(UItemObject* DraggedItem)

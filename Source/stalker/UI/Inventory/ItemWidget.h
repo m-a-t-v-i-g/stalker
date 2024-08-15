@@ -18,6 +18,9 @@ class STALKER_API UItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
@@ -40,9 +43,12 @@ private:
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 public:
-	FDragDropOperationSignature OnDoubleClick;
+	FDragDropOperationSignature OnMouseEnter;
+	FDragDropOperationSignature OnMouseLeave;
+	FDragDropOperationSignature OnDoubleClick
+	;
+	FDragDropOperationSignature OnBeginDragDropOperation;
 	FDragDropOperationSignature OnReverseDragDropOperation;
-	
 	FDragDropOperationResultSignature OnCompleteDragDropOperation;
 
 	virtual void InitItemWidget(UItemObject* BindObject, FIntPoint Size);
@@ -55,9 +61,13 @@ protected:
 
 public:
 	void RotateItem();
-	void UnrotateItem();
-	
+	void UnRotateItem();
+
+	void MouseEnter();
+	void MouseLeave();
 	void DoubleClick();
+
+	void BeginDragOperation();
 	void ReverseDragOperation();
 	void CompleteDragOperation(EDragDropOperationResult OperationResult);
 	

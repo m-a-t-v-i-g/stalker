@@ -41,6 +41,11 @@ bool UWeaponComponent::ActivateSlot(int8 SlotIndex)
 {
 	if (WeaponSlots.IsValidIndex(SlotIndex))
 	{
+		if (!WeaponSlots[SlotIndex].IsArmed())
+		{
+			return false;
+		}
+	
 		if (ActiveSlot == SlotIndex)
 		{
 			DeactivateSlot();

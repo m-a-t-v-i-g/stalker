@@ -10,6 +10,18 @@
 #include "InteractiveObjects/Items/ItemObject.h"
 #include "Player/PlayerHUD.h"
 
+void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+	MouseEnter();
+}
+
+void UItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+	MouseLeave();
+}
+
 FReply UItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
@@ -38,7 +50,7 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
 	ItemImage->SetOpacity(DragOpacity);
-	UnrotateItem();
+	UnRotateItem();
 	
 	UItemDragDropOperation* DragDropOperation = NewObject<UItemDragDropOperation>();
 	check(DragDropOperation);
@@ -50,6 +62,7 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	OutOperation = DragDropOperation;
 
 	RemoveFromParent();
+	BeginDragOperation();
 }
 
 void UItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
@@ -106,14 +119,29 @@ void UItemWidget::RotateItem()
 	ItemImage->SetRenderTransformAngle(-90.0f);
 }
 
-void UItemWidget::UnrotateItem()
+void UItemWidget::UnRotateItem()
 {
 	ItemImage->SetRenderTransformAngle(0.0f);
+}
+
+void UItemWidget::MouseEnter()
+{
+	OnMouseEnter.ExecuteIfBound(BoundObject.Get());
+}
+
+void UItemWidget::MouseLeave()
+{
+	OnMouseLeave.ExecuteIfBound(BoundObject.Get());
 }
 
 void UItemWidget::DoubleClick()
 {
 	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
+}
+
+void UItemWidget::BeginDragOperation()
+{
+	OnBeginDragDropOperation.ExecuteIfBound(BoundObject.Get());
 }
 
 void UItemWidget::ReverseDragOperation()

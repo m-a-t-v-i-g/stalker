@@ -3,12 +3,14 @@
 #include "ItemDragDropOperation.h"
 #include "ItemWidget.h"
 
-void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult)
+void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult) const
 {
 	ItemWidgetRef->CompleteDragOperation(OperationResult);
+	ItemWidgetRef->MarkAsGarbage();
 }
 
-void UItemDragDropOperation::ReverseDragDropOperation()
+void UItemDragDropOperation::ReverseDragDropOperation() const
 {
 	ItemWidgetRef->ReverseDragOperation();
+	ItemWidgetRef->MarkAsGarbage();
 }

@@ -17,9 +17,9 @@ public:
 
 	bool bWasSuccessful = false;
 	
-	void ReverseDragDropOperation();
+	void ReverseDragDropOperation() const;
 	
-	void CompleteDragDropOperation(EDragDropOperationResult OperationResult);
+	void CompleteDragDropOperation(EDragDropOperationResult OperationResult) const;
 	
 	template <class T>
 	T* GetPayload() const

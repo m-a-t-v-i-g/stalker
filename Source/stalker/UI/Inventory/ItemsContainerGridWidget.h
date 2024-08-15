@@ -26,6 +26,12 @@ protected:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	                          UDragDropOperation* InOperation) override;
 	
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+	TObjectPtr<class USlateBrushAsset> GridFillingBrush;
+	
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+	FLinearColor GridHighlightColor;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCanvasPanel> GridCanvas;
 	
@@ -37,7 +43,8 @@ protected:
 private:
 	FIntPoint DraggedTile;
 
-	bool bDrawDropLocation = false;
+	bool bHighlightItem = false;
+	TWeakObjectPtr<UItemObject> HoveredItem;
 	
 public:
 	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
@@ -49,8 +56,12 @@ public:
 	
 protected:
 	void SetupSize();
-	
+
+	void OnItemMouseEnter(UItemObject* HoverItem);
+	void OnItemMouseLeave(UItemObject* HoverItem);
 	void OnDoubleClick(UItemObject* ClickedItem);
+
+	void OnBeginDragOperation(UItemObject* DraggedItem);
 	void OnReverseDragOperation(UItemObject* DraggedItem);
 	void OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult);
 	

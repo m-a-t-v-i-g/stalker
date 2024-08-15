@@ -45,7 +45,7 @@ protected:
 	FGameplayTagContainer CategoryTags;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Items Container")
-	uint8 Columns = 9;
+	uint8 Columns = 8;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Items Container")
 	uint8 Capacity = 70;
