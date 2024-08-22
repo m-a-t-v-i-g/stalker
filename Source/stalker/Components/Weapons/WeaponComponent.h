@@ -48,12 +48,12 @@ struct FWeaponSlot
 		Handle = Index;
 		WeaponSlotPtr = &SlotSpec;
 	}
-	
+
 	const FString& GetSlotName() const { return WeaponSlotPtr->SlotName; }
 	const FName& GetAttachmentSocketName() const { return WeaponSlotPtr->AttachmentSocketName; }
 
 	bool IsArmed() const { return ArmedItemObject != nullptr; }
-	
+
 	friend uint8 GetTypeHash(const FWeaponSlot& Handle)
 	{
 		return GetTypeHash(Handle.Handle);
@@ -79,8 +79,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bAllowUnarmedAttack = false;
 
-private:
-	int8 ActiveSlot = -1;
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TMap<uint8, bool> ActiveSlots;
 	
 public:
 	FOnWeaponSlotSignature OnSlotActivated;
@@ -93,7 +93,7 @@ public:
 	void ServerActivateSlot(int8 SlotIndex);
 
 	UFUNCTION(Server, Unreliable)
-	void ServerDeactivateSlot();
+	void ServerDeactivateSlot(int8 SlotIndex);
 	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);

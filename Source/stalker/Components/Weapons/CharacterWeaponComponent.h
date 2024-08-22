@@ -4,11 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "WeaponComponent.h"
+#include "DataAssets/ItemBehaviorDataAsset.h"
 #include "CharacterWeaponComponent.generated.h"
 
 class UCharacterInventoryComponent;
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UItemObject*);
 
 UCLASS(meta=(BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
@@ -27,32 +26,13 @@ public:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString KnifeSlotName = "Knife";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString MainSlotName = "Main";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString SecondarySlotName = "Secondary";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString GrenadeSlotName = "Grenade";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString BinocularsSlotName = "Binoculars";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString BoltSlotName = "Bolt";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	FString DetectorSlotName = "Detector";
+	TObjectPtr<UItemBehaviorDataAsset> WeaponBehaviorData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TObjectPtr<class UCharacterItemsDataAsset> ItemsBehaviorData;
-
+	TArray<FString> WeaponSlotNames;
+	
 private:
 	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
-	
 	TObjectPtr<UCharacterInventoryComponent> CharacterInventory;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
@@ -62,9 +42,15 @@ private:
 	TObjectPtr<AItemActor> RightHandItem;
 
 public:
-	FOnWeaponChanged OnWeaponChanged;
+	UFUNCTION(Server, Reliable)
+	void ServerToggleSlot(int8 SlotIndex);
 	
 protected:
+	void EquipHands(const FString& SlotName, UItemObject* ItemObject, ECharacterSlotHand TargetHand);
+	
+	void OnActivateSlot(const FString& SlotName, UItemObject* ItemObject);
+	void OnDeactivateSlot(const FString& SlotName, UItemObject* ItemObject);
+	
 	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
 	bool ArmRightHand(const FString& SlotName, UItemObject* ItemObject);
 	void DisarmLeftHand();
@@ -72,20 +58,10 @@ protected:
 	
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
 									UItemObject* ItemObject) const;
+
+	const UItemObject* GetItemAtRightHand() const;
+	const UItemObject* GetItemAtLeftHand() const;
 	
 public:
-	void OnKnifeSlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnKnifeSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
-	
-	void OnMainSlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnMainSlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
-	void OnMainSlotDeactivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
-	
-	void OnSecondarySlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnSecondarySlotActivated(const FString& SlotName, int8 SlotIndex, UItemObject* ItemObject);
-	
-	void OnGrenadeSlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnBinocularsSlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnBoltSlotEquipped(UItemObject* ItemObject, bool bModified);
-	void OnDetectorSlotEquipped(UItemObject* ItemObject, bool bModified);
+	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, FString SlotName, uint8 SlotIndex);
 };

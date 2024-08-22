@@ -46,6 +46,8 @@ public:
 	void SetHandedMode();
 	void SetFreeMode();
 	
+	const UItemObject* GetItemObject() const { return ItemObject; }
+	
 protected:
 	void UpdateItem();
 	

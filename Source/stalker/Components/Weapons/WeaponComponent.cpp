@@ -16,6 +16,7 @@ void UWeaponComponent::PreInitializeWeapon()
 		{
 			FWeaponSlot SlotHandle {i, WeaponSlotSpecs[i]};
 			WeaponSlots.Add(SlotHandle);
+			ActiveSlots.Add(i, false);
 		}
 	}
 }
@@ -26,32 +27,17 @@ void UWeaponComponent::PostInitializeWeapon()
 
 void UWeaponComponent::ServerActivateSlot_Implementation(int8 SlotIndex)
 {
-	if (WeaponSlots.IsValidIndex(SlotIndex))
+	if (auto SlotActivityPtr = ActiveSlots.Find(SlotIndex))
 	{
-		if (!WeaponSlots[SlotIndex].IsArmed())
-		{
-			return;
-		}
-	
-		if (ActiveSlot == SlotIndex)
-		{
-			ServerDeactivateSlot();
-		}
-		else
-		{
-			ActiveSlot = SlotIndex;
-			OnSlotActivated.Broadcast(WeaponSlots[SlotIndex].GetSlotName(), ActiveSlot, WeaponSlots[SlotIndex].ArmedItemObject);
-		}
+		*SlotActivityPtr = true;
 	}
 }
 
-void UWeaponComponent::ServerDeactivateSlot_Implementation()
+void UWeaponComponent::ServerDeactivateSlot_Implementation(int8 SlotIndex)
 {
-	if (ActiveSlot >= 0)
+	if (auto SlotActivityPtr = ActiveSlots.Find(SlotIndex))
 	{
-		OnSlotDeactivated.Broadcast(WeaponSlots[ActiveSlot].GetSlotName(), ActiveSlot,
-		                            WeaponSlots[ActiveSlot].ArmedItemObject);
-		ActiveSlot = -1;
+		*SlotActivityPtr = false;
 	}
 }
 
@@ -70,7 +56,6 @@ void UWeaponComponent::DisarmSlot(const FString& SlotName)
 	if (auto Slot = FindWeaponSlot(SlotName))
 	{
 		if (!Slot->IsArmed()) return;
-		
 		Slot->ArmedItemObject = nullptr;
 	}
 }
@@ -91,7 +76,7 @@ void UWeaponComponent::OnAttack()
 
 bool UWeaponComponent::CanAttack() const
 {
-	return WeaponSlots[ActiveSlot].IsArmed() || bAllowUnarmedAttack;
+	return true;
 }
 
 FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)

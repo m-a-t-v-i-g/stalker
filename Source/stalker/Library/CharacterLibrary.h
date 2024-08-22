@@ -10,6 +10,8 @@ enum class ECharacterOverlayState : uint8
 {
 	Default,
 	Rifle,
+	Pistol_1H,
+	Pistol_2H,
 	Binocular
 };
 
@@ -46,6 +48,12 @@ private:
 	bool bRifle = false;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
+	bool bPistol_1H = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
+	bool bPistol_2H = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
 	bool bBinocular = false;
 
 public:
@@ -57,6 +65,8 @@ public:
 
 	const bool& Default() const { return bDefault; }
 	const bool& Rifle() const { return bRifle; }
+	const bool& Pistol_1H() const { return bPistol_1H; }
+	const bool& Pistol_2H() const { return bPistol_2H; }
 	const bool& Binocular() const { return bBinocular; }
 	
 	operator ECharacterOverlayState() const { return State; }
@@ -66,6 +76,8 @@ public:
 		State = NewAction;
 		bDefault = State == ECharacterOverlayState::Default;
 		bRifle = State == ECharacterOverlayState::Rifle;
+		bPistol_1H = State == ECharacterOverlayState::Pistol_1H;
+		bPistol_2H = State == ECharacterOverlayState::Pistol_2H;
 		bBinocular = State == ECharacterOverlayState::Binocular;
 	}
 };
