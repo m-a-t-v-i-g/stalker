@@ -9,6 +9,8 @@
 
 class UCharacterInventoryComponent;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
+
 UCLASS(meta=(BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
 {
@@ -28,9 +30,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TObjectPtr<UItemBehaviorDataAsset> WeaponBehaviorData;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TArray<FString> WeaponSlotNames;
-	
 private:
 	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
 	TObjectPtr<UCharacterInventoryComponent> CharacterInventory;
@@ -42,14 +41,13 @@ private:
 	TObjectPtr<AItemActor> RightHandItem;
 
 public:
+	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
+	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
 	
 protected:
-	void EquipHands(const FString& SlotName, UItemObject* ItemObject, ECharacterSlotHand TargetHand);
-	
-	void OnActivateSlot(const FString& SlotName, UItemObject* ItemObject);
-	void OnDeactivateSlot(const FString& SlotName, UItemObject* ItemObject);
+	void EquipHands(const FString& SlotName, UItemObject* ItemObject, FItemBehavior* ItemBehavior);
 	
 	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
 	bool ArmRightHand(const FString& SlotName, UItemObject* ItemObject);

@@ -5,9 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "StalkerPlayerController.h"
 #include "DataAssets/InputDataAsset.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Weapons/CharacterWeaponComponent.h"
-#include "Weapons/WeaponComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {

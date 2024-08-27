@@ -10,8 +10,6 @@
 class AItemActor;
 class UItemObject;
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnWeaponSlotSignature, const FString&, int8, UItemObject*);
-
 USTRUCT(Blueprintable)
 struct FWeaponSlotSpec
 {
@@ -68,24 +66,17 @@ class STALKER_API UWeaponComponent : public UActorComponent
 public:
 	UWeaponComponent();
 
-private:
+protected:
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Weapon Slots", Category = "Weapon")
 	TArray<FWeaponSlotSpec> WeaponSlotSpecs;
 
-protected:
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<FWeaponSlot> WeaponSlots;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bAllowUnarmedAttack = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TMap<uint8, bool> ActiveSlots;
-	
 public:
-	FOnWeaponSlotSignature OnSlotActivated;
-	FOnWeaponSlotSignature OnSlotDeactivated;
-	
 	virtual void PreInitializeWeapon();
 	virtual void PostInitializeWeapon();
 

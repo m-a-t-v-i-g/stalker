@@ -16,7 +16,6 @@ void UWeaponComponent::PreInitializeWeapon()
 		{
 			FWeaponSlot SlotHandle {i, WeaponSlotSpecs[i]};
 			WeaponSlots.Add(SlotHandle);
-			ActiveSlots.Add(i, false);
 		}
 	}
 }
@@ -27,18 +26,10 @@ void UWeaponComponent::PostInitializeWeapon()
 
 void UWeaponComponent::ServerActivateSlot_Implementation(int8 SlotIndex)
 {
-	if (auto SlotActivityPtr = ActiveSlots.Find(SlotIndex))
-	{
-		*SlotActivityPtr = true;
-	}
 }
 
 void UWeaponComponent::ServerDeactivateSlot_Implementation(int8 SlotIndex)
 {
-	if (auto SlotActivityPtr = ActiveSlots.Find(SlotIndex))
-	{
-		*SlotActivityPtr = false;
-	}
 }
 
 void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)

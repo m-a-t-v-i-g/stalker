@@ -34,4 +34,7 @@ public:
 	{
 		return Cast<T>(GetArmorComponent());
 	}
+
+protected:
+	void OnWeaponOverlayChanged(ECharacterOverlayState NewOverlay);
 };

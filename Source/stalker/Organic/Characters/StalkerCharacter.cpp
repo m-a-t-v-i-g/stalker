@@ -29,14 +29,21 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 		{
 			CharacterWeapon->PreInitializeWeapon();
 			CharacterWeapon->PostInitializeWeapon();
+
+			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnWeaponOverlayChanged);
 		}
 
-		if (GetArmorComponent())
+		if (auto CharacterArmor = GetArmorComponent())
 		{
-			GetArmorComponent()->PreInitializeArmor();
-			GetArmorComponent()->PostInitializeArmor();
+			CharacterArmor->PreInitializeArmor();
+			CharacterArmor->PostInitializeArmor();
 		}
 		
 		CharacterInventory->PostInitializeContainer();
 	}
+}
+
+void AStalkerCharacter::OnWeaponOverlayChanged(ECharacterOverlayState NewOverlay)
+{
+	SetOverlayState(NewOverlay);
 }
