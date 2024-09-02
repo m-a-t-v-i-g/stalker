@@ -70,6 +70,11 @@ bool UWeaponComponent::CanAttack() const
 	return true;
 }
 
+bool UWeaponComponent::IsArmed() const
+{
+	return true;
+}
+
 FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)
 {
 	FWeaponSlot* FoundSlot = nullptr;

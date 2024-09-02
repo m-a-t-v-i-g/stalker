@@ -93,6 +93,7 @@ public:
 	virtual void OnAttack();
 
 	virtual bool CanAttack() const;
-
+	virtual bool IsArmed() const;
+	
 	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
 };

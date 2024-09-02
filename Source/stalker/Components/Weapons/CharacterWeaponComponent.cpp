@@ -9,6 +9,7 @@
 #include "Items/ItemObject.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/WeaponObject.h"
 
 UCharacterWeaponComponent::UCharacterWeaponComponent()
 {
@@ -37,10 +38,9 @@ void UCharacterWeaponComponent::PreInitializeWeapon()
 		for (uint8 i = 0; i < WeaponSlotSpecs.Num(); i++)
 		{
 			if (WeaponSlotSpecs[i].SlotName.IsEmpty()) continue;
-			
 			if (auto SlotPtr = CharacterInventory->FindEquipmentSlot(WeaponSlotSpecs[i].SlotName))
 			{
-				SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnSlotEquipped, WeaponSlotSpecs[i].SlotName, i);
+				SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnSlotEquipped, WeaponSlotSpecs[i].SlotName);
 			}
 		}
 	}
@@ -56,40 +56,55 @@ bool UCharacterWeaponComponent::CanAttack() const
 	return Super::CanAttack();
 }
 
+bool UCharacterWeaponComponent::IsArmed() const
+{
+	return LeftHandItem->IsA<UWeaponObject>() || RightHandItem->IsA<UWeaponObject>();
+}
+
 void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 {
 	auto* SlotPtr = &WeaponSlots[SlotIndex];
 	if (!SlotPtr) return;
 
+	if (!SlotPtr->IsArmed()) return;
+	
 	auto SlotObject = SlotPtr->ArmedItemObject;
-	if (!SlotObject || !SlotPtr->IsArmed()) return;
-
-	const auto ItemBehavior = WeaponBehaviorData->ItemsMap.Find(SlotObject->GetItemRowName());
-	if (!ItemBehavior)
-	{
-		UKismetSystemLibrary::PrintString(this, FString("Behavior for item not found!"), true, false,
-		                                  FLinearColor::Red);
-		return;
-	}
-	EquipHands(SlotPtr->GetSlotName(), SlotObject, ItemBehavior);
+	EquipOrUnEquipHands(SlotPtr->GetSlotName(), SlotObject);
 }
 
-void UCharacterWeaponComponent::EquipHands(const FString& SlotName, UItemObject* ItemObject, FItemBehavior* ItemBehavior)
+void UCharacterWeaponComponent::EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject)
 {
+	if (!ItemObject) return;
+	
+	const auto ItemBehavior = WeaponBehaviorData->ItemsMap.Find(ItemObject->GetItemRowName());
+	if (!ItemBehavior)
+	{
+		UKismetSystemLibrary::PrintString(
+			this, FString::Printf(TEXT("Behavior for item '%s' not found!"), *ItemObject->GetItemRowName().ToString()),
+			true, false, FLinearColor::Red);
+		return;
+	}
+	
+	ECharacterOverlayState TargetOverlay = ECharacterOverlayState::Default;
+	
 	auto LeftItem = GetItemAtLeftHand();
 	auto RightItem = GetItemAtRightHand();
+	
+	FItemBehavior* RightItemBeh = nullptr;
+	if (RightItem)
+	{
+		RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
+	}
+	
 	switch (ItemBehavior->OccupiedHand)
 	{
 	case ECharacterSlotHand::Left:
 		{
-			ECharacterOverlayState TargetOverlay = ItemBehavior->PrimaryOverlay;
 			if (LeftItem != ItemObject)
 			{
 				if (RightItem)
 				{
-					const auto RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
 					if (!RightItemBeh) return;
-				
 					switch (RightItemBeh->OccupiedHand)
 					{
 					case ECharacterSlotHand::Right:
@@ -108,9 +123,7 @@ void UCharacterWeaponComponent::EquipHands(const FString& SlotName, UItemObject*
 			{
 				if (RightItem)
 				{
-					const auto RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
 					if (!RightItemBeh) return;
-				
 					switch (RightItemBeh->OccupiedHand)
 					{
 					case ECharacterSlotHand::Right:
@@ -125,12 +138,11 @@ void UCharacterWeaponComponent::EquipHands(const FString& SlotName, UItemObject*
 				}
 				DisarmLeftHand();
 			}
-			OnWeaponOverlayChanged.Broadcast(TargetOverlay);
 			break;
 		}
 	case ECharacterSlotHand::Right:
 		{
-			ECharacterOverlayState TargetOverlay = LeftItem ? ItemBehavior->SecondaryOverlay : ItemBehavior->PrimaryOverlay;
+			TargetOverlay = LeftItem ? ItemBehavior->SecondaryOverlay : ItemBehavior->PrimaryOverlay;
 			if (RightItem != ItemObject)
 			{
 				ArmRightHand(SlotName, ItemObject);
@@ -143,18 +155,17 @@ void UCharacterWeaponComponent::EquipHands(const FString& SlotName, UItemObject*
 					TargetOverlay = ECharacterOverlayState::Default;
 				}
 			}
-			OnWeaponOverlayChanged.Broadcast(TargetOverlay);
 			break;
 		}
 	case ECharacterSlotHand::Both:
 		{
-			ECharacterOverlayState TargetOverlay = ItemBehavior->PrimaryOverlay;
-			if (LeftItem)
-			{
-				DisarmLeftHand();
-			}
+			TargetOverlay = ItemBehavior->PrimaryOverlay;
 			if (RightItem != ItemObject)
 			{
+				if (LeftItem)
+				{
+					DisarmLeftHand();
+				}
 				ArmRightHand(SlotName, ItemObject);
 			}
 			else
@@ -162,10 +173,31 @@ void UCharacterWeaponComponent::EquipHands(const FString& SlotName, UItemObject*
 				DisarmRightHand();
 				TargetOverlay = ECharacterOverlayState::Default;
 			}
-			OnWeaponOverlayChanged.Broadcast(TargetOverlay);
 			break;
 		}
 	default: break;
+	}
+	OnWeaponOverlayChanged.Broadcast(TargetOverlay);
+}
+
+void UCharacterWeaponComponent::UnEquipHands(const FString& SlotName)
+{
+	auto SlotPtr = FindWeaponSlot(SlotName);
+	if (!SlotPtr) return;
+
+	if (!SlotPtr->IsArmed()) return;
+
+	auto SlotObject = SlotPtr->ArmedItemObject;
+	auto LeftItem = GetItemAtLeftHand();
+	auto RightItem = GetItemAtRightHand();
+	
+	if (LeftItem == SlotObject)
+	{
+		EquipOrUnEquipHands(SlotName, SlotObject);
+	}
+	if (RightItem == SlotObject)
+	{
+		EquipOrUnEquipHands(SlotName, SlotObject);
 	}
 }
 
@@ -177,7 +209,6 @@ bool UCharacterWeaponComponent::ArmLeftHand(const FString& SlotName, UItemObject
 	}
 	
 	LeftHandItem = SpawnWeapon(StalkerCharacter->GetMesh(), FindWeaponSlot(SlotName), ItemObject);
-
 	if (!LeftHandItem)
 	{
 		UKismetSystemLibrary::PrintString(this, FString("Hand was not equipped..."), true, false, FLinearColor::Red);
@@ -194,7 +225,6 @@ bool UCharacterWeaponComponent::ArmRightHand(const FString& SlotName, UItemObjec
 	}
 	
 	RightHandItem = SpawnWeapon(StalkerCharacter->GetMesh(), FindWeaponSlot(SlotName), ItemObject);
-
 	if (!RightHandItem)
 	{
 		UKismetSystemLibrary::PrintString(this, FString("Hand was not equipped..."), true, false, FLinearColor::Red);
@@ -224,8 +254,6 @@ void UCharacterWeaponComponent::DisarmRightHand()
 AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
                                                    UItemObject* ItemObject) const
 {
-	check(AttachmentComponent && WeaponSlot);
-	
 	AItemActor* SpawnedWeapon = nullptr;
 	if (AttachmentComponent->DoesSocketExist(WeaponSlot->GetAttachmentSocketName()))
 	{
@@ -247,14 +275,22 @@ AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentCo
 	return SpawnedWeapon;
 }
 
-const UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
+void UCharacterWeaponComponent::OnSlotEquipped(UItemObject* ItemObject, bool bModified, bool bEquipped, FString SlotName)
 {
-	const UItemObject* ItemObject = nullptr;
-	if (RightHandItem)
-	{
-		ItemObject = RightHandItem->GetItemObject();
+	if (!bModified || !IsValid(ItemObject) || SlotName.IsEmpty()) return;
+	
+	if (bEquipped)
+	{	
+		ArmSlot(SlotName, ItemObject);
+		EquipOrUnEquipHands(SlotName, ItemObject);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot equipped!"), *SlotName), true, false);
 	}
-	return ItemObject;
+	else
+	{
+		UnEquipHands(SlotName);
+		DisarmSlot(SlotName);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot unequipped!"), *SlotName), true, false);
+	}
 }
 
 const UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
@@ -267,20 +303,22 @@ const UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
 	return ItemObject;
 }
 
-void UCharacterWeaponComponent::OnSlotEquipped(UItemObject* ItemObject, bool bModified, FString SlotName, uint8 SlotIndex)
+const UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
 {
-	if (!bModified) return;
-	
-	if (IsValid(ItemObject))
-	{	
-		ArmSlot(SlotName, ItemObject);
-		ServerToggleSlot_Implementation(SlotIndex);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot equipped!"), *SlotName), true, false);
-	}
-	else
+	const UItemObject* ItemObject = nullptr;
+	if (RightHandItem)
 	{
-		ServerToggleSlot_Implementation(SlotIndex);
-		DisarmSlot(SlotName);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot unequipped!"), *SlotName), true, false);
+		ItemObject = RightHandItem->GetItemObject();
 	}
+	return ItemObject;
+}
+
+bool UCharacterWeaponComponent::IsLeftItemActorValid() const
+{
+	return IsValid(LeftHandItem.Get());
+}
+
+bool UCharacterWeaponComponent::IsRightItemActorValid() const
+{
+	return IsValid(RightHandItem.Get());
 }

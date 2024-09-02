@@ -49,7 +49,7 @@ public:
 	const UItemObject* GetItemObject() const { return ItemObject; }
 	
 protected:
-	void UpdateItem();
+	void UpdateItem() const;
 	
 	template <class T>
 	T* GetItemObject() const

@@ -1,10 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Organic/Characters/BaseCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseCharacter, OverlayState);
 }
 
 void ABaseCharacter::SetMovementAction(ECharacterMovementAction NewAction, bool bForce)

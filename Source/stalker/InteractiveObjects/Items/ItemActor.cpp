@@ -32,10 +32,9 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 
 void AItemActor::InitItem(UItemObject* NewItemObject)
 {
-	check(NewItemObject);
+	if (!NewItemObject) return;
 	
 	ItemObject = NewItemObject;
-
 	UpdateItem();
 }
 
@@ -81,7 +80,7 @@ void AItemActor::SetFreeMode()
 	}
 }
 
-void AItemActor::UpdateItem()
+void AItemActor::UpdateItem() const
 {
 	PreviewMesh->SetStaticMesh(ItemObject->GetPreviewMesh());
 }

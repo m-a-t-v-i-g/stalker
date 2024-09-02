@@ -23,7 +23,7 @@ struct FItemBehavior
 	UPROPERTY(EditAnywhere)
 	ECharacterSlotHand OccupiedHand = ECharacterSlotHand::Right;
 	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "OccupiedHand != ECharacterSlotHand::Left"))
+	UPROPERTY(EditAnywhere)
 	ECharacterOverlayState PrimaryOverlay = ECharacterOverlayState::Default;
 	
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))

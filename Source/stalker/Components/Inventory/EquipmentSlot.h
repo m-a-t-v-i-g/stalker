@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "EquipmentSlot.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotChangedSignature, UItemObject*, bool)
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotChangedSignature, UItemObject*, bool, bool);
 
 UCLASS()
 class STALKER_API UEquipmentSlot : public UObject

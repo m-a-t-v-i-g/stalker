@@ -28,7 +28,7 @@ bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 		BoundObject = BindObject;
 		bWasEquipped = true;
 		
-		OnSlotChanged.Broadcast(BindObject, true);
+		OnSlotChanged.Broadcast(BindObject, true, true);
 	}
 	return bWasEquipped;
 }
@@ -37,8 +37,8 @@ void UEquipmentSlot::UnEquipSlot()
 {
 	if (BoundObject)
 	{
+		OnSlotChanged.Broadcast(BoundObject, true, false);
 		BoundObject = nullptr;
-		OnSlotChanged.Broadcast(BoundObject, true);
 	}
 }
 
@@ -49,7 +49,7 @@ bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
 
 void UEquipmentSlot::UpdateSlot(bool bModified) const
 {
-	OnSlotChanged.Broadcast(BoundObject, bModified);
+	OnSlotChanged.Broadcast(BoundObject, bModified, IsEquipped());
 }
 
 void UEquipmentSlot::OnRep_EquipmentSlot(UItemObject* PrevItemObject)

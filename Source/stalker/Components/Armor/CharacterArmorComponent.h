@@ -24,5 +24,5 @@ public:
 	virtual void PreInitializeArmor();
 	virtual void PostInitializeArmor();
 
-	void OnArmorSlotChanged(UItemObject* ItemObject, bool bModified);
+	void OnArmorSlotChanged(UItemObject* ItemObject, bool bModified, bool bEquipped);
 };

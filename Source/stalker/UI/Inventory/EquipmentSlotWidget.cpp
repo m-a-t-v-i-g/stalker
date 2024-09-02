@@ -40,16 +40,16 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UCharacterInventoryComponent* Char
 
 		if (OwnSlot->IsEquipped())
 		{
-			OnSlotChanged(OwnSlot->GetBoundObject(), true);
+			OnSlotChanged(OwnSlot->GetBoundObject(), true, OwnSlot->IsEquipped());
 		}
 	}
 }
 
-void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModified)
+void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModified, bool bEquipped)
 {
 	SlotCanvas->ClearChildren();
 	
-	if (OwnSlot.IsValid() && !OwnSlot->IsEquipped()) return;
+	if (!bEquipped) return;
 	
 	if (auto ItemObject = Cast<UItemObject>(BoundObject))
 	{

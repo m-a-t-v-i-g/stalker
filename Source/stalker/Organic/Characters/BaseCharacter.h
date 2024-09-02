@@ -15,13 +15,13 @@ class STALKER_API ABaseCharacter : public ABaseOrganic
 public:
 	ABaseCharacter(const FObjectInitializer& ObjectInitializer);
 
-#pragma region Movement
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Character|Movement")
 	ECharacterMovementAction MovementAction = ECharacterMovementAction::None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|State")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "Character|State")
 	ECharacterOverlayState OverlayState = ECharacterOverlayState::Default;
 
 public:
@@ -30,14 +30,8 @@ public:
 	
 	virtual void OnMovementActionChanged(ECharacterMovementAction PreviousAction);
 
-#pragma endregion Movement
-	
-#pragma region Overlay State
-
 	void SetOverlayState(ECharacterOverlayState NewState, bool bForce = false);
 	FORCEINLINE ECharacterOverlayState GetOverlayState() const { return OverlayState; }
 
 	virtual void OnOverlayStateChanged(ECharacterOverlayState PreviousState);
-
-#pragma endregion Overlay State
 };

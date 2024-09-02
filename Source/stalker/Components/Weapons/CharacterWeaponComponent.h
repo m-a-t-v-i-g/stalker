@@ -25,6 +25,7 @@ public:
 	virtual void PostInitializeWeapon() override;
 
 	virtual bool CanAttack() const override;
+	virtual bool IsArmed() const override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -47,7 +48,8 @@ public:
 	void ServerToggleSlot(int8 SlotIndex);
 	
 protected:
-	void EquipHands(const FString& SlotName, UItemObject* ItemObject, FItemBehavior* ItemBehavior);
+	void EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject);
+	void UnEquipHands(const FString& SlotName);
 	
 	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
 	bool ArmRightHand(const FString& SlotName, UItemObject* ItemObject);
@@ -57,9 +59,12 @@ protected:
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
 									UItemObject* ItemObject) const;
 
-	const UItemObject* GetItemAtRightHand() const;
-	const UItemObject* GetItemAtLeftHand() const;
-	
 public:
-	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, FString SlotName, uint8 SlotIndex);
+	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, bool bEquipped, FString SlotName);
+	
+	FORCEINLINE const UItemObject* GetItemAtLeftHand() const;
+	FORCEINLINE const UItemObject* GetItemAtRightHand() const;
+
+	FORCEINLINE bool IsLeftItemActorValid() const;
+	FORCEINLINE bool IsRightItemActorValid() const;
 };

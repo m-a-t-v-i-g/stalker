@@ -27,7 +27,7 @@ void UCharacterArmorComponent::PostInitializeArmor()
 	
 }
 
-void UCharacterArmorComponent::OnArmorSlotChanged(UItemObject* ItemObject, bool bModified)
+void UCharacterArmorComponent::OnArmorSlotChanged(UItemObject* ItemObject, bool bModified, bool bEquipped)
 {
 	if (!bModified) return;
 	
