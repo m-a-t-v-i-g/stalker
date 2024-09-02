@@ -131,7 +131,6 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 		for (int8 i = 0, a = 0; i < Mappings.Num(); i++)
 		{
 			if (Mappings[i].Action != SlotAction) continue;
-
 			if (Mappings[i].Key.ToString() == PressedKey->ToString())
 			{
 				auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
@@ -148,7 +147,6 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 void APlayerCharacter::SetupCharacterLocally(AStalkerPlayerController* NewController)
 {
 	if (!NewController) return;
-
 	NewController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
 }
 

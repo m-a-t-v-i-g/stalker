@@ -211,7 +211,7 @@ bool UCharacterWeaponComponent::ArmLeftHand(const FString& SlotName, UItemObject
 	LeftHandItem = SpawnWeapon(StalkerCharacter->GetMesh(), FindWeaponSlot(SlotName), ItemObject);
 	if (!LeftHandItem)
 	{
-		UKismetSystemLibrary::PrintString(this, FString("Hand was not equipped..."), true, false, FLinearColor::Red);
+		UKismetSystemLibrary::PrintString(this, FString("Hands was not equipped..."), true, false, FLinearColor::Red);
 		return false;
 	}
 	return true;
@@ -227,7 +227,7 @@ bool UCharacterWeaponComponent::ArmRightHand(const FString& SlotName, UItemObjec
 	RightHandItem = SpawnWeapon(StalkerCharacter->GetMesh(), FindWeaponSlot(SlotName), ItemObject);
 	if (!RightHandItem)
 	{
-		UKismetSystemLibrary::PrintString(this, FString("Hand was not equipped..."), true, false, FLinearColor::Red);
+		UKismetSystemLibrary::PrintString(this, FString("Hands was not equipped..."), true, false, FLinearColor::Red);
 		return false;
 	}
 	return true;

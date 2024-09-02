@@ -17,7 +17,7 @@ protected:
 	TObjectPtr<class UEquipmentSlotWidget> ArmorSlot;
 	
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UEquipmentSlotWidget> MainSlot;
+	TObjectPtr<UEquipmentSlotWidget> PrimarySlot;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEquipmentSlotWidget> SecondarySlot;

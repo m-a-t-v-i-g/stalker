@@ -117,11 +117,17 @@ struct FTableRowItems : public FTableRowBase
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
 	uint32 StackAmount = 1;
 	
-	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "0.0", ForceUnits = "kg"))
 	float Weight = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
 	TSoftObjectPtr<UStaticMesh> PreviewMesh;
+};
+
+USTRUCT(BlueprintType)
+struct FTableRowAmmo : public FTableRowItems
+{
+	GENERATED_USTRUCT_BODY()
 };
 
 USTRUCT(BlueprintType)
@@ -134,13 +140,13 @@ struct FTableRowArmor : public FTableRowItems
 };
 
 USTRUCT(BlueprintType)
-struct FTableRowAmmo : public FTableRowItems
+struct FTableRowArtifact : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
 };
 
 USTRUCT(BlueprintType)
-struct FTableRowMedicament : public FTableRowItems
+struct FTableRowDetector : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
 };
@@ -152,20 +158,29 @@ struct FTableRowFood : public FTableRowItems
 };
 
 USTRUCT(BlueprintType)
+struct FTableRowMedicament : public FTableRowItems
+{
+	GENERATED_USTRUCT_BODY()
+};
+
+USTRUCT(BlueprintType)
 struct FTableRowWeapon : public FTableRowItems
 {
 	GENERATED_USTRUCT_BODY()
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
+	bool bMelee = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee"))
 	TArray<TSubclassOf<UItemObject>> AmmoClasses;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "1"))
 	int MagSize = 1;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "0.0", ForceUnits = "s"))
 	float ReloadTime = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
