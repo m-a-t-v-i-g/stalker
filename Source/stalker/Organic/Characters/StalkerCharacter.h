@@ -6,8 +6,9 @@
 #include "BaseCharacter.h"
 #include "StalkerCharacter.generated.h"
 
-class UWeaponComponent;
 class UItemObject;
+class UWeaponComponent;
+class AStalkerPlayerController;
 
 UCLASS()
 class STALKER_API AStalkerCharacter : public ABaseCharacter
@@ -18,6 +19,7 @@ public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
 
 	static FName ArmorComponentName;
 	
@@ -25,6 +27,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCharacterArmorComponent> ArmorComponent;
 	
+	bool bIsStalkerInitialized = false;
+	
+public:
+	virtual void SetupCharacterLocally(AController* NewController);
+	
+protected:
+	void OnAimingStart();
+	void OnAimingStop();
+	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterArmorComponent* GetArmorComponent() const { return ArmorComponent; }
@@ -34,7 +46,4 @@ public:
 	{
 		return Cast<T>(GetArmorComponent());
 	}
-
-protected:
-	void OnWeaponOverlayChanged(ECharacterOverlayState NewOverlay);
 };

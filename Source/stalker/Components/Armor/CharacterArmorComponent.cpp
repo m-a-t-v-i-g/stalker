@@ -13,6 +13,8 @@ UCharacterArmorComponent::UCharacterArmorComponent()
 
 void UCharacterArmorComponent::PreInitializeArmor()
 {
+	if (!GetOwner()->HasAuthority()) return;
+	
 	if (auto CharacterInventoryComp = GetOwner()->GetComponentByClass<UCharacterInventoryComponent>())
 	{
 		if (auto ArmorSlot = CharacterInventoryComp->FindEquipmentSlot(ArmorSlotName))
@@ -24,7 +26,7 @@ void UCharacterArmorComponent::PreInitializeArmor()
 
 void UCharacterArmorComponent::PostInitializeArmor()
 {
-	
+	if (!GetOwner()->HasAuthority()) return;
 }
 
 void UCharacterArmorComponent::OnArmorSlotChanged(UItemObject* ItemObject, bool bModified, bool bEquipped)

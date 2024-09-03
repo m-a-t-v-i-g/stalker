@@ -47,6 +47,7 @@ public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
 	virtual void PreInitializeContainer() override;
+	virtual void PostInitializeContainer() override;
 
 	virtual void AddStartingData() override;
 

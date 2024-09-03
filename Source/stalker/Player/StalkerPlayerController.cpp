@@ -29,12 +29,12 @@ void AStalkerPlayerController::OnPossess(APawn* InPawn)
 	
 	if (IsLocalController() && StalkerHUD)
 	{
-		if (bIsStalkerInitialized) return;
-		
-		Stalker->SetupCharacterLocally(this);
-		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
-		                                Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
-		bIsStalkerInitialized = true;
+		if (!bIsControllerInitialized)
+		{
+			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+											Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
+			bIsControllerInitialized = true;
+		}
 	}
 }
 
@@ -47,12 +47,12 @@ void AStalkerPlayerController::OnRep_Pawn()
 
 	if (StalkerHUD)
 	{
-		if (bIsStalkerInitialized) return;
-		
-		Stalker->SetupCharacterLocally(this);
-		StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
-		                                Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
-		bIsStalkerInitialized = true;
+		if (!bIsControllerInitialized)
+		{
+			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+										   Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
+			bIsControllerInitialized = true;
+		}
 	}
 }
 

@@ -20,30 +20,67 @@ AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer
 void AStalkerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (bIsStalkerInitialized) return;
 	
 	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
 	{
 		CharacterInventory->PreInitializeContainer();
-
 		if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
 		{
 			CharacterWeapon->PreInitializeWeapon();
 			CharacterWeapon->PostInitializeWeapon();
 
-			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnWeaponOverlayChanged);
+			CharacterWeapon->OnWeaponAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
+			CharacterWeapon->OnWeaponAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
+			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
 		}
-
 		if (auto CharacterArmor = GetArmorComponent())
 		{
 			CharacterArmor->PreInitializeArmor();
 			CharacterArmor->PostInitializeArmor();
 		}
-		
 		CharacterInventory->PostInitializeContainer();
+	}
+	bIsStalkerInitialized = true;
+}
+
+void AStalkerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	if (IsLocallyControlled())
+	{
+		SetupCharacterLocally(GetController());
 	}
 }
 
-void AStalkerCharacter::OnWeaponOverlayChanged(ECharacterOverlayState NewOverlay)
+void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
+{
+	if (bIsStalkerInitialized) return;
+		
+	if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
+	{
+		CharacterWeapon->PreInitializeWeapon();
+		CharacterWeapon->PostInitializeWeapon();
+
+		CharacterWeapon->OnWeaponAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
+		CharacterWeapon->OnWeaponAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
+		CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
+	}
+	bIsStalkerInitialized = true;
+}
+
+void AStalkerCharacter::OnAimingStart()
+{
+	SetRotationMode(EOrganicRotationMode::ControlDirection);
+}
+
+void AStalkerCharacter::OnAimingStop()
+{
+	SetRotationMode(EOrganicRotationMode::LookingDirection);
+}
+
+void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)
 {
 	SetOverlayState(NewOverlay);
 }

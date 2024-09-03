@@ -34,11 +34,13 @@ bool UItemsContainerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutB
 
 void UItemsContainerComponent::PreInitializeContainer()
 {
+	if (!GetOwner()->HasAuthority()) return;
 	ItemsSlots.SetNum(Columns * Capacity);
 }
 
 void UItemsContainerComponent::PostInitializeContainer()
 {
+	if (!GetOwner()->HasAuthority()) return;
 	AddStartingData();
 }
 

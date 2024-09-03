@@ -48,7 +48,7 @@ public:
 	FOnHUDTabChanged OnHUDTabChanged;
 	
 private:
-	bool bIsStalkerInitialized = false;
+	bool bIsControllerInitialized = false;
 	
 public:
 	virtual void OnPossess(APawn* InPawn) override;

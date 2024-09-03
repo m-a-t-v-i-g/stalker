@@ -8,6 +8,15 @@
 #include "ItemBehaviorDataAsset.generated.h"
 
 UENUM(BlueprintType)
+enum class EMouseButtonReaction : uint8
+{
+	Basic,
+	Alternative,
+	Aiming,
+	Power
+};
+
+UENUM(BlueprintType)
 enum class ECharacterSlotHand : uint8
 {
 	Left,
@@ -20,6 +29,12 @@ struct FItemBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere)
+	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::Basic;
+	
+	UPROPERTY(EditAnywhere)
+	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::Alternative;
+	
 	UPROPERTY(EditAnywhere)
 	ECharacterSlotHand OccupiedHand = ECharacterSlotHand::Right;
 	

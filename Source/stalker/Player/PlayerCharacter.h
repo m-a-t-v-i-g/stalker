@@ -48,6 +48,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputSlotName;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	FString InputAimName;
+	
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
 	
@@ -56,9 +59,10 @@ protected:
 	void IA_Sprint(const FInputActionValue& Value);
 
 	void IA_Slot(const FInputActionValue& Value);
+	void IA_RightMouseButton(const FInputActionValue& Value);
 	
 public:
-	virtual void SetupCharacterLocally(AStalkerPlayerController* NewController);
+	virtual void SetupCharacterLocally(AController* NewController) override;
 
 	void OnHUDTabChanged(EHUDTab Tab);
 };

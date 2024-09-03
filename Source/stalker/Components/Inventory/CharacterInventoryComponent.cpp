@@ -39,6 +39,8 @@ bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, F
 
 void UCharacterInventoryComponent::PreInitializeContainer()
 {
+	if (!GetOwner()->HasAuthority()) return;
+	
 	if (EquipmentSlotSpecs.Num() > 0)
 	{
 		for (int i = 0; i < EquipmentSlotSpecs.Num(); i++)
@@ -50,6 +52,12 @@ void UCharacterInventoryComponent::PreInitializeContainer()
 		}
 	}
 	Super::PreInitializeContainer();
+}
+
+void UCharacterInventoryComponent::PostInitializeContainer()
+{
+	if (!GetOwner()->HasAuthority()) return;
+	Super::PostInitializeContainer();
 }
 
 void UCharacterInventoryComponent::AddStartingData()

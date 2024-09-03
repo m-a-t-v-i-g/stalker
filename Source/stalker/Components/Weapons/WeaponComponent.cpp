@@ -6,10 +6,13 @@
 UWeaponComponent::UWeaponComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UWeaponComponent::PreInitializeWeapon()
 {
+	if (!GetOwner()->HasAuthority()) return;
+	
 	if (WeaponSlotSpecs.Num() > 0)
 	{
 		for (uint8 i = 0; i < WeaponSlotSpecs.Num(); i++)
@@ -22,6 +25,7 @@ void UWeaponComponent::PreInitializeWeapon()
 
 void UWeaponComponent::PostInitializeWeapon()
 {
+	if (!GetOwner()->HasAuthority()) return;
 }
 
 void UWeaponComponent::ServerActivateSlot_Implementation(int8 SlotIndex)

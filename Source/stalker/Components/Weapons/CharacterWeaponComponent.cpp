@@ -26,15 +26,16 @@ void UCharacterWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void UCharacterWeaponComponent::PreInitializeWeapon()
 {
+	if (!GetOwner()->HasAuthority()) return;
+	
 	Super::PreInitializeWeapon();
 	
 	StalkerCharacter = GetOwner<AStalkerCharacter>();
 	if (!StalkerCharacter.Get()) return;
-	
+
 	if (auto CharacterInventoryComp = StalkerCharacter->GetComponentByClass<UCharacterInventoryComponent>())
 	{
 		CharacterInventory = CharacterInventoryComp;
-
 		for (uint8 i = 0; i < WeaponSlotSpecs.Num(); i++)
 		{
 			if (WeaponSlotSpecs[i].SlotName.IsEmpty()) continue;
@@ -49,6 +50,8 @@ void UCharacterWeaponComponent::PreInitializeWeapon()
 void UCharacterWeaponComponent::PostInitializeWeapon()
 {
 	Super::PostInitializeWeapon();
+	
+	if (!GetOwner()->HasAuthority()) return;
 }
 
 bool UCharacterWeaponComponent::CanAttack() const
@@ -70,6 +73,135 @@ void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 	
 	auto SlotObject = SlotPtr->ArmedItemObject;
 	EquipOrUnEquipHands(SlotPtr->GetSlotName(), SlotObject);
+}
+
+void UCharacterWeaponComponent::PlayBasicAction()
+{
+	auto RightItem = GetItemAtRightHand();
+	if (!RightItem || !IsRightItemActorValid()) return;
+
+	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
+	if (!RightItemBeh)
+	{
+		return;
+	}
+
+	switch (RightItemBeh->LeftMouseReaction)
+	{
+	case EMouseButtonReaction::Basic:
+		StartFire();
+		break;
+	default: break;
+	}
+}
+
+void UCharacterWeaponComponent::StopBasicAction()
+{
+	auto RightItem = GetItemAtRightHand();
+	if (!RightItem || !IsRightItemActorValid()) return;
+
+	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
+	if (!RightItemBeh)
+	{
+		return;
+	}
+
+	switch (RightItemBeh->LeftMouseReaction)
+	{
+	case EMouseButtonReaction::Basic:
+		StopFire();
+		break;
+	default: break;
+	}
+}
+
+void UCharacterWeaponComponent::PlayAlternativeAction()
+{
+	auto RightItem = GetItemAtRightHand();
+	if (!RightItem || !IsRightItemActorValid()) return;
+
+	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
+	if (!RightItemBeh)
+	{
+		return;
+	}
+
+	switch (RightItemBeh->RightMouseReaction)
+	{
+	case EMouseButtonReaction::Aiming:
+		StartAiming();
+		break;
+	default: break;
+	}
+}
+
+void UCharacterWeaponComponent::StopAlternativeAction()
+{
+	auto RightItem = GetItemAtRightHand();
+	if (!RightItem || !IsRightItemActorValid()) return;
+
+	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
+	if (!RightItemBeh)
+	{
+		return;
+	}
+
+	switch (RightItemBeh->RightMouseReaction)
+	{
+	case EMouseButtonReaction::Aiming:
+		StopAiming();
+		break;
+	default: break;
+	}
+}
+
+void UCharacterWeaponComponent::StartFire()
+{
+	
+}
+
+void UCharacterWeaponComponent::ServerStartFire_Implementation()
+{
+	
+}
+
+void UCharacterWeaponComponent::StopFire()
+{
+	
+}
+
+void UCharacterWeaponComponent::ServerStopFire_Implementation()
+{
+}
+
+void UCharacterWeaponComponent::StartAiming()
+{
+	OnWeaponAimingStart.Broadcast();
+
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerStartAiming();
+	}
+}
+
+void UCharacterWeaponComponent::ServerStartAiming_Implementation()
+{
+	StartAiming();
+}
+
+void UCharacterWeaponComponent::StopAiming()
+{
+	OnWeaponAimingStop.Broadcast();
+
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerStopAiming();
+	}
+}
+
+void UCharacterWeaponComponent::ServerStopAiming_Implementation()
+{
+	StopAiming();
 }
 
 void UCharacterWeaponComponent::EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject)

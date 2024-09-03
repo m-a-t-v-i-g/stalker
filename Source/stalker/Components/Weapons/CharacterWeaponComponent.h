@@ -9,6 +9,7 @@
 
 class UCharacterInventoryComponent;
 
+DECLARE_MULTICAST_DELEGATE(FOnWeaponAimingDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
 
 UCLASS(meta=(BlueprintSpawnableComponent))
@@ -42,10 +43,38 @@ private:
 	TObjectPtr<AItemActor> RightHandItem;
 
 public:
+	FOnWeaponAimingDelegate OnWeaponAimingStart;
+	FOnWeaponAimingDelegate OnWeaponAimingStop;
 	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
 	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
+	
+	void PlayBasicAction();
+	void StopBasicAction();
+	
+	void PlayAlternativeAction();
+	void StopAlternativeAction();
+
+	void StartFire();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerStartFire();
+	
+	void StopFire();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerStopFire();
+	
+	void StartAiming();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerStartAiming();
+	
+	void StopAiming();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerStopAiming();
 	
 protected:
 	void EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject);

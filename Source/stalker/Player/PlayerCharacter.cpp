@@ -60,6 +60,9 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 		                                   &APlayerCharacter::IA_Sprint);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSlotName], ETriggerEvent::Started, this,
 		                                   &APlayerCharacter::IA_Slot);
+		
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputAimName], ETriggerEvent::Triggered, this,
+		                                   &APlayerCharacter::IA_RightMouseButton);
 	}
 }
 
@@ -144,10 +147,29 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 	}
 }
 
-void APlayerCharacter::SetupCharacterLocally(AStalkerPlayerController* NewController)
+void APlayerCharacter::IA_RightMouseButton(const FInputActionValue& Value)
 {
-	if (!NewController) return;
-	NewController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
+	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
+	if (!CharWeapon) return;
+
+	if (Value.Get<bool>())
+	{
+		CharWeapon->PlayAlternativeAction();
+	}
+	else
+	{
+		CharWeapon->StopAlternativeAction();
+	}
+}
+
+void APlayerCharacter::SetupCharacterLocally(AController* NewController)
+{
+	Super::SetupCharacterLocally(NewController);
+	
+	auto StalkerController = GetController<AStalkerPlayerController>();
+	if (!StalkerController) return;
+	
+	StalkerController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
 }
 
 void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
