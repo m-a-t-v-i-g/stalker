@@ -46,15 +46,10 @@ void UItemsContainerComponent::PostInitializeContainer()
 
 void UItemsContainerComponent::AddStartingData()
 {
-	for (auto ItemToAdd : StartingData)
+	for (auto ItemData : StartingData)
 	{
-		if (!ItemToAdd.IsValid()) continue;
-
-		FItemData ItemData;
-		ItemData.ItemRow = ItemToAdd.ItemRow;
-		ItemData.ItemParams = ItemToAdd.ItemParams;
-
-		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData))
+		if (!ItemData.IsValid()) continue;
+		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData.ItemRow))
 		{
 			if (!FindAvailablePlace(ItemObject))
 			{

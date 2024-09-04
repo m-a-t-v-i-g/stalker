@@ -5,19 +5,19 @@
 
 uint32 UItemsFunctionLibrary::LastItemId {0};
 
-UItemObject* UItemsFunctionLibrary::GenerateItemObject(const FItemData& ItemData)
+UItemObject* UItemsFunctionLibrary::GenerateItemObject(const FDataTableRowHandle& RowHandle)
 {
 	UItemObject* ItemObject = nullptr;
-	if (auto DataTable = ItemData.ItemRow.DataTable)
+	if (auto DataTable = RowHandle.DataTable)
 	{
-		auto OutRow = DataTable->FindRow<FTableRowItems>(ItemData.ItemRow.RowName, "");
+		auto OutRow = DataTable->FindRow<FTableRowItems>(RowHandle.RowName, "");
 		if (UClass* ItemClass = OutRow->ObjectClass)
 		{
 			ItemObject = NewObject<UItemObject>(GetTransientPackage(), ItemClass);
 			if (ItemObject)
 			{
 				LastItemId++;
-				ItemObject->InitItem(LastItemId, ItemData);
+				ItemObject->InitItem(LastItemId, RowHandle);
 			}
 		}
 	}

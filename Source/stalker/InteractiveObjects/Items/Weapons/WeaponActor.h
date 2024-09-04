@@ -6,6 +6,11 @@
 #include "ItemActor.h"
 #include "WeaponActor.generated.h"
 
+struct FWeaponParams;
+class UWeaponObject;
+
+DECLARE_DELEGATE(FOnWeaponAttackDelegate);
+
 UCLASS()
 class STALKER_API AWeaponActor : public AItemActor
 {
@@ -14,9 +19,32 @@ class STALKER_API AWeaponActor : public AItemActor
 public:
 	AWeaponActor();
 
-protected:
+private:
+	const FWeaponParams* WeaponParams = nullptr;
 	
 public:
-	virtual void InitItem(UItemObject* NewItemObject) override;
+	FOnWeaponAttackDelegate OnWeaponStartAttack;
+	FOnWeaponAttackDelegate OnWeaponStopAttack;
+
+private:
+	FTimerHandle CanAttackTimer;
+	FTimerHandle RepeatAttackTimer;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
+	bool bCanAttack = true;
+
+	bool bHoldTrigger = false;
 	
+public:
+	virtual void OnInitializeItem() override;
+
+	void StartAttack();
+	void CallAttack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastMakeAttackVisual();
+	
+	void StopAttack();
+
+	virtual bool CheckAttackAvailability() const;
 };

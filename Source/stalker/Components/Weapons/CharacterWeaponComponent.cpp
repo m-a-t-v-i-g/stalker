@@ -9,6 +9,7 @@
 #include "Items/ItemObject.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/WeaponActor.h"
 #include "Weapons/WeaponObject.h"
 
 UCharacterWeaponComponent::UCharacterWeaponComponent()
@@ -22,6 +23,7 @@ void UCharacterWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 	DOREPLIFETIME(UCharacterWeaponComponent, LeftHandItem);
 	DOREPLIFETIME(UCharacterWeaponComponent, RightHandItem);
+	DOREPLIFETIME(UCharacterWeaponComponent, bAiming);
 }
 
 void UCharacterWeaponComponent::PreInitializeWeapon()
@@ -88,7 +90,7 @@ void UCharacterWeaponComponent::PlayBasicAction()
 
 	switch (RightItemBeh->LeftMouseReaction)
 	{
-	case EMouseButtonReaction::Basic:
+	case EMouseButtonReaction::Attack:
 		StartFire();
 		break;
 	default: break;
@@ -108,7 +110,7 @@ void UCharacterWeaponComponent::StopBasicAction()
 
 	switch (RightItemBeh->LeftMouseReaction)
 	{
-	case EMouseButtonReaction::Basic:
+	case EMouseButtonReaction::Attack:
 		StopFire();
 		break;
 	default: break;
@@ -157,26 +159,58 @@ void UCharacterWeaponComponent::StopAlternativeAction()
 
 void UCharacterWeaponComponent::StartFire()
 {
-	
+	auto RightItem = GetActorAtRightHand();
+	if (!IsRightItemActorValid()) return;
+
+	if (auto RightWeapon = Cast<AWeaponActor>(RightItem))
+	{
+		if (!bAiming)
+		{
+			OnAimingStart.Broadcast();
+		}
+		RightWeapon->StartAttack();
+	}
+
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerStartFire();
+	}
 }
 
 void UCharacterWeaponComponent::ServerStartFire_Implementation()
 {
-	
+	StartFire();
 }
 
 void UCharacterWeaponComponent::StopFire()
 {
+	auto RightItem = GetActorAtRightHand();
+	if (!IsRightItemActorValid()) return;
+
+	if (auto RightWeapon = Cast<AWeaponActor>(RightItem))
+	{
+		if (!bAiming)
+		{
+			OnAimingStop.Broadcast();
+		}
+		RightWeapon->StopAttack();
+	}
 	
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerStopFire();
+	}
 }
 
 void UCharacterWeaponComponent::ServerStopFire_Implementation()
 {
+	StopFire();
 }
 
 void UCharacterWeaponComponent::StartAiming()
 {
-	OnWeaponAimingStart.Broadcast();
+	bAiming = true;
+	OnAimingStart.Broadcast();
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -191,7 +225,8 @@ void UCharacterWeaponComponent::ServerStartAiming_Implementation()
 
 void UCharacterWeaponComponent::StopAiming()
 {
-	OnWeaponAimingStop.Broadcast();
+	bAiming = false;
+	OnAimingStop.Broadcast();
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -369,6 +404,7 @@ void UCharacterWeaponComponent::DisarmLeftHand()
 {
 	if (LeftHandItem)
 	{
+		LeftHandItem->UnbindItem();
 		LeftHandItem->Destroy();
 		LeftHandItem = nullptr;
 	}
@@ -378,6 +414,7 @@ void UCharacterWeaponComponent::DisarmRightHand()
 {
 	if (RightHandItem)
 	{
+		RightHandItem->UnbindItem();
 		RightHandItem->Destroy();
 		RightHandItem = nullptr;
 	}
@@ -397,7 +434,7 @@ AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentCo
 			SpawnedWeapon = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,
 																	   GetOwner(), GetOwner<APawn>(),
 																	   ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-			SpawnedWeapon->InitItem(ItemObject);
+			SpawnedWeapon->InitializeItem(ItemObject);
 			SpawnedWeapon->SetHandedMode();
 			SpawnedWeapon->AttachToComponent(AttachmentComponent, AttachmentRules,
 											 WeaponSlot->GetAttachmentSocketName());
@@ -443,6 +480,16 @@ const UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
 		ItemObject = RightHandItem->GetItemObject();
 	}
 	return ItemObject;
+}
+
+AItemActor* UCharacterWeaponComponent::GetActorAtLeftHand() const
+{
+	return LeftHandItem;
+}
+
+AItemActor* UCharacterWeaponComponent::GetActorAtRightHand() const
+{
+	return RightHandItem;
 }
 
 bool UCharacterWeaponComponent::IsLeftItemActorValid() const

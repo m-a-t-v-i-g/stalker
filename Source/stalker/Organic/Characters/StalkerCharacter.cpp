@@ -31,8 +31,8 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 			CharacterWeapon->PreInitializeWeapon();
 			CharacterWeapon->PostInitializeWeapon();
 
-			CharacterWeapon->OnWeaponAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
-			CharacterWeapon->OnWeaponAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
+			CharacterWeapon->OnAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
+			CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
 			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
 		}
 		if (auto CharacterArmor = GetArmorComponent())
@@ -63,8 +63,8 @@ void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 		CharacterWeapon->PreInitializeWeapon();
 		CharacterWeapon->PostInitializeWeapon();
 
-		CharacterWeapon->OnWeaponAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
-		CharacterWeapon->OnWeaponAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
+		CharacterWeapon->OnAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
+		CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
 		CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
 	}
 	bIsStalkerInitialized = true;

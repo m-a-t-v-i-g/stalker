@@ -10,7 +10,7 @@
 UENUM(BlueprintType)
 enum class EMouseButtonReaction : uint8
 {
-	Basic,
+	Attack,
 	Alternative,
 	Aiming,
 	Power
@@ -30,7 +30,7 @@ struct FItemBehavior
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere)
-	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::Basic;
+	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::Attack;
 	
 	UPROPERTY(EditAnywhere)
 	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::Alternative;

@@ -9,7 +9,7 @@
 
 class UCharacterInventoryComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnWeaponAimingDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAimingDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
 
 UCLASS(meta=(BlueprintSpawnableComponent))
@@ -42,9 +42,12 @@ private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	TObjectPtr<AItemActor> RightHandItem;
 
+	UPROPERTY(Replicated)
+	bool bAiming = false;
+	
 public:
-	FOnWeaponAimingDelegate OnWeaponAimingStart;
-	FOnWeaponAimingDelegate OnWeaponAimingStop;
+	FOnAimingDelegate OnAimingStart;
+	FOnAimingDelegate OnAimingStop;
 	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
 	
 	UFUNCTION(Server, Reliable)
@@ -94,6 +97,8 @@ public:
 	FORCEINLINE const UItemObject* GetItemAtLeftHand() const;
 	FORCEINLINE const UItemObject* GetItemAtRightHand() const;
 
+	FORCEINLINE AItemActor* GetActorAtLeftHand() const;
+	FORCEINLINE AItemActor* GetActorAtRightHand() const;
 	FORCEINLINE bool IsLeftItemActorValid() const;
 	FORCEINLINE bool IsRightItemActorValid() const;
 };

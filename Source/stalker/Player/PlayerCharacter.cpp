@@ -61,7 +61,11 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSlotName], ETriggerEvent::Started, this,
 		                                   &APlayerCharacter::IA_Slot);
 		
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputAimName], ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputLeftMouseName], ETriggerEvent::Triggered,
+										   this,
+										   &APlayerCharacter::IA_LeftMouseButton);
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputRightMouseName], ETriggerEvent::Triggered,
+		                                   this,
 		                                   &APlayerCharacter::IA_RightMouseButton);
 	}
 }
@@ -144,6 +148,21 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 			}
 			a++;
 		}
+	}
+}
+
+void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
+{
+	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
+	if (!CharWeapon) return;
+
+	if (Value.Get<bool>())
+	{
+		CharWeapon->PlayBasicAction();
+	}
+	else
+	{
+		CharWeapon->StopBasicAction();
 	}
 }
 

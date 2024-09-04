@@ -33,6 +33,13 @@ struct FItemParams
 	
 	UPROPERTY(EditAnywhere, Category = "Item", meta = (ClampMin = "0.0", ForceUnits = "%"))
 	float Condition = 100.0f;
+	
+	bool operator==(const FItemParams& OtherParams) const
+	{
+		bool bResult = true;
+		bResult &= Condition == OtherParams.Condition;
+		return bResult;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -49,8 +56,8 @@ struct FWeaponParams
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<TSubclassOf<UItemObject>> AmmoClasses;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	int MagElapsed = 0;
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0"))
+	int Rounds = 0;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
@@ -60,19 +67,15 @@ struct FWeaponParams
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	bool bAutomatic = false;
-};
 
-USTRUCT(BlueprintType, Blueprintable)
-struct FItemData
-{
-	GENERATED_USTRUCT_BODY()
-
-	FDataTableRowHandle ItemRow;
-	FItemParams ItemParams;
-	
-	bool IsValid() const
+	bool operator==(const FWeaponParams& OtherParams) const
 	{
-		return !ItemRow.IsNull();
+		bool bResult = true;
+		bResult &= Rounds == OtherParams.Rounds;
+		bResult &= FireRate == OtherParams.FireRate;
+		bResult &= ReloadTime == OtherParams.ReloadTime;
+		bResult &= bAutomatic == OtherParams.bAutomatic;
+		return bResult;
 	}
 };
 
@@ -177,11 +180,11 @@ struct FTableRowWeapon : public FTableRowItems
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "1"))
 	int MagSize = 1;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "0.0", ForceUnits = "rpm"))
-	float FireRate = 0.0f;
-	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "0.0", ForceUnits = "s"))
 	float ReloadTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	bool bAutomatic = false;

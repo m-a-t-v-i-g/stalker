@@ -12,6 +12,7 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME_CONDITION(UItemObject, ItemDataTable, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UItemObject, ItemRowName,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UItemObject, bStackable,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, BoundItem,		COND_OwnerOnly);
 }
 
 void UItemObject::Use_Implementation(UObject* Source)
@@ -19,13 +20,12 @@ void UItemObject::Use_Implementation(UObject* Source)
 	IUsableInterface::Use_Implementation(Source);
 }
 
-void UItemObject::InitItem(const uint32 ItemId, const FItemData& ItemData)
+void UItemObject::InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle)
 {
-	ItemParams = ItemData.ItemParams;
 	ItemParams.ItemId = ItemId;
 	
-	ItemDataTable = ItemData.ItemRow.DataTable;
-	ItemRowName = ItemData.ItemRow.RowName;
+	ItemDataTable = RowHandle.DataTable;
+	ItemRowName = RowHandle.RowName;
 	SetupItemProperties();
 }
 
@@ -47,6 +47,30 @@ void UItemObject::SetupItemProperties()
 	{
 		ItemParams.Amount = 1;
 	}
+}
+
+void UItemObject::BindItem(AItemActor* BindItem)
+{
+	if (!IsValid(BindItem)) return;
+
+	BoundItem = BindItem;
+	OnBindItem();
+}
+
+void UItemObject::OnBindItem()
+{
+}
+
+void UItemObject::UnbindItem()
+{
+	if (!BoundItem.Get()) return;
+
+	BoundItem = nullptr;
+	OnUnbindItem();
+}
+
+void UItemObject::OnUnbindItem()
+{
 }
 
 void UItemObject::SetInventoriedMode()
@@ -78,9 +102,22 @@ void UItemObject::RemoveAmount(uint32 Amount)
 	ItemParams.Amount -= Amount;
 }
 
+void UItemObject::OnRep_BoundItem()
+{
+	if (BoundItem)
+	{
+		OnBindItem();
+	}
+}
+
 bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 {
-	return ItemRowName == OtherItemObject->GetItemRowName();
+	bool bResult = ItemRowName == OtherItemObject->GetItemRowName();
+	if (bResult)
+	{
+		bResult &= ItemParams == OtherItemObject->GetItemParams();
+	}
+	return bResult;
 }
 
 uint32 UItemObject::GetItemId() const

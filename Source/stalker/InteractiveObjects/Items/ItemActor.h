@@ -31,21 +31,34 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 	
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemObject", Category = "Item")
 	TObjectPtr<UItemObject> ItemObject;
 	
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bHidePreviewMeshWhenHanded = false;
 
 private:
+	UPROPERTY(ReplicatedUsing = "OnRep_Handed")
 	bool bHanded = false;
 	
 public:
-	virtual void InitItem(UItemObject* NewItemObject);
+	void InitializeItem(UItemObject* NewItemObject);
+	virtual void OnInitializeItem();
 
+	void UnbindItem();
+	virtual void OnUnbindItem();
+	
 	void SetHandedMode();
 	void SetFreeMode();
+
+protected:
+	UFUNCTION()
+	void OnRep_ItemObject();
 	
+	UFUNCTION()
+	void OnRep_Handed();
+	
+public:
 	const UItemObject* GetItemObject() const { return ItemObject; }
 	
 protected:

@@ -28,14 +28,34 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AItemActor, ItemObject, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AItemActor, bHanded,	COND_OwnerOnly)
 }
 
-void AItemActor::InitItem(UItemObject* NewItemObject)
+void AItemActor::InitializeItem(UItemObject* NewItemObject)
 {
-	if (!NewItemObject) return;
+	if (!IsValid(NewItemObject)) return;
 	
 	ItemObject = NewItemObject;
+	ItemObject->BindItem(this);
+	OnInitializeItem();
+}
+
+void AItemActor::OnInitializeItem()
+{
 	UpdateItem();
+}
+
+void AItemActor::UnbindItem()
+{
+	if (!IsValid(ItemObject)) return;
+
+	ItemObject->UnbindItem();
+	ItemObject = nullptr;
+	OnUnbindItem();
+}
+
+void AItemActor::OnUnbindItem()
+{
 }
 
 void AItemActor::SetHandedMode()
@@ -78,6 +98,19 @@ void AItemActor::SetFreeMode()
 	{
 		PreviewMesh->SetHiddenInGame(false);
 	}
+}
+
+void AItemActor::OnRep_ItemObject()
+{
+	if (ItemObject)
+	{
+		OnInitializeItem();
+	}
+}
+
+void AItemActor::OnRep_Handed()
+{
+	bHanded ? SetHandedMode() : SetFreeMode();
 }
 
 void AItemActor::UpdateItem() const

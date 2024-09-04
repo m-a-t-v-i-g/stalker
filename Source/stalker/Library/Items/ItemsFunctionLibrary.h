@@ -13,7 +13,7 @@ class STALKER_API UItemsFunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static UItemObject* GenerateItemObject(const FItemData& ItemData);
+	static UItemObject* GenerateItemObject(const FDataTableRowHandle& RowHandle);
 	static UItemObject* GenerateItemObject(const UItemObject* ItemObject);
 
 private:

@@ -69,11 +69,7 @@ void UCharacterInventoryComponent::AddStartingData()
 			auto Slot = FindEquipmentSlot(EachSlotSpec.SlotName);
 			if (!Slot) continue;
 
-			FItemData ItemData;
-			ItemData.ItemRow = EachSlotSpec.StartingData.ItemRow;
-			ItemData.ItemParams.Amount = 1;
-
-			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData))
+			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(EachSlotSpec.StartingData.ItemRow))
 			{
 				EquipSlot(EachSlotSpec.SlotName, ItemObject, false);
 			}

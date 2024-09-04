@@ -49,7 +49,10 @@ protected:
 	FString InputSlotName;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	FString InputAimName;
+	FString InputLeftMouseName;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	FString InputRightMouseName;
 	
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
@@ -59,6 +62,7 @@ protected:
 	void IA_Sprint(const FInputActionValue& Value);
 
 	void IA_Slot(const FInputActionValue& Value);
+	void IA_LeftMouseButton(const FInputActionValue& Value);
 	void IA_RightMouseButton(const FInputActionValue& Value);
 	
 public:

@@ -31,15 +31,25 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	bool bStackable = false;
+
+private:
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")
+	TObjectPtr<AItemActor> BoundItem;
 	
 public:
-	virtual void InitItem(const uint32 ItemId, const FItemData& ItemData);
+	virtual void InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle);
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	
 protected:
 	virtual void SetupItemProperties();
 	
 public:
+	void BindItem(AItemActor* BindItem);
+	virtual void OnBindItem();
+
+	void UnbindItem();
+	virtual void OnUnbindItem();
+
 	virtual void SetInventoriedMode();
 	virtual void SetEquippedMode();
 
@@ -48,8 +58,21 @@ public:
 	void RemoveAmount(uint32 Amount);
 
 	void SetStackable(bool bNewStackable) { bStackable = bNewStackable; }
-	
+
+protected:
+	UFUNCTION()
+	void OnRep_BoundItem();
+
+public:
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
+
+	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItem.Get(); }
+
+	template <class T>
+	T* GetBoundItem() const
+	{
+		return Cast<T>(GetBoundItem());
+	}
 	
 	FORCEINLINE uint32 GetItemId() const;
 	FORCEINLINE FItemParams GetItemParams() const;
