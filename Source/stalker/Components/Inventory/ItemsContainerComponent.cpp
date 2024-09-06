@@ -271,13 +271,14 @@ void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 	}
 }
 
-void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject)
+void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)
 {
-	check(ItemObject);
+	if (!ItemObject) return;
 
-	if (ItemObject->GetItemParams().Amount > 1)
+	uint16 ItemAmount = ItemObject->GetItemParams().Amount;
+	if (ItemAmount - Amount > 0)
 	{
-		ItemObject->RemoveAmount(1);
+		ItemObject->RemoveAmount(Amount);
 	}
 	else
 	{
@@ -292,13 +293,13 @@ void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject)
 	
 	if (!GetOwner()->HasAuthority() && GetOwnerRole() != ROLE_SimulatedProxy)
 	{
-		Server_SubtractOrRemoveItem(ItemObject);
+		Server_SubtractOrRemoveItem(ItemObject, Amount);
 	}
 }
 
-void UItemsContainerComponent::Server_SubtractOrRemoveItem_Implementation(UItemObject* ItemObject)
+void UItemsContainerComponent::Server_SubtractOrRemoveItem_Implementation(UItemObject* ItemObject, uint16 Amount)
 {
-	SubtractOrRemoveItem(ItemObject);
+	SubtractOrRemoveItem(ItemObject, Amount);
 }
 
 void UItemsContainerComponent::ClearSlotsByItemId(uint32 ItemId)
@@ -393,6 +394,35 @@ UItemObject* UItemsContainerComponent::FindItemById(uint32 ItemId) const
 		if (EachItem->GetItemId() == ItemId)
 		{
 			FoundItem = EachItem;
+			break;
+		}
+	}
+	return FoundItem;
+}
+
+UItemObject* UItemsContainerComponent::FindItemByName(const FName& RowName) const
+{
+	UItemObject* FoundItem = nullptr;
+	for (auto EachItem : ItemsContainer)
+	{
+		if (EachItem->GetItemRowName() == RowName)
+		{
+			FoundItem = EachItem;
+			break;
+		}
+	}
+	return FoundItem;
+}
+
+UItemObject* UItemsContainerComponent::FindItemByClass(const UClass* ItemClass) const
+{
+	UItemObject* FoundItem = nullptr;
+	for (auto EachItem : ItemsContainer)
+	{
+		if (EachItem->GetClass() == ItemClass)
+		{
+			FoundItem = EachItem;
+			break;
 		}
 	}
 	return FoundItem;

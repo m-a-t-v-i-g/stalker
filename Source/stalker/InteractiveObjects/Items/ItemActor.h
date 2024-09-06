@@ -59,7 +59,7 @@ protected:
 	void OnRep_Handed();
 	
 public:
-	const UItemObject* GetItemObject() const { return ItemObject; }
+	UItemObject* GetItemObject() const { return ItemObject; }
 	
 protected:
 	void UpdateItem() const;

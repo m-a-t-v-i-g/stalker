@@ -24,12 +24,20 @@ protected:
 	virtual void BindViewInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
 
+	virtual bool CheckReloadAbility() override;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputDataAsset> GeneralInputData;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	FString InputLeftMouseName;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	FString InputRightMouseName;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FString InputMoveName;
 	
@@ -49,10 +57,10 @@ protected:
 	FString InputSlotName;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	FString InputLeftMouseName;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	FString InputRightMouseName;
+	FString InputReloadName;
+
+	void IA_LeftMouseButton(const FInputActionValue& Value);
+	void IA_RightMouseButton(const FInputActionValue& Value);
 	
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
@@ -60,10 +68,8 @@ protected:
 	void IA_Jump(const FInputActionValue& Value);
 	void IA_Crouch(const FInputActionValue& Value);
 	void IA_Sprint(const FInputActionValue& Value);
-
 	void IA_Slot(const FInputActionValue& Value);
-	void IA_LeftMouseButton(const FInputActionValue& Value);
-	void IA_RightMouseButton(const FInputActionValue& Value);
+	void IA_Reload(const FInputActionValue& Value);
 	
 public:
 	virtual void SetupCharacterLocally(AController* NewController) override;

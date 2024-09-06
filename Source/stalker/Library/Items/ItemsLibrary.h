@@ -8,6 +8,7 @@
 #include "Engine/DataTable.h"
 #include "ItemsLibrary.generated.h"
 
+class UAmmoObject;
 class UItemObject;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerItemOperationSignature, UItemObject*)
@@ -54,7 +55,7 @@ struct FWeaponParams
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<TSubclassOf<UItemObject>> AmmoClasses;
+	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0"))
 	int Rounds = 0;
@@ -175,7 +176,7 @@ struct FTableRowWeapon : public FTableRowItems
 	bool bMelee = false;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee"))
-	TArray<TSubclassOf<UItemObject>> AmmoClasses;
+	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "1"))
 	int MagSize = 1;

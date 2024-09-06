@@ -31,7 +31,7 @@ private:
 	FTimerHandle RepeatAttackTimer;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	bool bCanAttack = true;
+	bool bInFireRate = true;
 
 	bool bHoldTrigger = false;
 	
@@ -47,4 +47,13 @@ public:
 	void StopAttack();
 
 	virtual bool CheckAttackAvailability() const;
+	
+	bool IsAmmoAvailable(const UClass* AmmoClass) const;
+
+protected:
+	void SetInFireRateTimer();
+	void SetRepeatFireTimer();
+
+	float GetDefaultFireRate() const;
+	virtual float CalculateFireRate() const;
 };

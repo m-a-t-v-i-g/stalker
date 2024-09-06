@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "WeaponComponent.h"
+#include "Ammo/AmmoObject.h"
 #include "DataAssets/ItemBehaviorDataAsset.h"
 #include "CharacterWeaponComponent.generated.h"
 
+class UWeaponObject;
 class UCharacterInventoryComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnAimingDelegate);
+DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FCharacterReloadDelegate, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
 
 UCLASS(meta=(BlueprintSpawnableComponent))
@@ -44,10 +47,14 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bAiming = false;
+
+	FTimerHandle ReloadTimer;
 	
 public:
-	FOnAimingDelegate OnAimingStart;
-	FOnAimingDelegate OnAimingStop;
+	FCharacterAimingDelegate OnAimingStart;
+	FCharacterAimingDelegate OnAimingStop;
+	FCharacterReloadDelegate OnReloadStart;
+	FCharacterReloadDelegate OnReloadStop;
 	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
 	
 	UFUNCTION(Server, Reliable)
@@ -78,6 +85,12 @@ public:
 	
 	UFUNCTION(Server, Unreliable)
 	void ServerStopAiming();
+
+	void TryReloadWeapon();
+	void CompleteReloadWeapon(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount);
+	void CancelReloadWeapon();
+
+	void SetReloadTimer(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount);
 	
 protected:
 	void EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject);
@@ -90,15 +103,30 @@ protected:
 	
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
 									UItemObject* ItemObject) const;
-
+	
 public:
 	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, bool bEquipped, FString SlotName);
 	
-	FORCEINLINE const UItemObject* GetItemAtLeftHand() const;
-	FORCEINLINE const UItemObject* GetItemAtRightHand() const;
+	FORCEINLINE UItemObject* GetItemAtLeftHand() const;
+	FORCEINLINE UItemObject* GetItemAtRightHand() const;
+
+	template<class T>
+	T* GetItemAtRightHand() const
+	{
+		return Cast<T>(GetItemAtRightHand());
+	}
 
 	FORCEINLINE AItemActor* GetActorAtLeftHand() const;
 	FORCEINLINE AItemActor* GetActorAtRightHand() const;
+	
+	template<class T>
+	T* GetActorAtRightHand() const
+	{
+		return Cast<T>(GetActorAtRightHand());
+	}
+	
 	FORCEINLINE bool IsLeftItemActorValid() const;
 	FORCEINLINE bool IsRightItemActorValid() const;
+
+	UCharacterInventoryComponent* GetCharacterInventory() const;
 };

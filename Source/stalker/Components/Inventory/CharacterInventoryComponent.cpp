@@ -124,7 +124,7 @@ void UCharacterInventoryComponent::Server_EquipSlot_Implementation(const FString
 		{
 			if (bSubtractItem)
 			{
-				SubtractOrRemoveItem(BoundObject);
+				SubtractOrRemoveItem(BoundObject, 1);
 			}
 			
 			if (Slot->IsEquipped())

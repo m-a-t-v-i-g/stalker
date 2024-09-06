@@ -84,3 +84,8 @@ void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)
 {
 	SetOverlayState(NewOverlay);
 }
+
+bool AStalkerCharacter::CheckReloadAbility()
+{
+	return true;
+}

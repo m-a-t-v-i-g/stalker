@@ -52,6 +52,13 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputLeftMouseName], ETriggerEvent::Triggered,
+										   this,
+										   &APlayerCharacter::IA_LeftMouseButton);
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputRightMouseName], ETriggerEvent::Triggered,
+										   this,
+										   &APlayerCharacter::IA_RightMouseButton);
+
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputJumpName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Jump);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputCrouchName], ETriggerEvent::Triggered, this,
@@ -60,13 +67,43 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 		                                   &APlayerCharacter::IA_Sprint);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSlotName], ETriggerEvent::Started, this,
 		                                   &APlayerCharacter::IA_Slot);
-		
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputLeftMouseName], ETriggerEvent::Triggered,
-										   this,
-										   &APlayerCharacter::IA_LeftMouseButton);
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputRightMouseName], ETriggerEvent::Triggered,
-		                                   this,
-		                                   &APlayerCharacter::IA_RightMouseButton);
+		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputReloadName], ETriggerEvent::Started, this,
+										   &APlayerCharacter::IA_Reload);
+	}
+}
+
+bool APlayerCharacter::CheckReloadAbility()
+{
+	return Super::CheckReloadAbility();
+}
+
+void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
+{
+	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
+	if (!CharWeapon) return;
+
+	if (Value.Get<bool>())
+	{
+		CharWeapon->PlayBasicAction();
+	}
+	else
+	{
+		CharWeapon->StopBasicAction();
+	}
+}
+
+void APlayerCharacter::IA_RightMouseButton(const FInputActionValue& Value)
+{
+	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
+	if (!CharWeapon) return;
+
+	if (Value.Get<bool>())
+	{
+		CharWeapon->PlayAlternativeAction();
+	}
+	else
+	{
+		CharWeapon->StopAlternativeAction();
 	}
 }
 
@@ -151,34 +188,14 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 	}
 }
 
-void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
+void APlayerCharacter::IA_Reload(const FInputActionValue& Value)
 {
+	if (!CheckReloadAbility()) return;
+	
 	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
 	if (!CharWeapon) return;
 
-	if (Value.Get<bool>())
-	{
-		CharWeapon->PlayBasicAction();
-	}
-	else
-	{
-		CharWeapon->StopBasicAction();
-	}
-}
-
-void APlayerCharacter::IA_RightMouseButton(const FInputActionValue& Value)
-{
-	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-	if (!CharWeapon) return;
-
-	if (Value.Get<bool>())
-	{
-		CharWeapon->PlayAlternativeAction();
-	}
-	else
-	{
-		CharWeapon->StopAlternativeAction();
-	}
+	CharWeapon->TryReloadWeapon();
 }
 
 void APlayerCharacter::SetupCharacterLocally(AController* NewController)

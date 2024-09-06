@@ -37,6 +37,8 @@ protected:
 	void OnWeaponAttackStop();
 	
 public:
+	virtual void ReloadAmmo();
+	
 	virtual void IncreaseAmmo(int Amount);
 	virtual void DecreaseAmmo();
 

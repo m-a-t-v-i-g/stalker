@@ -81,6 +81,11 @@ void UWeaponObject::OnWeaponAttackStop_Implementation()
 	
 }
 
+void UWeaponObject::ReloadAmmo()
+{
+	WeaponParams.Rounds = GetMagSize();
+}
+
 void UWeaponObject::IncreaseAmmo(int Amount)
 {
 	WeaponParams.Rounds = FMath::Clamp(WeaponParams.Rounds + Amount, 0, GetMagSize());

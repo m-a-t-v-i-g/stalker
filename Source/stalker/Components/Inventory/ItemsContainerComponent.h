@@ -104,10 +104,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainerComponent* OtherContainer);
 	
-	void SubtractOrRemoveItem(UItemObject* ItemObject);
+	void SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
 	
 	UFUNCTION(Server, Reliable)
-	void Server_SubtractOrRemoveItem(UItemObject* ItemObject);
+	void Server_SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
 
 	void ClearSlotsByItemId(uint32 ItemId);
 	void UpdateItemsMap();
@@ -121,6 +121,8 @@ public:
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 
 	UItemObject* FindItemById(uint32 ItemId) const;
+	UItemObject* FindItemByName(const FName& RowName) const;
+	UItemObject* FindItemByClass(const UClass* ItemClass) const;
 	
 	FORCEINLINE uint8 GetColumns() const { return Columns; }
 	

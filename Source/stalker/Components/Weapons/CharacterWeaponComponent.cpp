@@ -2,11 +2,12 @@
 
 #include "CharacterWeaponComponent.h"
 #include "ItemActor.h"
+#include "ItemObject.h"
+#include "Ammo/AmmoObject.h"
 #include "Characters/StalkerCharacter.h"
 #include "DataAssets/ItemBehaviorDataAsset.h"
 #include "Inventory/CharacterInventoryComponent.h"
 #include "Inventory/EquipmentSlot.h"
-#include "Items/ItemObject.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponActor.h"
@@ -239,6 +240,65 @@ void UCharacterWeaponComponent::ServerStopAiming_Implementation()
 	StopAiming();
 }
 
+void UCharacterWeaponComponent::TryReloadWeapon()
+{
+	auto RightItem = GetItemAtRightHand<UWeaponObject>();
+	auto RightActor = GetActorAtRightHand<AWeaponActor>();
+	
+	if (!RightItem || !RightActor || RightItem->IsMagFull()) return;
+
+	UAmmoObject* Ammo = nullptr;
+	auto Params = RightItem->GetWeaponParams();
+	for (auto AmmoClass : Params.AmmoClasses)
+	{
+		Ammo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByClass(AmmoClass.Get()));
+		if (Ammo) break;
+	}
+
+	int AmmoCount = Ammo->GetItemParams().Amount;
+	if (!Ammo || AmmoCount <= 0) return;
+	
+	int RequiredCount = RightItem->CalculateRequiredAmmoCount();
+	int AvailableCount = FMath::Min(RequiredCount, AmmoCount);
+
+	OnReloadStart.Broadcast(true);
+	SetReloadTimer(RightItem, Ammo, AvailableCount);
+}
+
+void UCharacterWeaponComponent::CompleteReloadWeapon(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount)
+{
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
+	
+	if (!WeaponObject || !AmmoObject) return;
+
+	OnReloadStop.Broadcast(true);
+	GetCharacterInventory()->SubtractOrRemoveItem(AmmoObject, AmmoCount);
+	WeaponObject->IncreaseAmmo(AmmoCount);
+
+	UKismetSystemLibrary::PrintString(this, FString("Reload completed!"), true, false, FLinearColor::Green);
+}
+
+void UCharacterWeaponComponent::CancelReloadWeapon()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
+	OnReloadStop.Broadcast(false);
+	
+	UKismetSystemLibrary::PrintString(this, FString("Reload cancelled..."), true, false, FLinearColor::Red);
+}
+
+void UCharacterWeaponComponent::SetReloadTimer(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount)
+{
+	float ReloadTime = WeaponObject->GetWeaponParams().ReloadTime;
+	FTimerDelegate ReloadDelegate;
+	ReloadDelegate.BindLambda([&, this, WeaponObject, AmmoObject, AmmoCount]
+	{
+		CompleteReloadWeapon(WeaponObject, AmmoObject, AmmoCount);
+	});
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, ReloadDelegate, ReloadTime, true);
+
+	UKismetSystemLibrary::PrintString(this, FString("Reload started..."), true, false);
+}
+
 void UCharacterWeaponComponent::EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject)
 {
 	if (!ItemObject) return;
@@ -462,9 +522,9 @@ void UCharacterWeaponComponent::OnSlotEquipped(UItemObject* ItemObject, bool bMo
 	}
 }
 
-const UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
+UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
 {
-	const UItemObject* ItemObject = nullptr;
+	UItemObject* ItemObject = nullptr;
 	if (LeftHandItem)
 	{
 		ItemObject = LeftHandItem->GetItemObject();
@@ -472,9 +532,9 @@ const UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
 	return ItemObject;
 }
 
-const UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
+UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
 {
-	const UItemObject* ItemObject = nullptr;
+	UItemObject* ItemObject = nullptr;
 	if (RightHandItem)
 	{
 		ItemObject = RightHandItem->GetItemObject();
@@ -500,4 +560,10 @@ bool UCharacterWeaponComponent::IsLeftItemActorValid() const
 bool UCharacterWeaponComponent::IsRightItemActorValid() const
 {
 	return IsValid(RightHandItem.Get());
+}
+
+UCharacterInventoryComponent* UCharacterWeaponComponent::GetCharacterInventory() const
+{
+	auto CharInventory = GetOwner()->GetComponentByClass<UCharacterInventoryComponent>();
+	return CharInventory;
 }

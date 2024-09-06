@@ -194,7 +194,7 @@ void UItemsContainerGridWidget::OnCompleteDragOperation(UItemObject* DraggedItem
 			ItemsContainerRef->RemoveItem(DraggedItem, false);
 			break;
 		case EDragDropOperationResult::Subtract:
-			ItemsContainerRef->SubtractOrRemoveItem(DraggedItem);
+			ItemsContainerRef->SubtractOrRemoveItem(DraggedItem, 1);
 			break;
 		default: break;
 		}
