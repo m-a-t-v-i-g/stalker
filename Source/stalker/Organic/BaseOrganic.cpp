@@ -617,3 +617,13 @@ void ABaseOrganic::OnJump()
 		}
 	}
 }
+
+bool ABaseOrganic::IsSprinting() const
+{
+	return GetGait() == EOrganicGait::Fast;
+}
+
+bool ABaseOrganic::IsAirborne() const
+{
+	return GetMovementState() == EOrganicMovementState::Airborne;
+}

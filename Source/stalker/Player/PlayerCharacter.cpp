@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "StalkerPlayerController.h"
 #include "DataAssets/InputDataAsset.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Weapons/CharacterWeaponComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
@@ -190,8 +191,6 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Reload(const FInputActionValue& Value)
 {
-	if (!CheckReloadAbility()) return;
-	
 	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
 	if (!CharWeapon) return;
 

@@ -12,8 +12,47 @@ class UWeaponObject;
 class UCharacterInventoryComponent;
 
 DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
-DECLARE_MULTICAST_DELEGATE_OneParam(FCharacterReloadDelegate, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStartReloadSignature, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
+
+USTRUCT()
+struct FReloadingData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UWeaponObject* WeaponObject = nullptr;
+
+	UAmmoObject* AmmoObject = nullptr;
+
+	uint16 AmmoCount = 0;
+
+	float ReloadTime = 0.0f;
+
+	bool bInProgress = false;
+	
+	FReloadingData() = default;
+	
+	FReloadingData(UWeaponObject* WeaponObj, UAmmoObject* AmmoObj, uint16 AmmoAmount, float TimeToReload,
+	               bool bProcessReload) : WeaponObject(WeaponObj), AmmoObject(AmmoObj), AmmoCount(AmmoAmount),
+	                                      ReloadTime(TimeToReload), bInProgress(bProcessReload)
+	{
+	}
+
+	void Clear()
+	{
+		WeaponObject = nullptr;
+		AmmoObject = nullptr;
+		AmmoCount = 0;
+		ReloadTime = 0.0f;
+		bInProgress = false;
+	}
+
+	bool IsValid() const
+	{
+		return WeaponObject != nullptr && AmmoObject != nullptr && AmmoCount > 0;
+	}
+};
 
 UCLASS(meta=(BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
@@ -24,6 +63,7 @@ public:
 	UCharacterWeaponComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void PreInitializeWeapon() override;
 	virtual void PostInitializeWeapon() override;
@@ -48,13 +88,15 @@ private:
 	UPROPERTY(Replicated)
 	bool bAiming = false;
 
+	FReloadingData ReloadingData;
+
 	FTimerHandle ReloadTimer;
 	
 public:
 	FCharacterAimingDelegate OnAimingStart;
 	FCharacterAimingDelegate OnAimingStop;
-	FCharacterReloadDelegate OnReloadStart;
-	FCharacterReloadDelegate OnReloadStop;
+	FOnCharacterStartReloadSignature OnReloadStart;
+	FOnCharacterStopReloadSignature OnReloadStop;
 	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
 	
 	UFUNCTION(Server, Reliable)
@@ -68,12 +110,12 @@ public:
 
 	void StartFire();
 	
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerStartFire();
 	
 	void StopFire();
 	
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerStopFire();
 	
 	void StartAiming();
@@ -87,10 +129,21 @@ public:
 	void ServerStopAiming();
 
 	void TryReloadWeapon();
-	void CompleteReloadWeapon(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerTryReloadWeapon();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastReloadWeapon(float ReloadTime);
+	
+	void CompleteReloadWeapon();
 	void CancelReloadWeapon();
 
-	void SetReloadTimer(UWeaponObject* WeaponObject, UAmmoObject* AmmoObject, uint16 AmmoCount);
+	void SetReloadTimer();
+	void ClearReloadingData(bool bWasSuccessful);
+
+	bool HasAmmoForReload() const;
+	UAmmoObject* GetAmmoForReload() const;
 	
 protected:
 	void EquipOrUnEquipHands(const FString& SlotName, UItemObject* ItemObject);

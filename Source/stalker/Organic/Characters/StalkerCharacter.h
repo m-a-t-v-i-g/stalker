@@ -37,9 +37,9 @@ protected:
 	void OnAimingStop();
 	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
 
+public:
 	virtual bool CheckReloadAbility();
 
-public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterArmorComponent* GetArmorComponent() const { return ArmorComponent; }
 

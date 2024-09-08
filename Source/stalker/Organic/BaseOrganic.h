@@ -258,6 +258,9 @@ public:
 	void OnCrouch();
 	void OnUnCrouch();
 	void OnJump();
+
+	bool IsSprinting() const;
+	bool IsAirborne() const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return Mesh; }

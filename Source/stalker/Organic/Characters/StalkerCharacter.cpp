@@ -87,5 +87,5 @@ void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)
 
 bool AStalkerCharacter::CheckReloadAbility()
 {
-	return true;
+	return !IsSprinting();
 }
