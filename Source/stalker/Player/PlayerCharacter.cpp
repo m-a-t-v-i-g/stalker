@@ -1,16 +1,29 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/PlayerCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerPlayerController.h"
+#include "AbilitySystem/AbilitySet.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "DataAssets/InputDataAsset.h"
+#include "Input/PlayerInputConfig.h"
+#include "Input/StalkerInputComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Weapons/CharacterWeaponComponent.h"
 
-APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	SetCharacterData();
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -60,8 +73,11 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 										   this,
 										   &APlayerCharacter::IA_RightMouseButton);
 
+		/*
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputJumpName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Jump);
+		                                   */
+		
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputCrouchName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Crouch);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSprintName], ETriggerEvent::Triggered, this,
@@ -70,12 +86,27 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 		                                   &APlayerCharacter::IA_Slot);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputReloadName], ETriggerEvent::Started, this,
 										   &APlayerCharacter::IA_Reload);
+
+		if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
+		{
+			TArray<uint32> BindHandles;
+			StalkerInputComp->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed,
+			                                     &ThisClass::Input_AbilityInputTagReleased, BindHandles);
+		}
 	}
 }
 
 bool APlayerCharacter::CheckReloadAbility()
 {
 	return Super::CheckReloadAbility();
+}
+
+void APlayerCharacter::SetCharacterData()
+{
+	if (AbilitySet)
+	{
+		AbilitySet->GiveToAbilitySystem(GetAbilitySystemComponent<UStalkerAbilityComponent>());
+	}
 }
 
 void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
@@ -195,6 +226,22 @@ void APlayerCharacter::IA_Reload(const FInputActionValue& Value)
 	if (!CharWeapon) return;
 
 	CharWeapon->TryReloadWeapon();
+}
+
+void APlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	if (UStalkerAbilityComponent* LyraASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	{
+		LyraASC->AbilityInputTagPressed(InputTag);
+	}
+}
+
+void APlayerCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	if (UStalkerAbilityComponent* LyraASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	{
+		LyraASC->AbilityInputTagReleased(InputTag);
+	}
 }
 
 void APlayerCharacter::SetupCharacterLocally(AController* NewController)

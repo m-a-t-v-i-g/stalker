@@ -25,7 +25,14 @@ class STALKER_API AStalkerPlayerController : public AGenPlayerController
 public:
 	AStalkerPlayerController();
 
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnRep_Pawn() override;
+	
+	virtual void SetupInputComponent() override;
+
 	virtual void ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass) override;
+
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -50,12 +57,6 @@ public:
 private:
 	bool bIsControllerInitialized = false;
 	
-public:
-	virtual void OnPossess(APawn* InPawn) override;
-	virtual void OnRep_Pawn() override;
-	
-	virtual void SetupInputComponent() override;
-
 protected:
 	void IA_Inventory(const FInputActionValue& Value);
 	void IA_PDA(const FInputActionValue& Value);

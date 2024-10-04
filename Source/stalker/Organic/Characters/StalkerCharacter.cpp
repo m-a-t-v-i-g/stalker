@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerCharacter.h"
+#include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Armor/CharacterArmorComponent.h"
 #include "Inventory/CharacterInventoryComponent.h"
 #include "Weapons/CharacterWeaponComponent.h"
@@ -22,6 +23,16 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	if (bIsStalkerInitialized) return;
+
+	if (auto AbilitySystemComp = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	{
+		AbilitySystemComp->InitAbilitySystem(NewController, this);
+		for (auto& DefaultAbility : DefaultAbilities)
+		{
+			if (!DefaultAbility) continue;
+			AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
+		}
+	}
 	
 	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
 	{

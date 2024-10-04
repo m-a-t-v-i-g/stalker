@@ -13,13 +13,6 @@ AStalkerPlayerController::AStalkerPlayerController()
 {
 }
 
-void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass)
-{
-	Super::ClientSetHUD_Implementation(NewHUDClass);
-
-	StalkerHUD = GetHUD<APlayerHUD>();
-}
-
 void AStalkerPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -76,6 +69,22 @@ void AStalkerPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputPDAName], ETriggerEvent::Triggered, this,
 										   &AStalkerPlayerController::IA_PDA);
 	}
+}
+
+void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass)
+{
+	Super::ClientSetHUD_Implementation(NewHUDClass);
+
+	StalkerHUD = GetHUD<APlayerHUD>();
+}
+
+void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+	if (auto PawnAbilityComp = GetPawn()->GetComponentByClass<UStalkerAbilityComponent>())
+	{
+		PawnAbilityComp->ProcessAbilityInput(DeltaTime);
+	}
+	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
 void AStalkerPlayerController::IA_Inventory(const FInputActionValue& Value)

@@ -6,6 +6,7 @@
 #include "BaseCharacter.h"
 #include "StalkerCharacter.generated.h"
 
+class UGameplayAbility;
 class UItemObject;
 class UWeaponComponent;
 class AStalkerPlayerController;
@@ -22,6 +23,10 @@ public:
 	virtual void OnRep_Controller() override;
 
 	static FName ArmorComponentName;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Character")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
 	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
