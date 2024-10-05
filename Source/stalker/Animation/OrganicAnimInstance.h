@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OrganicAnimConfig.h"
 #include "Animation/AnimInstance.h"
 #include "Library/OrganicLibrary.h"
 #include "OrganicAnimInstance.generated.h"
@@ -14,7 +15,7 @@ class UCurveVector;
 class UOrganicMovementComponent;
 
 USTRUCT(BlueprintType)
-struct FAnim_MovementInfo
+struct FOrganicAnim_MovementInfo
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -49,6 +50,184 @@ struct FAnim_MovementInfo
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
 };
 
+USTRUCT(BlueprintType)
+struct FOrganicAnim_GroundedInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Organic|Anim Graph|Grounded")
+	EOrganicHipsDirection TrackedHipsDirection = EOrganicHipsDirection::F;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	bool bShouldMove = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	bool bRotateL = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	bool bRotateR = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Organic|Anim Graph|Grounded")
+	bool bPivot = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float RotateRate = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float RotationScale = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float DiagonalScaleAmount = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float WalkRunBlend = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float StandingPlayRate = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float CrouchingPlayRate = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float StrideBlend = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float FYaw = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float BYaw = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float LYaw = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
+	float RYaw = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FOrganicAnim_AirborneInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Airborne")
+	bool bJumped = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Airborne")
+	float JumpPlayRate = 1.2f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Airborne")
+	float FallSpeed = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Airborne")
+	float LandPrediction = 1.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FOrganicAnim_ViewInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	FRotator SmoothedViewRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	FRotator SpineRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	FVector2D AimingAngle = FVector2D::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	float AimSweepTime = 0.5f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	float InputYawOffsetTime = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	float ForwardYawTime = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	float LeftYawTime = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|View Values")
+	float RightYawTime = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FOrganicAnim_VelocityBlend
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Velocity Blend")
+	float Forward = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Velocity Blend")
+	float Backward = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Velocity Blend")
+	float Left = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Velocity Blend")
+	float Right = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FOrganicAnim_LeanAmount
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lean Amount")
+	float FB = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lean Amount")
+	float LR = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FOrganicAnim_MovementDirection
+{
+	GENERATED_USTRUCT_BODY()
+
+private:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	EOrganicMovementDirection MovementDirection = EOrganicMovementDirection::Forward;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bForward = true;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bRight = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bLeft = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bBackward = false;
+
+public:
+	FOrganicAnim_MovementDirection() {}
+
+	FOrganicAnim_MovementDirection(const EOrganicMovementDirection InitialMovementDirection)
+	{
+		*this = InitialMovementDirection;
+	}
+
+	const bool& Forward() const { return bForward; }
+	const bool& Backward() const { return bBackward; }
+	const bool& Left() const { return bLeft; }
+	const bool& Right() const { return bRight; }
+
+	operator EOrganicMovementDirection() const { return MovementDirection; }
+
+	void operator=(const EOrganicMovementDirection NewMovementDirection)
+	{
+		MovementDirection = NewMovementDirection;
+		bForward = MovementDirection == EOrganicMovementDirection::Forward;
+		bBackward = MovementDirection == EOrganicMovementDirection::Backward;
+		bLeft = MovementDirection == EOrganicMovementDirection::Left;
+		bRight = MovementDirection == EOrganicMovementDirection::Right;
+	}
+};
+
 UCLASS(Blueprintable, BlueprintType)
 class STALKER_API UOrganicAnimInstance : public UAnimInstance
 {
@@ -66,10 +245,7 @@ protected:
 	}
 
 	virtual void UpdateMovementInfo(float DeltaSeconds);
-	
 	virtual void UpdateViewValues(float DeltaSeconds);
-	virtual void UpdateLayerValues(float DeltaSeconds);
-	virtual void UpdateFootIK(float DeltaSeconds);
 
 	void UpdateMovementValues(float DeltaSeconds);
 	void UpdateRotationValues();
@@ -101,8 +277,9 @@ protected:
 
 	FVector CalculateRelativeAccelerationAmount() const;
 
-	FOrganicVelocityBlend CalculateVelocityBlend() const;
-	FOrganicLeanAmount CalculateAirLeanAmount() const;
+	FOrganicAnim_VelocityBlend CalculateVelocityBlend() const;
+	FOrganicAnim_LeanAmount CalculateAirLeanAmount() const;
+	
 	EOrganicMovementDirection CalculateMovementDirection() const;
 
 	float GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const;
@@ -152,10 +329,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
 	TWeakObjectPtr<UOrganicMovementComponent> OrganicMovement;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information",
-		meta = (ShowOnlyInnerProperties))
-	FAnim_MovementInfo MovementInfo;
-
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicMovementState MovementState = EOrganicMovementState::None;
 
@@ -168,55 +341,47 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicGait Gait = EOrganicGait::Slow;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded",
-		meta = (ShowOnlyInnerProperties))
-	FAnimOrganicGrounded Grounded;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_MovementInfo Movement;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Airborne",
-		meta = (ShowOnlyInnerProperties))
-	FAnimOrganicAirborne Airborne;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_GroundedInfo Grounded;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - View Values",
-		meta = (ShowOnlyInnerProperties))
-	FAnimOrganicViewValues ViewValues;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_AirborneInfo Airborne;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
-	FOrganicVelocityBlend VelocityBlend;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_ViewInfo View;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
-	FOrganicLeanAmount LeanAmount;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_VelocityBlend VelocityBlend;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
-	FOrganicMovementDirection MovementDirection = EOrganicMovementDirection::Forward;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_LeanAmount LeanAmount;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Grounded")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_MovementDirection MovementDirection;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
 	FVector RelativeAccelerationAmount = FVector::ZeroVector;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - View Values")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
 	FVector2D SmoothedAimingAngle = FVector2D::ZeroVector;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Ragdoll")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
 	float FlailRate = 0.0f;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Layer Blending", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicLayerBlending LayerBlendingValues;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
+	TObjectPtr<UOrganicAnimConfig> AnimConfig;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Foot IK", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicFootIK FootIKValues;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
+	FAnimationSet_TurnInPlace TurnInPlaceValues;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Turn In Place", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicTurnInPlace TurnInPlaceValues;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
+	FAnimationSet_RotateInPlace RotateInPlace;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Rotate In Place", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicRotateInPlace RotateInPlace;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Main Configuration", Meta = (
-		ShowOnlyInnerProperties))
-	FAnimOrganicConfiguration Config;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
+	FAnimationSet_OrganicConfig Config;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
 	TObjectPtr<UCurveFloat> DiagonalScaleAmountCurve = nullptr;
@@ -242,12 +407,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
 	TObjectPtr<UCurveVector> YawOffset_LR = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Dynamic Transition")
-	TObjectPtr<UAnimSequenceBase> TransitionAnim_R = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Dynamic Transition")
-	TObjectPtr<UAnimSequenceBase> TransitionAnim_L = nullptr;
-
 private:
 	FTimerHandle OnJumpedTimer;
 	FTimerHandle OnPivotTimer;
@@ -255,7 +414,6 @@ private:
 protected:
 	static bool AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer);
 
-	static EOrganicMovementDirection CalculateQuadrant(EOrganicMovementDirection Current, float FRThreshold,
-	                                                   float FLThreshold,
+	static EOrganicMovementDirection CalculateQuadrant(EOrganicMovementDirection Current, float FRThreshold, float FLThreshold,
 	                                                   float BRThreshold, float BLThreshold, float Buffer, float Angle);
 };

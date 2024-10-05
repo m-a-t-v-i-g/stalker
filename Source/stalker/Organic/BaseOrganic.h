@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
 	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
 
+	UPROPERTY(EditAnywhere, Category = "Movement Model")
+	TObjectPtr<class UMovementModelConfig> DefaultMovementModel;
+
 #pragma region Movement
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
@@ -122,44 +125,9 @@ protected:
 
 #pragma endregion Overlay
 
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FVector Acceleration;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FRotator ViewRotation;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FRotator TargetRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	float ViewYawRate = 0.0f;
-	
-	UPROPERTY(BlueprintReadWrite, Category = "Base Organic")
-	float ViewTurnLimit = 35.0f;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FRotator AirborneRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FRotator LastVelocityRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	float Speed = 0.0f;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	float MovementInputAmount = 0.0f;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	bool bHasMovementInput = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	bool bIsMoving = false;
-
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnJumped OnJumpedDelegate;
-
-	virtual void OrganicTick(float DeltaTime);
 
 	void OnMovementModeChanged();
 
@@ -212,8 +180,6 @@ public:
 	
 #pragma region Gait
 	
-	void GaitTick();
-	
 	void SetInputGait(EOrganicGait NewInputGait);
 	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
 
@@ -221,9 +187,6 @@ public:
 	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
 	
 	void OnGaitChanged(EOrganicGait PreviousGait);
-
-	EOrganicGait CalculateAllowedGait() const;
-	EOrganicGait CalculateActualGait(EOrganicGait AllowedGait) const;
 
 #pragma endregion Gait
 	
@@ -236,17 +199,7 @@ public:
 
 	float GetAnimCurveValue(FName CurveName) const;
 	
-	bool CanSprint() const;
-	
 	void ForceUpdateCharacterState();
-
-	virtual void UpdateGroundRotation(float DeltaTime);
-	virtual void UpdateAirborneRotation(float DeltaTime);
-
-	void SmoothRotation(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
-	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
-	
-	float CalculateGroundRotationRate() const;
 
 	void OnSprint(bool bEnabled);
 	void OnCrouch();
@@ -294,22 +247,4 @@ public:
 	{
 		return Cast<T>(GetWeaponComponent());
 	}
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE FVector GetAcceleration() const { return Acceleration; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE FRotator GetOrganicViewRotation() const { return ViewRotation; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE float GetMovementInputAmount() const { return MovementInputAmount; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE bool HasMovementInput() const { return bHasMovementInput; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE bool IsMoving() const { return bIsMoving; }
 };

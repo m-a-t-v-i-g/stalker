@@ -16,10 +16,9 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 
 	virtual void UpdateMovementInfo(float DeltaSeconds) override;
-	
 	virtual void UpdateViewValues(float DeltaSeconds) override;
-	virtual void UpdateLayerValues(float DeltaSeconds) override;
-	virtual void UpdateFootIK(float DeltaSeconds) override;
+	virtual void UpdateLayerValues(float DeltaSeconds);
+	virtual void UpdateFootIK(float DeltaSeconds);
 
 	virtual void UpdateGroundedValues(float DeltaSeconds) override;
 
@@ -98,13 +97,25 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Read Only Data|Character Information")
-	TObjectPtr<class ABaseCharacter> Character = nullptr;
+	TObjectPtr<class ABaseCharacter> Character;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Layer Blending", Meta = (ShowOnlyInnerProperties))
+	FAnimOrganicLayerBlending LayerBlendingValues;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Anim Graph - Foot IK", Meta = (ShowOnlyInnerProperties))
+	FAnimOrganicFootIK FootIKValues;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
 	FCharacterMovementAction MovementAction = ECharacterMovementAction::None;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Read Only Data|Character Information")
 	FCharacterOverlayState OverlayState = ECharacterOverlayState::Default;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Dynamic Transition")
+	TObjectPtr<UAnimSequenceBase> TransitionAnim_R = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Dynamic Transition")
+	TObjectPtr<UAnimSequenceBase> TransitionAnim_L = nullptr;
 
 private:
 	FTimerHandle PlayDynamicTransitionTimer;

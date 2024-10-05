@@ -13,55 +13,60 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 
 void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
-	Super::UpdateMovementInfo(DeltaSeconds);
-	
 	if (!Character) return;
-
+	
 	MovementAction = Character->GetMovementAction();
 	OverlayState = Character->GetOverlayState();
+	
+	LayerBlendingValues.OverlayOverrideState = Character->GetOverlayOverrideState();
+	
+	Super::UpdateMovementInfo(DeltaSeconds);
+
+	UpdateLayerValues(DeltaSeconds);
+	UpdateFootIK(DeltaSeconds);
 }
 
 void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
-	ViewValues.SmoothedViewRotation = FMath::RInterpTo(ViewValues.SmoothedViewRotation,
-	                                                   MovementInfo.ViewRotation, DeltaSeconds,
+	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation,
+	                                                   Movement.ViewRotation, DeltaSeconds,
 	                                                   Config.SmoothedAimingRotationInterpSpeed);
 
-	FRotator Delta = MovementInfo.ViewRotation - MovementInfo.ActorRotation;
+	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
 	Delta.Normalize();
-	ViewValues.AimingAngle.X = Delta.Yaw;
-	ViewValues.AimingAngle.Y = Delta.Pitch;
+	View.AimingAngle.X = Delta.Yaw;
+	View.AimingAngle.Y = Delta.Pitch;
 
-	Delta = ViewValues.SmoothedViewRotation - MovementInfo.ActorRotation;
+	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
 	Delta.Normalize();
 	SmoothedAimingAngle.X = Delta.Yaw;
 	SmoothedAimingAngle.Y = Delta.Pitch;
 
 	if (!RotationMode.VelocityDirection())
 	{
-		ViewValues.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>(
-			{-90.0f, 90.0f}, {1.0f, 0.0f}, ViewValues.AimingAngle.Y);
+		View.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>(
+			{-90.0f, 90.0f}, {1.0f, 0.0f}, View.AimingAngle.Y);
 
-		ViewValues.SpineRotation.Roll = 0.0f;
-		ViewValues.SpineRotation.Pitch = 0.0f;
-		ViewValues.SpineRotation.Yaw = ViewValues.AimingAngle.X / 4.0f;
+		View.SpineRotation.Roll = 0.0f;
+		View.SpineRotation.Pitch = 0.0f;
+		View.SpineRotation.Yaw = View.AimingAngle.X / 4.0f;
 	}
-	else if (MovementInfo.bHasMovementInput)
+	else if (Movement.bHasMovementInput)
 	{
-		Delta = MovementInfo.Acceleration.ToOrientationRotator() - MovementInfo.ActorRotation;
+		Delta = Movement.Acceleration.ToOrientationRotator() - Movement.ActorRotation;
 		Delta.Normalize();
 		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>(
 			{-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
 
-		ViewValues.InputYawOffsetTime = FMath::FInterpTo(ViewValues.InputYawOffsetTime, InterpTarget,
+		View.InputYawOffsetTime = FMath::FInterpTo(View.InputYawOffsetTime, InterpTarget,
 		                                                 DeltaSeconds, Config.InputYawOffsetInterpSpeed);
 	}
 
-	ViewValues.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f},
+	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f},
 	                                                                         FMath::Abs(SmoothedAimingAngle.X));
-	ViewValues.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f},
+	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f},
 	                                                                          FMath::Abs(SmoothedAimingAngle.X));
-	ViewValues.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>(
+	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>(
 		{-180.0f, 180.0f}, {0.0f, 1.0f}, SmoothedAimingAngle.X);
 }
 
@@ -176,23 +181,21 @@ void UCharacterAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFoot
 void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot)
 {
 	FRotator RotationDifference = FRotator::ZeroRotator;
-	if (Character->GetOrganicMovement()->IsMovingOnGround())
+	
+	if (OrganicMovement->IsMovingOnGround())
 	{
 		if (RotationMode == EOrganicRotationMode::ControlDirection)
 		{
-			RotationDifference = Character->GetOrganicMovement()->GetRootCollisionRotation() - Character->
-				GetOrganicMovement()->GetLastPawnRotation();
+			RotationDifference = OrganicMovement->GetRootCollisionRotation() - OrganicMovement->GetLastPawnRotation();
 		}
 		else if (RotationMode == EOrganicRotationMode::LookingDirection)
 		{
-			RotationDifference = Character->GetOrganicMovement()->GetRootCollisionRotation() - Character->
-				GetOrganicMovement()->GetLastComponentRotation();
+			RotationDifference = OrganicMovement->GetRootCollisionRotation() - OrganicMovement->GetLastComponentRotation();
 		}
 		RotationDifference.Normalize();
 	}
 
-	const FVector& LocationDifference = GetOwningComponent()->GetComponentRotation().UnrotateVector(
-		MovementInfo.Velocity * DeltaSeconds);
+	const FVector& LocationDifference = GetOwningComponent()->GetComponentRotation().UnrotateVector(Movement.Velocity * DeltaSeconds);
 	LocalLoc = (LocalLoc - LocationDifference).RotateAngleAxis(RotationDifference.Yaw, FVector::DownVector);
 
 	FRotator Delta = LocalRot - RotationDifference;

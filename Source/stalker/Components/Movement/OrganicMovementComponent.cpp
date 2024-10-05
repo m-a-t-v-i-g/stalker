@@ -1,6 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Components/Movement/OrganicMovementComponent.h"
+
+#include "MovementModelConfig.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Organic/BaseOrganic.h"
 
 UOrganicMovementComponent::UOrganicMovementComponent()
@@ -35,16 +38,11 @@ void UOrganicMovementComponent::BindReplicationData_Implementation()
 void UOrganicMovementComponent::PhysicsGrounded(float DeltaSeconds)
 {
 	Super::PhysicsGrounded(DeltaSeconds);
-
-	UpdateGait();
-	UpdateGroundRotation(DeltaSeconds);
 }
 
 void UOrganicMovementComponent::PhysicsAirborne(float DeltaSeconds)
 {
 	Super::PhysicsAirborne(DeltaSeconds);
-
-	UpdateAirborneRotation(DeltaSeconds);
 }
 
 void UOrganicMovementComponent::PreMovementUpdate_Implementation(float DeltaSeconds)
@@ -57,9 +55,17 @@ void UOrganicMovementComponent::PreMovementUpdate_Implementation(float DeltaSeco
 	}
 }
 
+void UOrganicMovementComponent::PerformMovement(float DeltaSeconds)
+{
+	Super::PerformMovement(DeltaSeconds);
+}
+
 void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds)
 {
 	Super::MovementUpdate_Implementation(DeltaSeconds);
+
+	PrevPawnRotation = GetInRotation();
+	PrevComponentRotation = GetRootCollisionRotation();
 
 	ViewRotation = FMath::RInterpTo(ViewRotation, GetInControlRotation(), DeltaSeconds, ViewInterpSpeed);
 
@@ -78,6 +84,16 @@ void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds
 	bHasMovementInput = MovementInputValue > 0.0f;
 	ViewYawRate = FMath::Abs((ViewRotation.Yaw - PreviousViewYaw) / DeltaSeconds);
 
+	if (MovementStatus.Grounded())
+	{
+		UpdateGait();
+		UpdateGroundRotation(DeltaSeconds);
+	}
+	else if (MovementStatus.Airborne())
+	{
+		UpdateAirborneRotation(DeltaSeconds);
+	}
+	
 	if (bWantsChangeMovementSettings)
 	{
 		TargetMaxSpeed = MovementSettings.GetSpeedForGait(AllowedGait);
@@ -86,10 +102,8 @@ void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds
 	
 	MaxDesiredSpeed = FMath::FInterpTo(MaxDesiredSpeed, TargetMaxSpeed, DeltaSeconds, SpeedInterpSpeed);
 	
-	PrevPawnRotation = GetInRotation();
-	PrevComponentRotation = GetRootCollisionRotation();
-
 	PreviousVelocity = GetVelocity();
+	PreviousViewYaw = ViewRotation.Yaw;
 	
 	UpdateSprint(bWantsToSprint);
 	UpdateCrouch(bWantsToCrouch);
@@ -118,19 +132,174 @@ void UOrganicMovementComponent::MovementUpdateSimulated_Implementation(float Del
 void UOrganicMovementComponent::OnMovementModeUpdated_Implementation(EGenMovementMode PreviousMovementMode)
 {
 	Super::OnMovementModeUpdated_Implementation(PreviousMovementMode);
-	OrganicOwner->OnMovementModeChanged();
+	
+	if (IsMovingOnGround())
+	{
+		SetMovementState(EOrganicMovementState::Ground);
+	}
+	else if (IsAirborne())
+	{
+		SetMovementState(EOrganicMovementState::Airborne);
+	}
 }
 
 void UOrganicMovementComponent::OnMovementModeChangedSimulated_Implementation(EGenMovementMode PreviousMovementMode)
 {
 	Super::OnMovementModeChangedSimulated_Implementation(PreviousMovementMode);
-	OrganicOwner->OnMovementModeChanged();
+	
+	if (IsMovingOnGround())
+	{
+		SetMovementState(EOrganicMovementState::Ground);
+	}
+	else if (IsAirborne())
+	{
+		SetMovementState(EOrganicMovementState::Airborne);
+	}
 }
 
-void UOrganicMovementComponent::SetMovementSettings(FOrganicMovementSettings NewMovementSettings)
+void UOrganicMovementComponent::SetMovementModel(UMovementModelConfig* ModelConfig)
+{
+	MovementModel = ModelConfig;
+	ForceUpdateAllStates();
+}
+
+void UOrganicMovementComponent::SetMovementSettings(FMovementModel_Settings NewMovementSettings)
 {
 	MovementSettings = NewMovementSettings;
 	bWantsChangeMovementSettings = true;
+}
+
+FMovementModel_Settings UOrganicMovementComponent::GetMovementSettings() const
+{
+	switch (RotationMode.RotationMode)
+	{
+	case EOrganicRotationMode::ControlDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel->ControlDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel->ControlDirection.Crouching;
+			}
+		}
+	case EOrganicRotationMode::LookingDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel->LookingDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel->LookingDirection.Crouching;
+			}
+		}
+	case EOrganicRotationMode::VelocityDirection:
+		{
+			if (Stance == EOrganicStance::Standing)
+			{
+				return MovementModel->VelocityDirection.Standing;
+			}
+			if (Stance == EOrganicStance::Crouching)
+			{
+				return MovementModel->VelocityDirection.Crouching;
+			}
+		}
+	default: return MovementModel->VelocityDirection.Standing;
+	}
+}
+
+void UOrganicMovementComponent::SetMovementState(const EOrganicMovementState NewMovementState, bool bForce)
+{
+	if (bForce || MovementStatus != NewMovementState)
+	{
+		PrevMovementState = MovementStatus;
+		MovementStatus = NewMovementState;
+		OnMovementStateChanged(PrevMovementState);
+		
+		UKismetSystemLibrary::PrintString(this, FString("Set state"), true, false, FLinearColor::Red, 0.5f, "ggg");
+	}
+}
+
+void UOrganicMovementComponent::OnMovementStateChanged(const EOrganicMovementState PreviousState)
+{
+	if (MovementStatus.Airborne())
+	{
+		TargetRotation = GetRootCollisionRotation();
+		if (Stance == EOrganicStance::Crouching)
+		{
+			OnUnCrouch();
+		}
+	}
+}
+
+void UOrganicMovementComponent::SetInputRotationMode(EOrganicRotationMode NewInputRotationMode)
+{
+	InputRotationMode = NewInputRotationMode;
+}
+
+void UOrganicMovementComponent::SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce)
+{
+	if (bForce || RotationMode != NewRotationMode)
+	{
+		const EOrganicRotationMode Prev = RotationMode;
+		RotationMode = NewRotationMode;
+		OnRotationModeChanged(Prev);
+	}
+}
+
+void UOrganicMovementComponent::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
+{
+	SetMovementSettings(GetMovementSettings());
+}
+
+void UOrganicMovementComponent::SetInputStance(EOrganicStance NewInputStance)
+{
+	InputStance = NewInputStance;
+}
+
+void UOrganicMovementComponent::SetStance(const EOrganicStance NewStance, bool bForce)
+{
+	if (bForce || Stance != NewStance)
+	{
+		const EOrganicStance Prev = Stance;
+		Stance = NewStance;
+		OnStanceChanged(Prev);
+	}
+}
+
+void UOrganicMovementComponent::OnStanceChanged(EOrganicStance PreviousStance)
+{
+	SetMovementSettings(GetMovementSettings());
+}
+
+void UOrganicMovementComponent::SetInputGait(EOrganicGait NewInputGait)
+{
+	InputGait = NewInputGait;
+}
+
+void UOrganicMovementComponent::SetGait(const EOrganicGait NewGait, bool bForce)
+{
+	if (bForce || Gait != NewGait)
+	{
+		const EOrganicGait PreviousGait = Gait;
+		Gait = NewGait;
+		OnGaitChanged(PreviousGait);
+	}
+}
+
+void UOrganicMovementComponent::OnGaitChanged(EOrganicGait PreviousGait)
+{
+	
+}
+
+void UOrganicMovementComponent::ForceUpdateAllStates()
+{
+	SetMovementState(MovementStatus, true);
+	SetRotationMode(InputRotationMode, true);
+	SetStance(InputStance, true);
+	SetGait(InputGait, true);
 }
 
 void UOrganicMovementComponent::UpdateGait()
@@ -191,14 +360,6 @@ void UOrganicMovementComponent::SetAllowedGait(EOrganicGait DesiredGait)
 
 	AllowedGait = DesiredGait;
 	bWantsChangeMovementSettings = true;
-}
-
-void UOrganicMovementComponent::SetGait(const EOrganicGait NewGait, bool bForce)
-{
-	if (bForce || Gait != NewGait)
-	{
-		Gait = NewGait;
-	}
 }
 
 float UOrganicMovementComponent::CalculateGroundRotationRate() const
@@ -411,6 +572,28 @@ void UOrganicMovementComponent::Jumping()
 bool UOrganicMovementComponent::CanSprint() const
 {
 	bool bCannotSprint = !IsMovingOnGround() || IsFalling() || bWantsToJump || bWantsToCrouch;
+	if (!bCannotSprint)
+	{
+		if (!bHasMovementInput || RotationMode == EOrganicRotationMode::ControlDirection)
+		{
+			return false;
+		}
+
+		if (RotationMode == EOrganicRotationMode::VelocityDirection)
+		{
+			return MovementInputValue > 0.9f;
+		}
+
+		if (RotationMode == EOrganicRotationMode::LookingDirection)
+		{
+			const FRotator AccRot = GetVelocity().ToOrientationRotator();
+			FRotator Delta = AccRot - ViewRotation;
+			Delta.Normalize();
+
+			return FMath::Abs(Delta.Yaw) < 50.0f;
+		}
+		return false;
+	}
 	return bCanSprint & !bCannotSprint;
 }
 

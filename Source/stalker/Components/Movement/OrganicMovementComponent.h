@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GenOrganicMovementComponent.h"
-#include "Library/OrganicLibrary.h"
+#include "MovementModelConfig.h"
 #include "OrganicMovementComponent.generated.h"
+
+class UMovementModelConfig;
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponent
@@ -23,6 +25,7 @@ public:
 	virtual void PhysicsAirborne(float DeltaSeconds) override;
 	
 	virtual void PreMovementUpdate_Implementation(float DeltaSeconds) override;
+	virtual void PerformMovement(float DeltaSeconds) override;
 	virtual void MovementUpdate_Implementation(float DeltaSeconds) override;
 	virtual void MovementUpdateSimulated_Implementation(float DeltaSeconds) override;
 
@@ -36,19 +39,17 @@ protected:
 
 #pragma region Movement
 
-	/*
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
-	FDataTableRowHandle MovementTable;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	TObjectPtr<UMovementModelConfig> MovementModel;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
-	FOrganicMovementModel MovementModel;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	FMovementModel_Settings MovementSettings;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
-	FOrganicMovementState MovementState = EOrganicMovementState::None;
+	FOrganicMovementState MovementStatus = EOrganicMovementState::None;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
-	*/
 	
 #pragma endregion Movement
 
@@ -85,9 +86,6 @@ protected:
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
 	EOrganicGait AllowedGait = EOrganicGait::Slow;
-
-	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
-	FOrganicMovementSettings MovementSettings;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Jump")
@@ -127,7 +125,51 @@ private:
 	bool bIsMoving = false;
 
 public:
-	void SetMovementSettings(FOrganicMovementSettings NewMovementSettings);
+	
+#pragma region Movement
+
+	void SetMovementModel(UMovementModelConfig* ModelConfig);
+	
+	void SetMovementSettings(FMovementModel_Settings NewMovementSettings);
+	FMovementModel_Settings GetMovementSettings() const;
+
+	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
+	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementStatus; }
+	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
+
+	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
+
+#pragma endregion Movement
+
+#pragma region Rotation
+
+	void SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
+	FORCEINLINE EOrganicRotationMode GetInputRotationMode() const { return InputRotationMode; }
+
+	void SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce = false);
+	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
+
+	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
+
+#pragma endregion Rotation
+
+	void SetInputStance(EOrganicStance NewInputStance);
+	FORCEINLINE EOrganicStance GetInputStance() const { return InputStance; }
+	
+	void SetStance(const EOrganicStance NewStance, bool bForce = false);
+	FORCEINLINE EOrganicStance GetStance() const { return Stance; }
+
+	virtual void OnStanceChanged(EOrganicStance PreviousStance);
+	
+	void SetInputGait(EOrganicGait NewInputGait);
+	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
+
+	void SetGait(const EOrganicGait NewGait, bool bForce = false);
+	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
+	
+	void OnGaitChanged(EOrganicGait PreviousGait);
+
+	void ForceUpdateAllStates();
 
 	void UpdateGait();
 	
@@ -136,9 +178,6 @@ public:
 	
 	void SetAllowedGait(EOrganicGait DesiredGait);
 
-	void SetGait(const EOrganicGait NewGait, bool bForce = false);
-	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
-	
 	float CalculateGroundRotationRate() const;
 
 	float GetAnimCurveValue(FName CurveName) const;
@@ -158,8 +197,6 @@ public:
 	
 	FORCEINLINE FRotator GetLastComponentRotation() const { return PrevComponentRotation; }
 	
-	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
-
 	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
 
 	FORCEINLINE float GetMovementInputValue() const { return MovementInputValue; }
