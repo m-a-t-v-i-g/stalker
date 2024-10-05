@@ -15,6 +15,8 @@ void UOrganicAnimInstance::NativeInitializeAnimation()
 	if (OrganicPawn)
 	{
 		OrganicPawn->OnJumpedDelegate.AddUniqueDynamic(this, &UOrganicAnimInstance::OnJumped);
+
+		OrganicMovement = OrganicPawn->GetComponentByClass<UOrganicMovementComponent>();
 	}
 }
 
@@ -22,21 +24,21 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (!OrganicPawn) return;
+	if (!OrganicPawn || !OrganicMovement.IsValid()) return;
 	
-	OrganicInformation.Rotation = OrganicPawn->GetOrganicMovement()->GetRootCollisionRotation();
-	OrganicInformation.ViewRotation = OrganicPawn->GetOrganicViewRotation();
-	OrganicInformation.ViewYawRate = OrganicPawn->GetViewYawRate();
+	MovementInfo.Acceleration = OrganicPawn->GetAcceleration();
+	MovementInfo.Velocity = OrganicPawn->GetOrganicMovement()->GetVelocity();
+	MovementInfo.Speed = OrganicPawn->GetSpeed();
+	
+	MovementInfo.Rotation = OrganicPawn->GetOrganicMovement()->GetRootCollisionRotation();
+	MovementInfo.ViewRotation = OrganicPawn->GetOrganicViewRotation();
+	MovementInfo.ViewYawRate = OrganicPawn->GetViewYawRate();
 
-	OrganicInformation.Velocity = OrganicPawn->GetOrganicMovement()->GetVelocity();
-	OrganicInformation.Acceleration = OrganicPawn->GetAcceleration();
-	OrganicInformation.Speed = OrganicPawn->GetSpeed();
+	MovementInfo.bIsMoving = OrganicPawn->IsMoving();
+	MovementInfo.MovementInputAmount = OrganicPawn->GetMovementInputAmount();
+	MovementInfo.bHasMovementInput = OrganicPawn->HasMovementInput();
 
-	OrganicInformation.bIsMoving = OrganicPawn->IsMoving();
-	OrganicInformation.MovementInputAmount = OrganicPawn->GetMovementInputAmount();
-	OrganicInformation.bHasMovementInput = OrganicPawn->HasMovementInput();
-
-	OrganicInformation.PrevMovementState = OrganicPawn->GetPrevMovementState();
+	MovementInfo.PrevMovementState = OrganicPawn->GetPrevMovementState();
 	LayerBlendingValues.OverlayOverrideState = OrganicPawn->GetOverlayOverrideState();
 	
 	MovementState = OrganicPawn->GetMovementState();
@@ -114,7 +116,7 @@ void UOrganicAnimInstance::UpdateRotationValues()
 {
 	MovementDirection = CalculateMovementDirection();
 
-	FRotator Delta = OrganicInformation.Velocity.ToOrientationRotator() - OrganicInformation.ViewRotation;
+	FRotator Delta = MovementInfo.Velocity.ToOrientationRotator() - MovementInfo.ViewRotation;
 	Delta.Normalize();
 	
 	const FVector& FBOffset = YawOffset_FB->GetVectorValue(Delta.Yaw);
@@ -168,7 +170,7 @@ void UOrganicAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 
 void UOrganicAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 {
-	Airborne.FallSpeed = OrganicInformation.Velocity.Z;
+	Airborne.FallSpeed = MovementInfo.Velocity.Z;
 	Airborne.LandPrediction = CalculateLandPrediction();
 
 	const FOrganicLeanAmount& InAirLeanAmount = CalculateAirLeanAmount();
@@ -215,14 +217,14 @@ void UOrganicAnimInstance::RotateInPlaceCheck()
 	{
 		Grounded.RotateRate = FMath::GetMappedRangeValueClamped<float, float>(
 			{RotateInPlace.ViewYawRateMinRange, RotateInPlace.ViewYawRateMaxRange},
-			{RotateInPlace.MinPlayRate, RotateInPlace.MaxPlayRate}, OrganicInformation.ViewYawRate);
+			{RotateInPlace.MinPlayRate, RotateInPlace.MaxPlayRate}, MovementInfo.ViewYawRate);
 	}
 }
 
 void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 {
 	if (FMath::Abs(ViewValues.AimingAngle.X) <= TurnInPlaceValues.TurnCheckMinAngle ||
-		OrganicInformation.ViewYawRate >= TurnInPlaceValues.AimYawRateLimit)
+		MovementInfo.ViewYawRate >= TurnInPlaceValues.AimYawRateLimit)
 	{
 		TurnInPlaceValues.ElapsedDelayTime = 0.0f;
 		return;
@@ -235,7 +237,7 @@ void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 
 	if (TurnInPlaceValues.ElapsedDelayTime > ClampedAimAngle)
 	{
-		FRotator TurnInPlaceYawRot = OrganicInformation.ViewRotation;
+		FRotator TurnInPlaceYawRot = MovementInfo.ViewRotation;
 		TurnInPlaceYawRot.Roll = 0.0f;
 		TurnInPlaceYawRot.Pitch = 0.0f;
 
@@ -246,7 +248,7 @@ void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime,
 									   bool OverrideCurrent)
 {
-	FRotator Delta = TargetRotation - OrganicInformation.Rotation;
+	FRotator Delta = TargetRotation - MovementInfo.Rotation;
 	Delta.Normalize();
 
 	float TurnAngle = Delta.Yaw;
@@ -303,12 +305,12 @@ void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateSc
 
 float UOrganicAnimInstance::CalculateStrideBlend() const
 {
-	const float CurveTime = OrganicInformation.Speed / GetOwningComponent()->GetComponentScale().Z;
+	const float CurveTime = MovementInfo.Speed / GetOwningComponent()->GetComponentScale().Z;
 	const float ClampedGait = GetAnimCurveClamped(NAME_W_Gait, -1.0, 0.0f, 1.0f);
 	const float LerpStrideBlend = FMath::Lerp(StrideBlend_N_Walk->GetFloatValue(CurveTime),
 	                                          StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
 	
-	return FMath::Lerp(LerpStrideBlend, StrideBlend_C_Walk->GetFloatValue(OrganicInformation.Speed),
+	return FMath::Lerp(LerpStrideBlend, StrideBlend_C_Walk->GetFloatValue(MovementInfo.Speed),
 	                   GetCurveValue(NAME_BasePose_CLF));
 }
 
@@ -319,11 +321,11 @@ float UOrganicAnimInstance::CalculateWalkRunBlend() const
 
 float UOrganicAnimInstance::CalculateStandingPlayRate() const
 {
-	const float LerpedSpeed = FMath::Lerp(OrganicInformation.Speed / Config.AnimatedWalkSpeed,
-	                                      OrganicInformation.Speed / Config.AnimatedRunSpeed,
+	const float LerpedSpeed = FMath::Lerp(MovementInfo.Speed / Config.AnimatedWalkSpeed,
+	                                      MovementInfo.Speed / Config.AnimatedRunSpeed,
 	                                      GetAnimCurveClamped(NAME_W_Gait, -1.0f, 0.0f, 1.0f));
 
-	const float SprintAffectedSpeed = FMath::Lerp(LerpedSpeed, OrganicInformation.Speed / Config.AnimatedSprintSpeed,
+	const float SprintAffectedSpeed = FMath::Lerp(LerpedSpeed, MovementInfo.Speed / Config.AnimatedSprintSpeed,
 	                                              GetAnimCurveClamped(NAME_W_Gait, -2.0f, 0.0f, 1.0f));
 
 	return FMath::Clamp((SprintAffectedSpeed / Grounded.StrideBlend) / GetOwningComponent()->GetComponentScale().Z,
@@ -338,7 +340,7 @@ float UOrganicAnimInstance::CalculateDiagonalScaleAmount() const
 float UOrganicAnimInstance::CalculateCrouchingPlayRate() const
 {
 	return FMath::Clamp(
-		OrganicInformation.Speed / Config.AnimatedCrouchSpeed / Grounded.StrideBlend / GetOwningComponent()->
+		MovementInfo.Speed / Config.AnimatedCrouchSpeed / Grounded.StrideBlend / GetOwningComponent()->
 		GetComponentScale().Z,
 		0.0f, 2.0f);
 }
@@ -354,9 +356,9 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 	check(CapsuleComp);
 
 	const FVector& CapsuleWorldLoc = CapsuleComp->GetComponentLocation();
-	const float VelocityZ = OrganicInformation.Velocity.Z;
+	const float VelocityZ = MovementInfo.Velocity.Z;
 
-	FVector VelocityClamped = OrganicInformation.Velocity;
+	FVector VelocityClamped = MovementInfo.Velocity;
 	VelocityClamped.Z = FMath::Clamp(VelocityZ, -4000.0f, -200.0f);
 	VelocityClamped.Normalize();
 
@@ -385,20 +387,20 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 
 FVector UOrganicAnimInstance::CalculateRelativeAccelerationAmount() const
 {
-	if (FVector::DotProduct(OrganicInformation.Acceleration, OrganicInformation.Velocity) > 0.0f)
+	if (FVector::DotProduct(MovementInfo.Acceleration, MovementInfo.Velocity) > 0.0f)
 	{
 		float MaxAcc = OrganicPawn->GetOrganicMovement()->GetInputAcceleration();
-		return OrganicInformation.Rotation.UnrotateVector(OrganicInformation.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
+		return MovementInfo.Rotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
 	}
 
 	float MaxBrakingDec = OrganicPawn->GetOrganicMovement()->GetBrakingDeceleration();
-	return OrganicInformation.Rotation.UnrotateVector(OrganicInformation.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
+	return MovementInfo.Rotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
 }
 
 FOrganicVelocityBlend UOrganicAnimInstance::CalculateVelocityBlend() const
 {
 	const FVector LocRelativeVelocityDir =
-		OrganicInformation.Rotation.UnrotateVector(OrganicInformation.Velocity.GetSafeNormal(0.1f));
+		MovementInfo.Rotation.UnrotateVector(MovementInfo.Velocity.GetSafeNormal(0.1f));
 	
 	const float Sum = FMath::Abs(LocRelativeVelocityDir.X) + FMath::Abs(LocRelativeVelocityDir.Y) +
 		FMath::Abs(LocRelativeVelocityDir.Z);
@@ -417,7 +419,7 @@ FOrganicVelocityBlend UOrganicAnimInstance::CalculateVelocityBlend() const
 FOrganicLeanAmount UOrganicAnimInstance::CalculateAirLeanAmount() const
 {
 	FOrganicLeanAmount CalcLeanAmount;
-	const FVector& UnrotatedVel = OrganicInformation.Rotation.UnrotateVector(OrganicInformation.Velocity) / 350.0f;
+	const FVector& UnrotatedVel = MovementInfo.Rotation.UnrotateVector(MovementInfo.Velocity) / 350.0f;
 	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
 	InversedVect *= LeanInAirCurve->GetFloatValue(Airborne.FallSpeed);
 	CalcLeanAmount.LR = InversedVect.X;
@@ -432,7 +434,7 @@ EOrganicMovementDirection UOrganicAnimInstance::CalculateMovementDirection() con
 		return EOrganicMovementDirection::Forward;
 	}
 
-	FRotator Delta = OrganicInformation.Velocity.ToOrientationRotator() - OrganicInformation.ViewRotation;
+	FRotator Delta = MovementInfo.Velocity.ToOrientationRotator() - MovementInfo.ViewRotation;
 	Delta.Normalize();
 	return CalculateQuadrant(MovementDirection, 70.0f, -70.0f, 110.0f, -110.0f, 5.0f, Delta.Yaw);
 }
@@ -444,7 +446,7 @@ float UOrganicAnimInstance::GetAnimCurveClamped(const FName& Name, float Bias, f
 
 bool UOrganicAnimInstance::ShouldMoveCheck() const
 {
-	return (OrganicInformation.bIsMoving && OrganicInformation.bHasMovementInput) || OrganicInformation.Speed > 150.0f;
+	return (MovementInfo.bIsMoving && MovementInfo.bHasMovementInput) || MovementInfo.Speed > 150.0f;
 }
 
 bool UOrganicAnimInstance::CanRotateInPlace() const
@@ -461,14 +463,14 @@ void UOrganicAnimInstance::OnJumped()
 {
 	Airborne.bJumped = true;
 	Airborne.JumpPlayRate = FMath::GetMappedRangeValueClamped<float, float>(
-		{0.0f, 600.0f}, {1.2f, 1.5f}, OrganicInformation.Speed);
+		{0.0f, 600.0f}, {1.2f, 1.5f}, MovementInfo.Speed);
 
 	GetWorld()->GetTimerManager().SetTimer(OnJumpedTimer, this, &UOrganicAnimInstance::OnJumpedDelay, 0.1f, false);
 }
 
 void UOrganicAnimInstance::OnPivot()
 {
-	Grounded.bPivot = OrganicInformation.Speed < Config.TriggerPivotSpeedLimit;
+	Grounded.bPivot = MovementInfo.Speed < Config.TriggerPivotSpeedLimit;
 
 	GetWorld()->GetTimerManager().SetTimer(OnPivotTimer, this, &UOrganicAnimInstance::OnPivotDelay, 0.1f, false);
 }

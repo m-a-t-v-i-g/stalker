@@ -19,6 +19,9 @@ public:
 	
 	virtual void BindReplicationData_Implementation() override;
 
+	virtual void PhysicsGrounded(float DeltaSeconds) override;
+	virtual void PhysicsAirborne(float DeltaSeconds) override;
+	
 	virtual void PreMovementUpdate_Implementation(float DeltaSeconds) override;
 	virtual void MovementUpdate_Implementation(float DeltaSeconds) override;
 	virtual void MovementUpdateSimulated_Implementation(float DeltaSeconds) override;
@@ -28,6 +31,54 @@ public:
 
 protected:
 	TObjectPtr<class ABaseOrganic> OrganicOwner;
+
+#pragma region Movement
+
+	/*
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
+	FDataTableRowHandle MovementTable;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
+	FOrganicMovementModel MovementModel;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
+	FOrganicMovementState MovementState = EOrganicMovementState::None;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
+	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
+	*/
+	
+#pragma endregion Movement
+
+#pragma region Rotation
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Rotation")
+	EOrganicRotationMode InputRotationMode = EOrganicRotationMode::VelocityDirection;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Rotation")
+	FOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
+	
+#pragma endregion Rotation
+
+#pragma region Stance
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Stance")
+	EOrganicStance InputStance = EOrganicStance::Standing;
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Stance")
+	FOrganicStance Stance = EOrganicStance::Standing;
+
+#pragma endregion Stance
+
+#pragma region Gait
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Gait")
+	EOrganicGait InputGait = EOrganicGait::Medium;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Gait")
+	FOrganicGait Gait = EOrganicGait::Medium;
+
+#pragma endregion Gait
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
@@ -48,18 +99,35 @@ protected:
 	
 private:
 	bool bWantsChangeMovementSettings = false;
+
+	FRotator InputRotation;
 	
-	FRotator ViewRotation;
 	FRotator PrevPawnRotation;
+	
 	FRotator PrevComponentRotation;
+
+	float MovementInputValue = 0.0f;
+
+	bool bHasMovementInput = false;
+	
+	bool bIsMoving = false;
 
 public:
 	void SetMovementSettings(FOrganicMovementSettings NewMovementSettings);
+	
+	EOrganicGait CalculateAllowedGait() const;
+	EOrganicGait CalculateActualGait(EOrganicGait NewAllowedGait) const;
+
 	void SetAllowedGait(EOrganicGait DesiredGait);
 
 	float GetMappedSpeed() const;
 
-	FORCEINLINE FRotator GetViewRotation() const { return ViewRotation; }
+	void UpdateGroundRotation(float DeltaTime);
+	void UpdateAirborneRotation(float DeltaTime);
+	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
+	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
+	
+	FORCEINLINE FRotator GetInputRotation() const { return InputRotation; }
 	
 	FORCEINLINE FRotator GetLastPawnRotation() const { return PrevPawnRotation; }
 	

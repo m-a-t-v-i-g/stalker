@@ -10,10 +10,10 @@ class UCurveVector;
 UENUM(BlueprintType)
 enum class EOrganicMovementState : uint8
 {
-	None,
-	Ground,
-	Airborne,
-	Ragdoll
+	None		UMETA(DisplayName = "None"),
+	Ground		UMETA(DisplayName = "Ground"),
+	Airborne	UMETA(DisplayName = "Airborne"),
+	Ragdoll		UMETA(DisplayName = "Ragdoll")
 };
 
 UENUM(BlueprintType)
@@ -173,19 +173,19 @@ public:
 USTRUCT(BlueprintType)
 struct FOrganicRotationMode
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-private:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
 	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
-	bool bVelocityDirection = true;
+private:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	bool bVelocityDirection = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
 	bool bLookingDirection = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
 	bool bControlDirection = false;
 
 public:
@@ -427,48 +427,6 @@ struct FOrganicTurnInPlaceAsset
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic|Turn In Place")
 	bool ScaleTurnAngle = true;
-};
-
-USTRUCT(BlueprintType)
-struct FAnimOrganicInformation
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FVector Velocity = FVector::ZeroVector;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FVector RelativeVelocityDirection = FVector::ZeroVector;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FVector Acceleration = FVector::ZeroVector;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FRotator Rotation = FRotator::ZeroRotator;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	FRotator ViewRotation = FRotator::ZeroRotator;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	bool bIsMoving = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	bool bHasMovementInput = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	float Speed = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	float MovementInputAmount = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	float ViewYawRate = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	float ZoomAmount = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Information")
-	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
 };
 
 USTRUCT(BlueprintType)

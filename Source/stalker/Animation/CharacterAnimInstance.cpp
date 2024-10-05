@@ -24,15 +24,15 @@ void UCharacterAnimInstance::OnLayerValuesUpdated(float DeltaSeconds)
 void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
 	ViewValues.SmoothedViewRotation = FMath::RInterpTo(ViewValues.SmoothedViewRotation,
-	                                                   OrganicInformation.ViewRotation, DeltaSeconds,
+	                                                   MovementInfo.ViewRotation, DeltaSeconds,
 	                                                   Config.SmoothedAimingRotationInterpSpeed);
 
-	FRotator Delta = OrganicInformation.ViewRotation - OrganicInformation.Rotation;
+	FRotator Delta = MovementInfo.ViewRotation - MovementInfo.Rotation;
 	Delta.Normalize();
 	ViewValues.AimingAngle.X = Delta.Yaw;
 	ViewValues.AimingAngle.Y = Delta.Pitch;
 
-	Delta = ViewValues.SmoothedViewRotation - OrganicInformation.Rotation;
+	Delta = ViewValues.SmoothedViewRotation - MovementInfo.Rotation;
 	Delta.Normalize();
 	SmoothedAimingAngle.X = Delta.Yaw;
 	SmoothedAimingAngle.Y = Delta.Pitch;
@@ -46,9 +46,9 @@ void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 		ViewValues.SpineRotation.Pitch = 0.0f;
 		ViewValues.SpineRotation.Yaw = ViewValues.AimingAngle.X / 4.0f;
 	}
-	else if (OrganicInformation.bHasMovementInput)
+	else if (MovementInfo.bHasMovementInput)
 	{
-		Delta = OrganicInformation.Acceleration.ToOrientationRotator() - OrganicInformation.Rotation;
+		Delta = MovementInfo.Acceleration.ToOrientationRotator() - MovementInfo.Rotation;
 		Delta.Normalize();
 		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>(
 			{-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
@@ -192,7 +192,7 @@ void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Loc
 	}
 
 	const FVector& LocationDifference = GetOwningComponent()->GetComponentRotation().UnrotateVector(
-		OrganicInformation.Velocity * DeltaSeconds);
+		MovementInfo.Velocity * DeltaSeconds);
 	LocalLoc = (LocalLoc - LocationDifference).RotateAngleAxis(RotationDifference.Yaw, FVector::DownVector);
 
 	FRotator Delta = LocalRot - RotationDifference;

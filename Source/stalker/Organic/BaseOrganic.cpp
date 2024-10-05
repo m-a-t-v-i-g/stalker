@@ -9,6 +9,7 @@
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Components/Weapons/WeaponComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
@@ -184,11 +185,15 @@ void ABaseOrganic::OnMovementModeChanged()
 
 void ABaseOrganic::OrganicTick(float DeltaTime)
 {
-	ViewRotation = GetOrganicMovement()->GetViewRotation();
+	ViewRotation = GetOrganicMovement()->GetInputRotation();
 	
 	const FVector Velocity = GetOrganicMovement()->GetVelocity();
 	const FVector PrevAcceleration = (Velocity - PreviousVelocity) / DeltaTime;
 	Acceleration = PrevAcceleration.IsNearlyZero() ? Acceleration / 2 : PrevAcceleration;
+
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(
+		                                  TEXT("Acceleration: %f, %f, %f"), Acceleration.X, Acceleration.Y,
+		                                  Acceleration.Z), true, false, FLinearColor::Green, DeltaTime, "PrevAcc");
 	
 	Speed = Velocity.Size2D();
 	bIsMoving = Speed > 1.0f;

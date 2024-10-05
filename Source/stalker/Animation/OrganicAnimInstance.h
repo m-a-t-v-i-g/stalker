@@ -11,6 +11,49 @@
 class UAnimSequence;
 class UCurveFloat;
 class UCurveVector;
+class UOrganicMovementComponent;
+
+USTRUCT(BlueprintType)
+struct FAnim_MovementInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FVector Velocity = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FVector RelativeVelocityDirection = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FVector Acceleration = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FRotator Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FRotator ViewRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	bool bIsMoving = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	bool bHasMovementInput = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	float Speed = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	float MovementInputAmount = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	float ViewYawRate = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	float ZoomAmount = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
+};
 
 UCLASS(Blueprintable, BlueprintType)
 class STALKER_API UOrganicAnimInstance : public UAnimInstance
@@ -112,9 +155,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
 	TObjectPtr<class ABaseOrganic> OrganicPawn = nullptr;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
+	TWeakObjectPtr<UOrganicMovementComponent> OrganicMovement;
+
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information",
 		meta = (ShowOnlyInnerProperties))
-	FAnimOrganicInformation OrganicInformation;
+	FAnim_MovementInfo MovementInfo;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicMovementState MovementState = EOrganicMovementState::None;
