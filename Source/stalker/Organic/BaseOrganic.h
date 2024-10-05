@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GenPawn.h"
+#include "OrganicActorInterface.h"
 #include "Library/OrganicLibrary.h"
 #include "BaseOrganic.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumped);
 
 UCLASS()
-class STALKER_API ABaseOrganic : public AGenPawn, public IAbilitySystemInterface
+class STALKER_API ABaseOrganic : public AGenPawn, public IOrganicActorInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -21,7 +22,6 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
 	virtual void PossessedBy(AController* NewController) override;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -144,9 +144,6 @@ protected:
 	FRotator LastVelocityRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
-	FRotator LastInputRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	float Speed = 0.0f;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
@@ -157,9 +154,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Base Organic")
 	bool bIsMoving = false;
-
-	FVector PreviousVelocity;
-	float PreviousViewYaw;
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -310,9 +304,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE float GetSpeed() const { return Speed; }
-	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
 	FORCEINLINE float GetMovementInputAmount() const { return MovementInputAmount; }
 

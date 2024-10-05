@@ -11,9 +11,9 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 	Character = Cast<ABaseCharacter>(TryGetPawnOwner());
 }
 
-void UCharacterAnimInstance::OnLayerValuesUpdated(float DeltaSeconds)
+void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
-	Super::OnLayerValuesUpdated(DeltaSeconds);
+	Super::UpdateMovementInfo(DeltaSeconds);
 	
 	if (!Character) return;
 
@@ -27,12 +27,12 @@ void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 	                                                   MovementInfo.ViewRotation, DeltaSeconds,
 	                                                   Config.SmoothedAimingRotationInterpSpeed);
 
-	FRotator Delta = MovementInfo.ViewRotation - MovementInfo.Rotation;
+	FRotator Delta = MovementInfo.ViewRotation - MovementInfo.ActorRotation;
 	Delta.Normalize();
 	ViewValues.AimingAngle.X = Delta.Yaw;
 	ViewValues.AimingAngle.Y = Delta.Pitch;
 
-	Delta = ViewValues.SmoothedViewRotation - MovementInfo.Rotation;
+	Delta = ViewValues.SmoothedViewRotation - MovementInfo.ActorRotation;
 	Delta.Normalize();
 	SmoothedAimingAngle.X = Delta.Yaw;
 	SmoothedAimingAngle.Y = Delta.Pitch;
@@ -48,7 +48,7 @@ void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 	}
 	else if (MovementInfo.bHasMovementInput)
 	{
-		Delta = MovementInfo.Acceleration.ToOrientationRotator() - MovementInfo.Rotation;
+		Delta = MovementInfo.Acceleration.ToOrientationRotator() - MovementInfo.ActorRotation;
 		Delta.Normalize();
 		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>(
 			{-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);

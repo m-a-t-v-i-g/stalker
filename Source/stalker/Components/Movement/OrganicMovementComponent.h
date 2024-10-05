@@ -32,6 +32,8 @@ public:
 protected:
 	TObjectPtr<class ABaseOrganic> OrganicOwner;
 
+	//TObjectPtr<AActor> OrganicOwner;
+
 #pragma region Movement
 
 	/*
@@ -100,8 +102,20 @@ protected:
 private:
 	bool bWantsChangeMovementSettings = false;
 
-	FRotator InputRotation;
+	FVector InstantAcceleration;
+
+	FVector PreviousVelocity;
 	
+	FRotator ViewRotation;
+
+	float ViewYawRate;
+	
+	float PreviousViewYaw;
+
+	FRotator TargetRotation;
+	
+	FRotator VelocityRotation;
+
 	FRotator PrevPawnRotation;
 	
 	FRotator PrevComponentRotation;
@@ -114,12 +128,21 @@ private:
 
 public:
 	void SetMovementSettings(FOrganicMovementSettings NewMovementSettings);
+
+	void UpdateGait();
 	
 	EOrganicGait CalculateAllowedGait() const;
 	EOrganicGait CalculateActualGait(EOrganicGait NewAllowedGait) const;
-
+	
 	void SetAllowedGait(EOrganicGait DesiredGait);
 
+	void SetGait(const EOrganicGait NewGait, bool bForce = false);
+	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
+	
+	float CalculateGroundRotationRate() const;
+
+	float GetAnimCurveValue(FName CurveName) const;
+	
 	float GetMappedSpeed() const;
 
 	void UpdateGroundRotation(float DeltaTime);
@@ -127,12 +150,24 @@ public:
 	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
 	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
 	
-	FORCEINLINE FRotator GetInputRotation() const { return InputRotation; }
+	FORCEINLINE FVector GetInstantAcceleration() const { return InstantAcceleration; }
+
+	FORCEINLINE FRotator GetInputRotation() const { return ViewRotation; }
 	
 	FORCEINLINE FRotator GetLastPawnRotation() const { return PrevPawnRotation; }
 	
 	FORCEINLINE FRotator GetLastComponentRotation() const { return PrevComponentRotation; }
+	
+	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
 
+	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
+
+	FORCEINLINE float GetMovementInputValue() const { return MovementInputValue; }
+
+	FORCEINLINE bool HasMovementInput() const { return bHasMovementInput; }
+
+	FORCEINLINE bool IsMoving() const { return bIsMoving; }
+	
 protected:
 	float TargetMaxSpeed = 0.0f;
 	

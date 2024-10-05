@@ -137,16 +137,8 @@ void ABaseOrganic::BeginPlay()
 
 	TargetRotation = GetOrganicMovement()->GetRootCollisionRotation();
 	LastVelocityRotation = TargetRotation;
-	LastInputRotation = TargetRotation;
-
+	
 	GetOrganicMovement()->SetMovementSettings(GetMovementSettings());
-}
-
-void ABaseOrganic::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	OrganicTick(DeltaSeconds);
 }
 
 void ABaseOrganic::PossessedBy(AController* NewController)
@@ -183,66 +175,10 @@ void ABaseOrganic::OnMovementModeChanged()
 	}
 }
 
-void ABaseOrganic::OrganicTick(float DeltaTime)
-{
-	ViewRotation = GetOrganicMovement()->GetInputRotation();
-	
-	const FVector Velocity = GetOrganicMovement()->GetVelocity();
-	const FVector PrevAcceleration = (Velocity - PreviousVelocity) / DeltaTime;
-	Acceleration = PrevAcceleration.IsNearlyZero() ? Acceleration / 2 : PrevAcceleration;
-
-	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(
-		                                  TEXT("Acceleration: %f, %f, %f"), Acceleration.X, Acceleration.Y,
-		                                  Acceleration.Z), true, false, FLinearColor::Green, DeltaTime, "PrevAcc");
-	
-	Speed = Velocity.Size2D();
-	bIsMoving = Speed > 1.0f;
-	if (bIsMoving)
-	{
-		LastVelocityRotation = Velocity.ToOrientationRotator();
-	}
-
-	float MaxSpeed = GetOrganicMovement()->GetMaxSpeed();
-	MovementInputAmount = Velocity.Size2D() / MaxSpeed;
-	
-	bHasMovementInput = MovementInputAmount > 0.0f;
-	if (bHasMovementInput)
-	{
-		LastInputRotation = Acceleration.ToOrientationRotator();
-	}
-	ViewYawRate = FMath::Abs((ViewRotation.Yaw - PreviousViewYaw) / DeltaTime);
-	
-	if (MovementState == EOrganicMovementState::Ground)
-	{
-		const EOrganicGait AllowedGait = CalculateAllowedGait();
-		const EOrganicGait ActualGait = CalculateActualGait(AllowedGait);
-
-		if (ActualGait != Gait)
-		{
-			SetGait(ActualGait);
-		}
-		
-		GetOrganicMovement()->SetAllowedGait(AllowedGait);
-		UpdateGroundRotation(DeltaTime);
-	}
-	else if (MovementState == EOrganicMovementState::Airborne)
-	{
-		UpdateAirborneRotation(DeltaTime);
-	}
-	else if (MovementState == EOrganicMovementState::Ragdoll)
-	{
-		
-	}
-	
-	PreviousVelocity = GetVelocity();
-	PreviousViewYaw = ViewRotation.Yaw;
-}
-
 void ABaseOrganic::SetMovementModel()
 {
 	const FString ContextString = GetFullName();
-	const FOrganicMovementModel* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementModel>(
-		MovementTable.RowName, ContextString);
+	const FOrganicMovementModel* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementModel>(MovementTable.RowName, ContextString);
 	if (!OutRow) return;
 	
 	MovementModel = *OutRow;
@@ -537,10 +473,10 @@ void ABaseOrganic::UpdateGroundRotation(float DeltaTime)
 			float RotationAmount = GetAnimCurveValue(NAME_RotationAmount);
 			if (FMath::Abs(RotationAmount) > 0.001f)
 			{
-				TargetRotation.Yaw = UKismetMathLibrary::NormalizeAxis(
-					TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
+				TargetRotation.Yaw = FRotator::NormalizeAxis(TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
 				GetOrganicMovement()->SetRootCollisionRotation(TargetRotation);
 			}
+			// TODO: убедиться в надобности
 			TargetRotation = GetOrganicMovement()->GetRootCollisionRotation();
 		}
 	}

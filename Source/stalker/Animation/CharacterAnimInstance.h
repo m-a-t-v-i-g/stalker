@@ -15,7 +15,7 @@ class STALKER_API UCharacterAnimInstance : public UOrganicAnimInstance
 protected:
 	virtual void NativeInitializeAnimation() override;
 
-	virtual void OnLayerValuesUpdated(float DeltaSeconds) override;
+	virtual void UpdateMovementInfo(float DeltaSeconds) override;
 	
 	virtual void UpdateViewValues(float DeltaSeconds) override;
 	virtual void UpdateLayerValues(float DeltaSeconds) override;

@@ -26,27 +26,7 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (!OrganicPawn || !OrganicMovement.IsValid()) return;
 	
-	MovementInfo.Acceleration = OrganicPawn->GetAcceleration();
-	MovementInfo.Velocity = OrganicPawn->GetOrganicMovement()->GetVelocity();
-	MovementInfo.Speed = OrganicPawn->GetSpeed();
-	
-	MovementInfo.Rotation = OrganicPawn->GetOrganicMovement()->GetRootCollisionRotation();
-	MovementInfo.ViewRotation = OrganicPawn->GetOrganicViewRotation();
-	MovementInfo.ViewYawRate = OrganicPawn->GetViewYawRate();
-
-	MovementInfo.bIsMoving = OrganicPawn->IsMoving();
-	MovementInfo.MovementInputAmount = OrganicPawn->GetMovementInputAmount();
-	MovementInfo.bHasMovementInput = OrganicPawn->HasMovementInput();
-
-	MovementInfo.PrevMovementState = OrganicPawn->GetPrevMovementState();
-	LayerBlendingValues.OverlayOverrideState = OrganicPawn->GetOverlayOverrideState();
-	
-	MovementState = OrganicPawn->GetMovementState();
-	RotationMode = OrganicPawn->GetRotationMode();
-	Stance = OrganicPawn->GetStance();
-	Gait = OrganicPawn->GetGait();
-
-	OnLayerValuesUpdated(DeltaSeconds);
+	UpdateMovementInfo(DeltaSeconds);
 
 	UpdateViewValues(DeltaSeconds);
 	UpdateLayerValues(DeltaSeconds);
@@ -66,14 +46,33 @@ void UOrganicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-void UOrganicAnimInstance::OnLayerValuesUpdated(float DeltaSeconds)
+void UOrganicAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
+	MovementInfo.Acceleration = OrganicMovement->GetInstantAcceleration();
+	MovementInfo.Velocity = OrganicMovement->GetVelocity();
+	MovementInfo.Speed = OrganicMovement->GetSpeedXY();
 	
+	MovementInfo.ActorRotation = OrganicMovement->GetRootCollisionRotation();
+	MovementInfo.ViewRotation = OrganicMovement->GetInputRotation();
+	MovementInfo.ViewYawRate = OrganicMovement->GetViewYawRate();
+
+	MovementInfo.MovementInputAmount = OrganicMovement->GetMovementInputValue();
+	MovementInfo.bHasMovementInput = OrganicMovement->HasMovementInput();
+	MovementInfo.bIsMoving = OrganicMovement->IsMoving();
+
+	MovementInfo.PrevMovementState = OrganicPawn->GetPrevMovementState();
+
+	// TODO: возможно, можно перенести в CharacterAnimInstance
+	LayerBlendingValues.OverlayOverrideState = OrganicPawn->GetOverlayOverrideState();
+	
+	MovementState = OrganicPawn->GetMovementState();
+	RotationMode = OrganicPawn->GetRotationMode();
+	Stance = OrganicPawn->GetStance();
+	Gait = OrganicMovement->GetGait();
 }
 
 void UOrganicAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
-	
 }
 
 void UOrganicAnimInstance::UpdateLayerValues(float DeltaSeconds)
@@ -88,24 +87,24 @@ void UOrganicAnimInstance::UpdateMovementValues(float DeltaSeconds)
 {
 	const FOrganicVelocityBlend& TargetBlend = CalculateVelocityBlend();
 	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds,
-											 Config.VelocityBlendInterpSpeed);
+	                                         Config.VelocityBlendInterpSpeed);
 	VelocityBlend.Backward = FMath::FInterpTo(VelocityBlend.Backward, TargetBlend.Backward, DeltaSeconds,
-											  Config.VelocityBlendInterpSpeed);
+	                                          Config.VelocityBlendInterpSpeed);
 	VelocityBlend.Left = FMath::FInterpTo(VelocityBlend.Left, TargetBlend.Left, DeltaSeconds,
-										  Config.VelocityBlendInterpSpeed);
+	                                      Config.VelocityBlendInterpSpeed);
 	VelocityBlend.Right = FMath::FInterpTo(VelocityBlend.Right, TargetBlend.Right, DeltaSeconds,
-										   Config.VelocityBlendInterpSpeed);
+	                                       Config.VelocityBlendInterpSpeed);
 
 	Grounded.DiagonalScaleAmount = CalculateDiagonalScaleAmount();
 
 	RelativeAccelerationAmount = CalculateRelativeAccelerationAmount();
+	
 	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, RelativeAccelerationAmount.Y, DeltaSeconds,
-									 Config.GroundedLeanInterpSpeed);
+	                                 Config.GroundedLeanInterpSpeed);
 	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, RelativeAccelerationAmount.X, DeltaSeconds,
-									 Config.GroundedLeanInterpSpeed);
+	                                 Config.GroundedLeanInterpSpeed);
 
 	Grounded.WalkRunBlend = CalculateWalkRunBlend();
-
 	Grounded.StrideBlend = CalculateStrideBlend();
 
 	Grounded.StandingPlayRate = CalculateStandingPlayRate();
@@ -173,9 +172,9 @@ void UOrganicAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 	Airborne.FallSpeed = MovementInfo.Velocity.Z;
 	Airborne.LandPrediction = CalculateLandPrediction();
 
-	const FOrganicLeanAmount& InAirLeanAmount = CalculateAirLeanAmount();
-	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, InAirLeanAmount.LR, DeltaSeconds, Config.GroundedLeanInterpSpeed);
-	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, InAirLeanAmount.FB, DeltaSeconds, Config.GroundedLeanInterpSpeed);
+	const FOrganicLeanAmount& AirborneLeanAmount = CalculateAirLeanAmount();
+	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, AirborneLeanAmount.LR, DeltaSeconds, Config.GroundedLeanInterpSpeed);
+	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, AirborneLeanAmount.FB, DeltaSeconds, Config.GroundedLeanInterpSpeed);
 }
 
 void UOrganicAnimInstance::UpdateRagdollValues()
@@ -248,7 +247,7 @@ void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime,
 									   bool OverrideCurrent)
 {
-	FRotator Delta = TargetRotation - MovementInfo.Rotation;
+	FRotator Delta = TargetRotation - MovementInfo.ActorRotation;
 	Delta.Normalize();
 
 	float TurnAngle = Delta.Yaw;
@@ -370,18 +369,16 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 
 	FHitResult HitResult;
 	const FCollisionShape CapsuleCollisionShape = FCollisionShape::MakeCapsule(CapsuleComp->GetUnscaledCapsuleRadius(),
-	                                                                           CapsuleComp->
-	                                                                           GetUnscaledCapsuleHalfHeight());
+	                                                                           CapsuleComp->GetUnscaledCapsuleHalfHeight());
 
 	GetWorld()->SweepSingleByChannel(HitResult, CapsuleWorldLoc, CapsuleWorldLoc + TraceLength, FQuat::Identity,
 	                                 ECC_Visibility, CapsuleCollisionShape, Params);
 
-	if (OrganicPawn->GetOrganicMovement()->HitWalkableFloor(HitResult))
+	if (OrganicMovement->HitWalkableFloor(HitResult))
 	{
 		return FMath::Lerp(LandPredictionCurve->GetFloatValue(HitResult.Time), 0.0f,
 		                   GetCurveValue(NAME_Mask_LandPrediction));
 	}
-
 	return 0.0f;
 }
 
@@ -389,18 +386,18 @@ FVector UOrganicAnimInstance::CalculateRelativeAccelerationAmount() const
 {
 	if (FVector::DotProduct(MovementInfo.Acceleration, MovementInfo.Velocity) > 0.0f)
 	{
-		float MaxAcc = OrganicPawn->GetOrganicMovement()->GetInputAcceleration();
-		return MovementInfo.Rotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
+		float MaxAcc = OrganicMovement->GetInputAcceleration();
+		return MovementInfo.ActorRotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
 	}
 
-	float MaxBrakingDec = OrganicPawn->GetOrganicMovement()->GetBrakingDeceleration();
-	return MovementInfo.Rotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
+	float MaxBrakingDec = OrganicMovement->GetBrakingDeceleration();
+	return MovementInfo.ActorRotation.UnrotateVector(MovementInfo.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
 }
 
 FOrganicVelocityBlend UOrganicAnimInstance::CalculateVelocityBlend() const
 {
 	const FVector LocRelativeVelocityDir =
-		MovementInfo.Rotation.UnrotateVector(MovementInfo.Velocity.GetSafeNormal(0.1f));
+		MovementInfo.ActorRotation.UnrotateVector(MovementInfo.Velocity.GetSafeNormal(0.1f));
 	
 	const float Sum = FMath::Abs(LocRelativeVelocityDir.X) + FMath::Abs(LocRelativeVelocityDir.Y) +
 		FMath::Abs(LocRelativeVelocityDir.Z);
@@ -419,7 +416,7 @@ FOrganicVelocityBlend UOrganicAnimInstance::CalculateVelocityBlend() const
 FOrganicLeanAmount UOrganicAnimInstance::CalculateAirLeanAmount() const
 {
 	FOrganicLeanAmount CalcLeanAmount;
-	const FVector& UnrotatedVel = MovementInfo.Rotation.UnrotateVector(MovementInfo.Velocity) / 350.0f;
+	const FVector& UnrotatedVel = MovementInfo.ActorRotation.UnrotateVector(MovementInfo.Velocity) / 350.0f;
 	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
 	InversedVect *= LeanInAirCurve->GetFloatValue(Airborne.FallSpeed);
 	CalcLeanAmount.LR = InversedVect.X;

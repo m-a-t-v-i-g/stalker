@@ -19,37 +19,31 @@ struct FAnim_MovementInfo
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	FVector Velocity = FVector::ZeroVector;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	FVector RelativeVelocityDirection = FVector::ZeroVector;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
 	FVector Acceleration = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	FRotator Rotation = FRotator::ZeroRotator;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	FRotator ViewRotation = FRotator::ZeroRotator;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	bool bIsMoving = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	bool bHasMovementInput = false;
+	FVector Velocity = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
 	float Speed = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	float MovementInputAmount = 0.0f;
+	FRotator ActorRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	FRotator ViewRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
 	float ViewYawRate = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
-	float ZoomAmount = 0.0f;
+	float MovementInputAmount = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	bool bHasMovementInput = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
+	bool bIsMoving = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Info")
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
@@ -71,7 +65,7 @@ protected:
 		Grounded.TrackedHipsDirection = HipsDirection;
 	}
 
-	virtual void OnLayerValuesUpdated(float DeltaSeconds);
+	virtual void UpdateMovementInfo(float DeltaSeconds);
 	
 	virtual void UpdateViewValues(float DeltaSeconds);
 	virtual void UpdateLayerValues(float DeltaSeconds);
