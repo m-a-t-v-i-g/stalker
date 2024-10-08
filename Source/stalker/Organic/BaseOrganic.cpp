@@ -157,84 +157,22 @@ UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
 
 void ABaseOrganic::OnMovementModeChanged()
 {
-	if (GetOrganicMovement()->IsMovingOnGround())
-	{
-		SetMovementState(EOrganicMovementState::Ground);
-	}
-	else if (GetOrganicMovement()->IsAirborne())
-	{
-		SetMovementState(EOrganicMovementState::Airborne);
-	}
+	
 }
 
 void ABaseOrganic::SetMovementModel()
 {
-	const FString ContextString = GetFullName();
-	const FOrganicMovementModel* OutRow = MovementTable.DataTable->FindRow<FOrganicMovementModel>(MovementTable.RowName, ContextString);
-	if (!OutRow) return;
 	
-	MovementModel = *OutRow;
-}
-
-FOrganicMovementSettings ABaseOrganic::GetMovementSettings() const
-{
-	switch (RotationMode)
-	{
-	case EOrganicRotationMode::ControlDirection:
-		{
-			if (Stance == EOrganicStance::Standing)
-			{
-				return MovementModel.ControlDirection.Standing;
-			}
-			if (Stance == EOrganicStance::Crouching)
-			{
-				return MovementModel.ControlDirection.Crouching;
-			}
-		}
-	case EOrganicRotationMode::LookingDirection:
-		{
-			if (Stance == EOrganicStance::Standing)
-			{
-				return MovementModel.LookingDirection.Standing;
-			}
-			if (Stance == EOrganicStance::Crouching)
-			{
-				return MovementModel.LookingDirection.Crouching;
-			}
-		}
-	case EOrganicRotationMode::VelocityDirection:
-		{
-			if (Stance == EOrganicStance::Standing)
-			{
-				return MovementModel.VelocityDirection.Standing;
-			}
-			if (Stance == EOrganicStance::Crouching)
-			{
-				return MovementModel.VelocityDirection.Crouching;
-			}
-		}
-	default: return MovementModel.VelocityDirection.Standing;
-	}
 }
 
 void ABaseOrganic::SetMovementState(const EOrganicMovementState NewMovementState, bool bForce)
 {
-	if (bForce || MovementState != NewMovementState)
-	{
-		PrevMovementState = MovementState;
-		MovementState = NewMovementState;
-		OnMovementStateChanged(PrevMovementState);
-	}
+	
 }
 
 void ABaseOrganic::SetStance(const EOrganicStance NewStance, bool bForce)
 {
-	if (bForce || Stance != NewStance)
-	{
-		const EOrganicStance Prev = Stance;
-		Stance = NewStance;
-		OnStanceChanged(Prev);
-	}
+	
 }
 
 void ABaseOrganic::OnStanceChanged(EOrganicStance PreviousStance)
@@ -244,17 +182,12 @@ void ABaseOrganic::OnStanceChanged(EOrganicStance PreviousStance)
 
 void ABaseOrganic::SetInputGait(EOrganicGait NewInputGait)
 {
-	InputGait = NewInputGait;
+	
 }
 
 void ABaseOrganic::SetGait(const EOrganicGait NewGait, bool bForce)
 {
-	if (bForce || Gait != NewGait)
-	{
-		const EOrganicGait PreviousGait = Gait;
-		Gait = NewGait;
-		OnGaitChanged(PreviousGait);
-	}
+	
 }
 
 void ABaseOrganic::OnGaitChanged(EOrganicGait PreviousGait)
@@ -267,67 +200,34 @@ void ABaseOrganic::SetOverlayOverrideState(int32 NewState)
 	OverlayOverrideState = NewState;
 }
 
-float ABaseOrganic::GetAnimCurveValue(FName CurveName) const
-{
-	if (GetMesh() && GetMesh()->GetAnimInstance())
-	{
-		return GetMesh()->GetAnimInstance()->GetCurveValue(CurveName);
-	}
-	return 0.0f;
-}
-
 void ABaseOrganic::ForceUpdateCharacterState()
 {
-	SetGait(InputGait, true);
-	SetStance(InputStance, true);
-	SetRotationMode(InputRotationMode, true);
-	SetMovementState(MovementState, true);
+	
 }
 
 void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousState)
 {
-	if (MovementState == EOrganicMovementState::Airborne)
-	{
-		//AirborneRotation = OrganicMovement->GetRootCollisionRotation();
-		if (Stance == EOrganicStance::Crouching)
-		{
-			OrganicMovement->OnUnCrouch();
-		}
-	}
+	
 }
 
 void ABaseOrganic::SetInputRotationMode(EOrganicRotationMode NewInputRotationMode)
 {
-	InputRotationMode = NewInputRotationMode;
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		Server_SetInputRotationMode(NewInputRotationMode);
-	}
+	
 }
 
 void ABaseOrganic::Server_SetInputRotationMode_Implementation(EOrganicRotationMode NewInputRotationMode)
 {
-	SetInputRotationMode(NewInputRotationMode);
+	
 }
 
 void ABaseOrganic::SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce)
 {
-	if (bForce || RotationMode != NewRotationMode)
-	{
-		const EOrganicRotationMode Prev = RotationMode;
-		RotationMode = NewRotationMode;
-		OnRotationModeChanged(Prev);
-
-		if (GetLocalRole() == ROLE_AutonomousProxy)
-		{
-			Server_SetRotationMode(NewRotationMode, bForce);
-		}
-	}
+	
 }
 
 void ABaseOrganic::Server_SetRotationMode_Implementation(EOrganicRotationMode NewRotationMode, bool bForce)
 {
-	SetRotationMode(NewRotationMode);
+
 }
 
 void ABaseOrganic::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
@@ -337,35 +237,33 @@ void ABaseOrganic::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
 
 void ABaseOrganic::SetInputStance(EOrganicStance NewInputStance)
 {
-	InputStance = NewInputStance;
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		Server_SetInputStance(NewInputStance);
-	}
+	
 }
 
 void ABaseOrganic::Server_SetInputStance_Implementation(EOrganicStance NewInputStance)
 {
-	SetInputStance(NewInputStance);
+	
 }
 
 void ABaseOrganic::OnSprint(bool bEnabled)
 {
-	bEnabled ? SetInputGait(EOrganicGait::Fast) : SetInputGait(EOrganicGait::Medium);
+	// bEnabled ? SetInputGait(EOrganicGait::Fast) : SetInputGait(EOrganicGait::Medium);
 }
 
 void ABaseOrganic::OnCrouch()
 {
-	SetStance(EOrganicStance::Crouching);
+	// SetStance(EOrganicStance::Crouching);
 }
 
 void ABaseOrganic::OnUnCrouch()
 {
-	SetStance(EOrganicStance::Standing);
+	// SetStance(EOrganicStance::Standing);
 }
 
 void ABaseOrganic::OnJump()
 {
+	
+	/*
 	if (MovementState == EOrganicMovementState::Ground)
 	{
 		if (Stance == EOrganicStance::Standing)
@@ -378,6 +276,8 @@ void ABaseOrganic::OnJump()
 			OrganicMovement->OnUnCrouch();
 		}
 	}
+	*/
+	
 }
 
 bool ABaseOrganic::IsSprinting() const

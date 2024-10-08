@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Animation/CharacterAnimInstance.h"
+
+#include "CharacterAnimConfig.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Organic/Characters/BaseCharacter.h"
 
@@ -28,46 +30,7 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
-	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation,
-	                                                   Movement.ViewRotation, DeltaSeconds,
-	                                                   Config.SmoothedAimingRotationInterpSpeed);
-
-	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
-	Delta.Normalize();
-	View.AimingAngle.X = Delta.Yaw;
-	View.AimingAngle.Y = Delta.Pitch;
-
-	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
-	Delta.Normalize();
-	SmoothedAimingAngle.X = Delta.Yaw;
-	SmoothedAimingAngle.Y = Delta.Pitch;
-
-	if (!RotationMode.VelocityDirection())
-	{
-		View.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>(
-			{-90.0f, 90.0f}, {1.0f, 0.0f}, View.AimingAngle.Y);
-
-		View.SpineRotation.Roll = 0.0f;
-		View.SpineRotation.Pitch = 0.0f;
-		View.SpineRotation.Yaw = View.AimingAngle.X / 4.0f;
-	}
-	else if (Movement.bHasMovementInput)
-	{
-		Delta = Movement.Acceleration.ToOrientationRotator() - Movement.ActorRotation;
-		Delta.Normalize();
-		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>(
-			{-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
-
-		View.InputYawOffsetTime = FMath::FInterpTo(View.InputYawOffsetTime, InterpTarget,
-		                                                 DeltaSeconds, Config.InputYawOffsetInterpSpeed);
-	}
-
-	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f},
-	                                                                         FMath::Abs(SmoothedAimingAngle.X));
-	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f},
-	                                                                          FMath::Abs(SmoothedAimingAngle.X));
-	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>(
-		{-180.0f, 180.0f}, {0.0f, 1.0f}, SmoothedAimingAngle.X);
+	Super::UpdateViewValues(DeltaSeconds);
 }
 
 void UCharacterAnimInstance::UpdateLayerValues(float DeltaSeconds)
@@ -140,8 +103,7 @@ void UCharacterAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 
 void UCharacterAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve,
                                             FName IKFootBone, float& CurFootLockAlpha, bool& UseFootLockCurve,
-                                            FVector& CurFootLockLoc,
-                                            FRotator& CurFootLockRot)
+                                            FVector& CurFootLockLoc, FRotator& CurFootLockRot)
 {
 	if (GetCurveValue(EnableFootIKCurve) <= 0.0f)
 	{
@@ -250,8 +212,8 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Character);
 
-	const FVector TraceStart = IKFootFloorLoc + FVector(0.0, 0.0, Config.IK_TraceDistanceAboveFoot);
-	const FVector TraceEnd = IKFootFloorLoc - FVector(0.0, 0.0, Config.IK_TraceDistanceBelowFoot);
+	const FVector TraceStart = IKFootFloorLoc + FVector(0.0, 0.0, GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.IK_TraceDistanceAboveFoot); // TODO
+	const FVector TraceEnd = IKFootFloorLoc - FVector(0.0, 0.0, GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.IK_TraceDistanceBelowFoot); // TODO
 
 	FHitResult HitResult;
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
@@ -262,8 +224,8 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 		FVector ImpactPoint = HitResult.ImpactPoint;
 		FVector ImpactNormal = HitResult.ImpactNormal;
 
-		CurLocationTarget = ImpactPoint + ImpactNormal * Config.FootHeight - (IKFootFloorLoc + FVector(
-			0, 0, Config.FootHeight));
+		float FootHeight = GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.FootHeight; // TODO
+		CurLocationTarget = ImpactPoint + ImpactNormal * FootHeight - (IKFootFloorLoc + FVector(0, 0, FootHeight));
 
 		TargetRotOffset.Pitch = -FMath::RadiansToDegrees(FMath::Atan2(ImpactNormal.X, ImpactNormal.Z));
 		TargetRotOffset.Roll = FMath::RadiansToDegrees(FMath::Atan2(ImpactNormal.Y, ImpactNormal.Z));
@@ -280,7 +242,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_l, RTS_Component);
 
 	float Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
-	if (Distance > Config.DynamicTransitionThreshold)
+	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
 		FOrganicDynamicMontage Params;
 		Params.Animation = TransitionAnim_R;
@@ -296,7 +258,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_r, RTS_Component);
 
 	Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
-	if (Distance > Config.DynamicTransitionThreshold)
+	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
 		FOrganicDynamicMontage Params;
 		Params.Animation = TransitionAnim_L;

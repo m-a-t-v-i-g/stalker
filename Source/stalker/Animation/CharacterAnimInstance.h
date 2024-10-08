@@ -24,13 +24,13 @@ protected:
 
 	virtual void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
 	                            float& CurFootLockAlpha, bool& UseFootLockCurve, FVector& CurFootLockLoc,
-	                            FRotator& CurFootLockRot) override;
-	virtual void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot) override;
-	virtual void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget) override;
-	virtual void ResetIKOffsets(float DeltaSeconds) override;
+	                            FRotator& CurFootLockRot);
+	virtual void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot);
+	virtual void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget);
+	virtual void ResetIKOffsets(float DeltaSeconds);
 	virtual void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
 	                            FVector& CurLocationTarget, FVector& CurLocationOffset,
-	                            FRotator& CurRotationOffset) override;
+	                            FRotator& CurRotationOffset);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Configuration|Blend Curves")
 	FName NAME_Enable_FootIK_L = "Enable_FootIK_L";

@@ -134,7 +134,6 @@ public:
 #pragma region Movement
 	
 	void SetMovementModel();
-	FOrganicMovementSettings GetMovementSettings() const;
 
 	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
 	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementState; }
@@ -197,8 +196,6 @@ public:
 
 #pragma endregion Overlay
 
-	float GetAnimCurveValue(FName CurveName) const;
-	
 	void ForceUpdateCharacterState();
 
 	void OnSprint(bool bEnabled);

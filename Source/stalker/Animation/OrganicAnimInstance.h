@@ -77,7 +77,7 @@ struct FOrganicAnim_GroundedInfo
 	float RotationScale = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
-	float DiagonalScaleAmount = 0.0f;
+	float DiagonalScale = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Grounded")
 	float WalkRunBlend = 0.0f;
@@ -228,6 +228,15 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FOrganicAnim_InstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place")
+	float ElapsedDelayTime = 0.0f;
+};
+
 UCLASS(Blueprintable, BlueprintType)
 class STALKER_API UOrganicAnimInstance : public UAnimInstance
 {
@@ -254,24 +263,17 @@ protected:
 	virtual void UpdateAirborneValues(float DeltaSeconds);
 	virtual void UpdateRagdollValues();
 
-	virtual void SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve, FName IKFootBone,
-	                    float& CurFootLockAlpha, bool& UseFootLockCurve,
-	                    FVector& CurFootLockLoc, FRotator& CurFootLockRot);
-	virtual void SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot);
-	virtual void SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget);
-	virtual void ResetIKOffsets(float DeltaSeconds);
-	virtual void SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone, FName RootBone,
-	                    FVector& CurLocationTarget, FVector& CurLocationOffset, FRotator& CurRotationOffset);
-
 	void RotateInPlaceCheck();
+	
 	void TurnInPlaceCheck(float DeltaSeconds);
+	void TurnInPlace(const FRotator& TargetRotation, float PlayRateScale, float StartTime, bool OverrideCurrent);
 
-	void TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime, bool OverrideCurrent);
+	virtual FAnimConfig_TurnInPlaceAsset GetTurnInPlaceAsset(float TurnAngle) const;
 
 	float CalculateStrideBlend() const;
-	float CalculateWalkRunBlend() const;
+	float CalculateGaitBlend() const;
 	float CalculateStandingPlayRate() const;
-	float CalculateDiagonalScaleAmount() const;
+	float CalculateDiagonalScale() const;
 	float CalculateCrouchingPlayRate() const;
 	float CalculateLandPrediction() const;
 
@@ -327,7 +329,7 @@ public:
 	TObjectPtr<class ABaseOrganic> OrganicPawn = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Organic Information")
-	TWeakObjectPtr<UOrganicMovementComponent> OrganicMovement;
+	TWeakObjectPtr<const UOrganicMovementComponent> OrganicMovement;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic Information")
 	FOrganicMovementState MovementState = EOrganicMovementState::None;
@@ -363,6 +365,9 @@ public:
 	FOrganicAnim_MovementDirection MovementDirection;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	FOrganicAnim_InstanceData OrganicAnimData;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
 	FVector RelativeAccelerationAmount = FVector::ZeroVector;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
@@ -372,45 +377,19 @@ public:
 	float FlailRate = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
-	TObjectPtr<UOrganicAnimConfig> AnimConfig;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
-	FAnimationSet_TurnInPlace TurnInPlaceValues;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
-	FAnimationSet_RotateInPlace RotateInPlace;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
-	FAnimationSet_OrganicConfig Config;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> DiagonalScaleAmountCurve = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> StrideBlend_N_Walk = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> StrideBlend_N_Run = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> StrideBlend_C_Walk = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> LandPredictionCurve = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveFloat> LeanInAirCurve = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveVector> YawOffset_FB = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Blend Curves")
-	TObjectPtr<UCurveVector> YawOffset_LR = nullptr;
+	TObjectPtr<const UOrganicAnimConfig> AnimConfig;
 
 private:
 	FTimerHandle OnJumpedTimer;
 	FTimerHandle OnPivotTimer;
 
+public:
+	template<class T>
+	T* GetAnimConfig()
+	{
+		return CastChecked<T>(AnimConfig);
+	}
+	
 protected:
 	static bool AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer);
 

@@ -68,30 +68,65 @@ void UOrganicAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 
 void UOrganicAnimInstance::UpdateViewValues(float DeltaSeconds)
 {
+	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation, Movement.ViewRotation, DeltaSeconds,
+												 AnimConfig->OrganicConfig.SmoothedAimingRotationInterpSpeed);
+
+	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
+	Delta.Normalize();
+	
+	View.AimingAngle.X = Delta.Yaw;
+	View.AimingAngle.Y = Delta.Pitch;
+
+	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
+	Delta.Normalize();
+	
+	SmoothedAimingAngle.X = Delta.Yaw;
+	SmoothedAimingAngle.Y = Delta.Pitch;
+
+	if (!RotationMode.VelocityDirection())
+	{
+		View.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>({-90.0f, 90.0f}, {1.0f, 0.0f}, View.AimingAngle.Y);
+		View.SpineRotation.Roll = 0.0f;
+		View.SpineRotation.Pitch = 0.0f;
+		View.SpineRotation.Yaw = View.AimingAngle.X / 4.0f;
+	}
+	else if (Movement.bHasMovementInput)
+	{
+		Delta = Movement.Acceleration.ToOrientationRotator() - Movement.ActorRotation;
+		Delta.Normalize();
+		
+		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
+		View.InputYawOffsetTime = FMath::FInterpTo(View.InputYawOffsetTime, InterpTarget, DeltaSeconds, AnimConfig->OrganicConfig.InputYawOffsetInterpSpeed);
+	}
+
+	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f}, FMath::Abs(SmoothedAimingAngle.X));
+	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f}, FMath::Abs(SmoothedAimingAngle.X));
+	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, SmoothedAimingAngle.X);
 }
 
 void UOrganicAnimInstance::UpdateMovementValues(float DeltaSeconds)
 {
 	const FOrganicAnim_VelocityBlend& TargetBlend = CalculateVelocityBlend();
+	
 	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds,
-	                                         Config.VelocityBlendInterpSpeed);
+	                                         AnimConfig->OrganicConfig.VelocityBlendInterpSpeed);
 	VelocityBlend.Backward = FMath::FInterpTo(VelocityBlend.Backward, TargetBlend.Backward, DeltaSeconds,
-	                                          Config.VelocityBlendInterpSpeed);
+	                                          AnimConfig->OrganicConfig.VelocityBlendInterpSpeed);
 	VelocityBlend.Left = FMath::FInterpTo(VelocityBlend.Left, TargetBlend.Left, DeltaSeconds,
-	                                      Config.VelocityBlendInterpSpeed);
+	                                      AnimConfig->OrganicConfig.VelocityBlendInterpSpeed);
 	VelocityBlend.Right = FMath::FInterpTo(VelocityBlend.Right, TargetBlend.Right, DeltaSeconds,
-	                                       Config.VelocityBlendInterpSpeed);
+	                                       AnimConfig->OrganicConfig.VelocityBlendInterpSpeed);
 
-	Grounded.DiagonalScaleAmount = CalculateDiagonalScaleAmount();
+	Grounded.DiagonalScale = CalculateDiagonalScale();
 
 	RelativeAccelerationAmount = CalculateRelativeAccelerationAmount();
 	
 	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, RelativeAccelerationAmount.Y, DeltaSeconds,
-	                                 Config.GroundedLeanInterpSpeed);
+	                                 AnimConfig->OrganicConfig.GroundedLeanInterpSpeed);
 	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, RelativeAccelerationAmount.X, DeltaSeconds,
-	                                 Config.GroundedLeanInterpSpeed);
+	                                 AnimConfig->OrganicConfig.GroundedLeanInterpSpeed);
 
-	Grounded.WalkRunBlend = CalculateWalkRunBlend();
+	Grounded.WalkRunBlend = CalculateGaitBlend();
 	Grounded.StrideBlend = CalculateStrideBlend();
 
 	Grounded.StandingPlayRate = CalculateStandingPlayRate();
@@ -105,11 +140,11 @@ void UOrganicAnimInstance::UpdateRotationValues()
 	FRotator Delta = Movement.Velocity.ToOrientationRotator() - Movement.ViewRotation;
 	Delta.Normalize();
 	
-	const FVector& FBOffset = YawOffset_FB->GetVectorValue(Delta.Yaw);
+	const FVector& FBOffset = AnimConfig->YawOffset_FB->GetVectorValue(Delta.Yaw);
 	Grounded.FYaw = FBOffset.X;
 	Grounded.BYaw = FBOffset.Y;
 	
-	const FVector& LROffset = YawOffset_LR->GetVectorValue(Delta.Yaw);
+	const FVector& LROffset = AnimConfig->YawOffset_LR->GetVectorValue(Delta.Yaw);
 	Grounded.LYaw = LROffset.X;
 	Grounded.RYaw = LROffset.Y;
 }
@@ -121,7 +156,7 @@ void UOrganicAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 
 	if (!bPreviousShouldMove && Grounded.bShouldMove)
 	{
-		TurnInPlaceValues.ElapsedDelayTime = 0.0f;
+		OrganicAnimData.ElapsedDelayTime = 0.0f;
 		Grounded.bRotateL = false;
 		Grounded.bRotateR = false;
 	}
@@ -149,7 +184,7 @@ void UOrganicAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 		}
 		else
 		{
-			TurnInPlaceValues.ElapsedDelayTime = 0.0f;
+			OrganicAnimData.ElapsedDelayTime = 0.0f;
 		}
 	}
 }
@@ -160,8 +195,8 @@ void UOrganicAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 	Airborne.LandPrediction = CalculateLandPrediction();
 
 	const FOrganicAnim_LeanAmount& AirborneLeanAmount = CalculateAirLeanAmount();
-	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, AirborneLeanAmount.LR, DeltaSeconds, Config.GroundedLeanInterpSpeed);
-	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, AirborneLeanAmount.FB, DeltaSeconds, Config.GroundedLeanInterpSpeed);
+	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, AirborneLeanAmount.LR, DeltaSeconds, AnimConfig->OrganicConfig.GroundedLeanInterpSpeed);
+	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, AirborneLeanAmount.FB, DeltaSeconds, AnimConfig->OrganicConfig.GroundedLeanInterpSpeed);
 }
 
 void UOrganicAnimInstance::UpdateRagdollValues()
@@ -170,58 +205,35 @@ void UOrganicAnimInstance::UpdateRagdollValues()
 	FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
 }
 
-void UOrganicAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve,
-                                          FName IKFootBone, float& CurFootLockAlpha, bool& UseFootLockCurve,
-                                          FVector& CurFootLockLoc, FRotator& CurFootLockRot)
-{
-}
-
-void UOrganicAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& LocalLoc, FRotator& LocalRot)
-{
-}
-
-void UOrganicAnimInstance::SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget)
-{
-}
-
-void UOrganicAnimInstance::ResetIKOffsets(float DeltaSeconds)
-{
-}
-
-void UOrganicAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFootIKCurve, FName IKFootBone,
-                                          FName RootBone, FVector& CurLocationTarget, FVector& CurLocationOffset,
-                                          FRotator& CurRotationOffset)
-{
-}
-
 void UOrganicAnimInstance::RotateInPlaceCheck()
 {
-	Grounded.bRotateL = View.AimingAngle.X < RotateInPlace.RotateMinThreshold;
-	Grounded.bRotateR = View.AimingAngle.X > RotateInPlace.RotateMaxThreshold;
+	Grounded.bRotateL = View.AimingAngle.X < AnimConfig->RotateInPlace.RotateMinThreshold;
+	Grounded.bRotateR = View.AimingAngle.X > AnimConfig->RotateInPlace.RotateMaxThreshold;
 
 	if (Grounded.bRotateL || Grounded.bRotateR)
 	{
 		Grounded.RotateRate = FMath::GetMappedRangeValueClamped<float, float>(
-			{RotateInPlace.ViewYawRateMinRange, RotateInPlace.ViewYawRateMaxRange},
-			{RotateInPlace.MinPlayRate, RotateInPlace.MaxPlayRate}, Movement.ViewYawRate);
+			{AnimConfig->RotateInPlace.ViewYawRateMinRange, AnimConfig->RotateInPlace.ViewYawRateMaxRange},
+			{AnimConfig->RotateInPlace.MinPlayRate, AnimConfig->RotateInPlace.MaxPlayRate}, Movement.ViewYawRate);
 	}
 }
 
 void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 {
-	if (FMath::Abs(View.AimingAngle.X) <= TurnInPlaceValues.TurnCheckMinAngle ||
-		Movement.ViewYawRate >= TurnInPlaceValues.AimYawRateLimit)
+	if (FMath::Abs(View.AimingAngle.X) <= AnimConfig->TurnInPlace.TurnCheckMinAngle || Movement.ViewYawRate >=
+		AnimConfig->TurnInPlace.AimYawRateLimit)
 	{
-		TurnInPlaceValues.ElapsedDelayTime = 0.0f;
+		OrganicAnimData.ElapsedDelayTime = 0.0f;
 		return;
 	}
 
-	TurnInPlaceValues.ElapsedDelayTime += DeltaSeconds;
+	OrganicAnimData.ElapsedDelayTime += DeltaSeconds;
+	
 	float ClampedAimAngle = FMath::GetMappedRangeValueClamped<float, float>(
-		{TurnInPlaceValues.TurnCheckMinAngle, 180.0f},
-		{TurnInPlaceValues.MinAngleDelay, TurnInPlaceValues.MaxAngleDelay}, View.AimingAngle.X);
+		{AnimConfig->TurnInPlace.TurnCheckMinAngle, 180.0f},
+		{AnimConfig->TurnInPlace.MinAngleDelay, AnimConfig->TurnInPlace.MaxAngleDelay}, View.AimingAngle.X);
 
-	if (TurnInPlaceValues.ElapsedDelayTime > ClampedAimAngle)
+	if (OrganicAnimData.ElapsedDelayTime > ClampedAimAngle)
 	{
 		FRotator TurnInPlaceYawRot = Movement.ViewRotation;
 		TurnInPlaceYawRot.Roll = 0.0f;
@@ -231,45 +243,14 @@ void UOrganicAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 	}
 }
 
-void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateScale, float StartTime,
-									   bool OverrideCurrent)
+void UOrganicAnimInstance::TurnInPlace(const FRotator& TargetRotation, float PlayRateScale, float StartTime,
+                                       bool OverrideCurrent)
 {
 	FRotator Delta = TargetRotation - Movement.ActorRotation;
 	Delta.Normalize();
 
 	float TurnAngle = Delta.Yaw;
-	FAnimationSet_TurnInPlaceAsset TargetTurnAsset;
-
-	if (Stance.Standing())
-	{
-		if (FMath::Abs(TurnAngle) < TurnInPlaceValues.Turn180Threshold)
-		{
-			TargetTurnAsset = TurnAngle < 0.0f
-								  ? TurnInPlaceValues.N_TurnIP_L90
-								  : TurnInPlaceValues.N_TurnIP_R90;
-		}
-		else
-		{
-			TargetTurnAsset = TurnAngle < 0.0f
-								  ? TurnInPlaceValues.N_TurnIP_L180
-								  : TurnInPlaceValues.N_TurnIP_R180;
-		}
-	}
-	else
-	{
-		if (FMath::Abs(TurnAngle) < TurnInPlaceValues.Turn180Threshold)
-		{
-			TargetTurnAsset = TurnAngle < 0.0f
-								  ? TurnInPlaceValues.CLF_TurnIP_L90
-								  : TurnInPlaceValues.CLF_TurnIP_R90;
-		}
-		else
-		{
-			TargetTurnAsset = TurnAngle < 0.0f
-								  ? TurnInPlaceValues.CLF_TurnIP_L180
-								  : TurnInPlaceValues.CLF_TurnIP_R180;
-		}
-	}
+	auto TargetTurnAsset = GetTurnInPlaceAsset(TurnAngle);
 
 	if (!OverrideCurrent && IsPlayingSlotAnimation(TargetTurnAsset.Animation, TargetTurnAsset.SlotName))
 	{
@@ -281,7 +262,7 @@ void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateSc
 
 	if (TargetTurnAsset.ScaleTurnAngle)
 	{
-		Grounded.RotationScale = (TurnAngle / TargetTurnAsset.AnimatedAngle) * TargetTurnAsset.PlayRate * PlayRateScale;
+		Grounded.RotationScale = TurnAngle / TargetTurnAsset.AnimatedAngle * TargetTurnAsset.PlayRate * PlayRateScale;
 	}
 	else
 	{
@@ -289,46 +270,80 @@ void UOrganicAnimInstance::TurnInPlace(FRotator TargetRotation, float PlayRateSc
 	}
 }
 
+FAnimConfig_TurnInPlaceAsset UOrganicAnimInstance::GetTurnInPlaceAsset(float TurnAngle) const
+{
+	FAnimConfig_TurnInPlaceAsset TargetTurnAsset;
+	if (Stance.Standing())
+	{
+		if (FMath::Abs(TurnAngle) < AnimConfig->TurnInPlace.Turn180Threshold)
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.N_TurnIP_L90
+								  : AnimConfig->TurnInPlace.N_TurnIP_R90;
+		}
+		else
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.N_TurnIP_L180
+								  : AnimConfig->TurnInPlace.N_TurnIP_R180;
+		}
+	}
+	else
+	{
+		if (FMath::Abs(TurnAngle) < AnimConfig->TurnInPlace.Turn180Threshold)
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.CLF_TurnIP_L90
+								  : AnimConfig->TurnInPlace.CLF_TurnIP_R90;
+		}
+		else
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.CLF_TurnIP_L180
+								  : AnimConfig->TurnInPlace.CLF_TurnIP_R180;
+		}
+	}
+	return TargetTurnAsset;
+}
+
 float UOrganicAnimInstance::CalculateStrideBlend() const
 {
 	const float CurveTime = Movement.Speed / GetOwningComponent()->GetComponentScale().Z;
 	const float ClampedGait = GetAnimCurveClamped(NAME_W_Gait, -1.0, 0.0f, 1.0f);
-	const float LerpStrideBlend = FMath::Lerp(StrideBlend_N_Walk->GetFloatValue(CurveTime),
-	                                          StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
+	const float LerpStrideBlend = FMath::Lerp(AnimConfig->StrideBlend_N_Walk->GetFloatValue(CurveTime),
+	                                          AnimConfig->StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
 	
-	return FMath::Lerp(LerpStrideBlend, StrideBlend_C_Walk->GetFloatValue(Movement.Speed),
+	return FMath::Lerp(LerpStrideBlend, AnimConfig->StrideBlend_C_Walk->GetFloatValue(Movement.Speed),
 	                   GetCurveValue(NAME_BasePose_CLF));
 }
 
-float UOrganicAnimInstance::CalculateWalkRunBlend() const
+float UOrganicAnimInstance::CalculateGaitBlend() const
 {
 	return Gait.Walking() ? 0.0f : 1.0;
 }
 
 float UOrganicAnimInstance::CalculateStandingPlayRate() const
 {
-	const float LerpSpeed = FMath::Lerp(Movement.Speed / Config.AnimatedWalkSpeed,
-	                                    Movement.Speed / Config.AnimatedRunSpeed,
+	const float LerpSpeed = FMath::Lerp(Movement.Speed / AnimConfig->OrganicConfig.AnimatedWalkSpeed,
+	                                    Movement.Speed / AnimConfig->OrganicConfig.AnimatedRunSpeed,
 	                                    GetAnimCurveClamped(NAME_W_Gait, -1.0f, 0.0f, 1.0f));
 
-	const float SprintAffectedSpeed = FMath::Lerp(LerpSpeed, Movement.Speed / Config.AnimatedSprintSpeed,
+	const float SprintAffectedSpeed = FMath::Lerp(LerpSpeed, Movement.Speed / AnimConfig->OrganicConfig.AnimatedSprintSpeed,
 	                                              GetAnimCurveClamped(NAME_W_Gait, -2.0f, 0.0f, 1.0f));
 
-	return FMath::Clamp((SprintAffectedSpeed / Grounded.StrideBlend) / GetOwningComponent()->GetComponentScale().Z,
-	                    0.0f, 3.0f);
+	return FMath::Clamp(SprintAffectedSpeed / Grounded.StrideBlend / GetOwningComponent()->GetComponentScale().Z, 0.0f, 3.0f);
 }
 
-float UOrganicAnimInstance::CalculateDiagonalScaleAmount() const
+float UOrganicAnimInstance::CalculateDiagonalScale() const
 {
-	return DiagonalScaleAmountCurve->GetFloatValue(FMath::Abs(VelocityBlend.Forward + VelocityBlend.Backward));
+	return AnimConfig->DiagonalScale->GetFloatValue(FMath::Abs(VelocityBlend.Forward + VelocityBlend.Backward));
 }
 
 float UOrganicAnimInstance::CalculateCrouchingPlayRate() const
 {
 	return FMath::Clamp(
-		Movement.Speed / Config.AnimatedCrouchSpeed / Grounded.StrideBlend / GetOwningComponent()->
-		GetComponentScale().Z,
-		0.0f, 2.0f);
+		Movement.Speed / AnimConfig->OrganicConfig.AnimatedCrouchSpeed / Grounded.StrideBlend / GetOwningComponent()->
+		GetComponentScale().Z, 0.0f, 2.0f);
 }
 
 float UOrganicAnimInstance::CalculateLandPrediction() const
@@ -363,7 +378,7 @@ float UOrganicAnimInstance::CalculateLandPrediction() const
 
 	if (OrganicMovement->HitWalkableFloor(HitResult))
 	{
-		return FMath::Lerp(LandPredictionCurve->GetFloatValue(HitResult.Time), 0.0f,
+		return FMath::Lerp(AnimConfig->LandPrediction->GetFloatValue(HitResult.Time), 0.0f,
 		                   GetCurveValue(NAME_Mask_LandPrediction));
 	}
 	return 0.0f;
@@ -405,7 +420,7 @@ FOrganicAnim_LeanAmount UOrganicAnimInstance::CalculateAirLeanAmount() const
 	FOrganicAnim_LeanAmount CalcLeanAmount;
 	const FVector& UnrotatedVel = Movement.ActorRotation.UnrotateVector(Movement.Velocity) / 350.0f;
 	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
-	InversedVect *= LeanInAirCurve->GetFloatValue(Airborne.FallSpeed);
+	InversedVect *= AnimConfig->LeanAirborne->GetFloatValue(Airborne.FallSpeed);
 	CalcLeanAmount.LR = InversedVect.X;
 	CalcLeanAmount.FB = InversedVect.Y;
 	return CalcLeanAmount;
@@ -454,7 +469,7 @@ void UOrganicAnimInstance::OnJumped()
 
 void UOrganicAnimInstance::OnPivot()
 {
-	Grounded.bPivot = Movement.Speed < Config.TriggerPivotSpeedLimit;
+	Grounded.bPivot = Movement.Speed < AnimConfig->OrganicConfig.TriggerPivotSpeedLimit;
 
 	GetWorld()->GetTimerManager().SetTimer(OnPivotTimer, this, &UOrganicAnimInstance::OnPivotDelay, 0.1f, false);
 }

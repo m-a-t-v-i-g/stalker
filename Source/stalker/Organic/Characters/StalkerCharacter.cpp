@@ -83,12 +83,12 @@ void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 
 void AStalkerCharacter::OnAimingStart()
 {
-	SetRotationMode(EOrganicRotationMode::ControlDirection);
+	
 }
 
 void AStalkerCharacter::OnAimingStop()
 {
-	SetRotationMode(EOrganicRotationMode::LookingDirection);
+	
 }
 
 void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)

@@ -259,10 +259,10 @@ void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
 	switch (Tab)
 	{
 	case EHUDTab::Inventory:
-		SetRotationMode(EOrganicRotationMode::VelocityDirection, true);
+		
 		break;
 	default:
-		SetRotationMode(EOrganicRotationMode::LookingDirection, true);
+		
 		break;
 	}
 }
