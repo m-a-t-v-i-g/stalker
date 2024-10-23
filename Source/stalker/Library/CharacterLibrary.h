@@ -9,6 +9,9 @@ UENUM(BlueprintType)
 enum class ECharacterOverlayState : uint8
 {
 	Default,
+	Item,
+
+	// DEPRECATED
 	Rifle,
 	Pistol_1H,
 	Pistol_2H,
@@ -35,14 +38,17 @@ enum class ECharacterMantleType : uint8
 USTRUCT(BlueprintType)
 struct FCharacterOverlayState
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
 	ECharacterOverlayState State = ECharacterOverlayState::Default;
 
+private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
 	bool bDefault = true;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
+	bool bItem = false;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Character State")
 	bool bRifle = false;
@@ -64,6 +70,7 @@ public:
 	FCharacterOverlayState(const ECharacterOverlayState InitialState) { *this = InitialState; }
 
 	const bool& Default() const { return bDefault; }
+	const bool& Item() const { return bItem; }
 	const bool& Rifle() const { return bRifle; }
 	const bool& Pistol_1H() const { return bPistol_1H; }
 	const bool& Pistol_2H() const { return bPistol_2H; }
@@ -75,6 +82,7 @@ public:
 	{
 		State = NewAction;
 		bDefault = State == ECharacterOverlayState::Default;
+		bItem = State == ECharacterOverlayState::Item;
 		bRifle = State == ECharacterOverlayState::Rifle;
 		bPistol_1H = State == ECharacterOverlayState::Pistol_1H;
 		bPistol_2H = State == ECharacterOverlayState::Pistol_2H;
@@ -85,12 +93,12 @@ public:
 USTRUCT(BlueprintType)
 struct FCharacterMovementAction
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement System")
 	ECharacterMovementAction Action = ECharacterMovementAction::None;
 
+private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement System")
 	bool bNone = true;
 

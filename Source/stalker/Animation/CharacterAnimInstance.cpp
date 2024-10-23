@@ -11,11 +11,22 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	Character = Cast<ABaseCharacter>(TryGetPawnOwner());
+
+	if (Character.IsValid())
+	{
+		OrganicMovement = Character->GetOrganicMovement();
+		
+		if (OrganicMovement.IsValid())
+		{
+			//CollisionShape = MakeCollisionShape();
+			//OrganicMovement->OnJumpedDelegate.AddUniqueDynamic(this, &UCharacterLocomotionAnimComponent::OnJumped);
+		}
+	}
 }
 
 void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
-	if (!Character) return;
+	if (!Character.IsValid()) return;
 	
 	MovementAction = Character->GetMovementAction();
 	OverlayState = Character->GetOverlayState();
@@ -35,26 +46,26 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateLayerValues(float DeltaSeconds)
 {
-	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FOrganicCurveName::NAME_Mask_AimOffset));
+	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FCharacterCurveName::NAME_Mask_AimOffset));
 
-	LayerBlendingValues.BasePose_N = GetCurveValue(FOrganicCurveName::NAME_BasePose_N);
-	LayerBlendingValues.BasePose_CLF = GetCurveValue(FOrganicCurveName::NAME_BasePose_C);
+	LayerBlendingValues.BasePose_N = GetCurveValue(FCharacterCurveName::NAME_BasePose_N);
+	LayerBlendingValues.BasePose_CLF = GetCurveValue(FCharacterCurveName::NAME_BasePose_C);
 
-	LayerBlendingValues.Spine_Add = GetCurveValue(NAME_Layering_Spine_Add);
-	LayerBlendingValues.Head_Add = GetCurveValue(NAME_Layering_Head_Add);
-	LayerBlendingValues.Arm_L_Add = GetCurveValue(NAME_Layering_Arm_L_Add);
-	LayerBlendingValues.Arm_R_Add = GetCurveValue(NAME_Layering_Arm_R_Add);
-	LayerBlendingValues.Hand_R = GetCurveValue(NAME_Layering_Hand_R);
-	LayerBlendingValues.Hand_L = GetCurveValue(NAME_Layering_Hand_L);
+	LayerBlendingValues.Spine_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Spine_Add);
+	LayerBlendingValues.Head_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Head_Add);
+	LayerBlendingValues.Arm_L_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_Add);
+	LayerBlendingValues.Arm_R_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_Add);
+	LayerBlendingValues.Hand_L = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_L);
+	LayerBlendingValues.Hand_R = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_R);
 
-	LayerBlendingValues.EnableHandIK_L = FMath::Lerp(0.0f, GetCurveValue(NAME_Enable_HandIK_L),
-													 GetCurveValue(NAME_Layering_Arm_L));
-	LayerBlendingValues.EnableHandIK_R = FMath::Lerp(0.0f, GetCurveValue(NAME_Enable_HandIK_R),
-													 GetCurveValue(NAME_Layering_Arm_R));
+	LayerBlendingValues.EnableHandIK_L = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_L),
+													 GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L));
+	LayerBlendingValues.EnableHandIK_R = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_R),
+													 GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R));
 
-	LayerBlendingValues.Arm_L_LS = GetCurveValue(NAME_Layering_Arm_L_LS);
+	LayerBlendingValues.Arm_L_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_LS);
 	LayerBlendingValues.Arm_L_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlendingValues.Arm_L_LS));
-	LayerBlendingValues.Arm_R_LS = GetCurveValue(NAME_Layering_Arm_R_LS);
+	LayerBlendingValues.Arm_R_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_LS);
 	LayerBlendingValues.Arm_R_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlendingValues.Arm_R_LS));
 }
 
@@ -63,11 +74,11 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	FVector FootOffsetLTarget = FVector::ZeroVector;
 	FVector FootOffsetRTarget = FVector::ZeroVector;
 
-	SetFootLocking(DeltaSeconds, NAME_Enable_FootIK_L, NAME_FootLock_L,
-				   IkFootL_BoneName, FootIKValues.FootLock_L_Alpha, FootIKValues.UseFootLockCurve_L,
+	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterCurveName::NAME_FootLock_L,
+				   FCharacterBoneName::NAME_IkFoot_L, FootIKValues.FootLock_L_Alpha, FootIKValues.UseFootLockCurve_L,
 				   FootIKValues.FootLock_L_Location, FootIKValues.FootLock_L_Rotation);
-	SetFootLocking(DeltaSeconds, NAME_Enable_FootIK_R, NAME_FootLock_R,
-				   IkFootR_BoneName, FootIKValues.FootLock_R_Alpha, FootIKValues.UseFootLockCurve_R,
+	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterCurveName::NAME_FootLock_R,
+				   FCharacterBoneName::NAME_IkFoot_R, FootIKValues.FootLock_R_Alpha, FootIKValues.UseFootLockCurve_R,
 				   FootIKValues.FootLock_R_Location, FootIKValues.FootLock_R_Rotation);
 
 	if (MovementState.Airborne())
@@ -77,12 +88,12 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	}
 	else if (!MovementState.Ragdoll())
 	{
-		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_L, IkFootL_BoneName, FOrganicBoneName::NAME_Root,
-					   FootOffsetLTarget,
-					   FootIKValues.FootOffset_L_Location, FootIKValues.FootOffset_L_Rotation);
-		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_R, IkFootR_BoneName, FOrganicBoneName::NAME_Root,
-					   FootOffsetRTarget,
-					   FootIKValues.FootOffset_R_Location, FootIKValues.FootOffset_R_Rotation);
+		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterBoneName::NAME_IkFoot_L,
+		               FCharacterBoneName::NAME_Root, FootOffsetLTarget,
+		               FootIKValues.FootOffset_L_Location, FootIKValues.FootOffset_L_Rotation);
+		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterBoneName::NAME_IkFoot_R,
+		               FCharacterBoneName::NAME_Root, FootOffsetRTarget,
+		               FootIKValues.FootOffset_R_Location, FootIKValues.FootOffset_R_Rotation);
 		SetPelvisIKOffset(DeltaSeconds, FootOffsetLTarget, FootOffsetRTarget);
 	}
 }
@@ -166,7 +177,8 @@ void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Loc
 
 void UCharacterAnimInstance::SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget)
 {
-	FootIKValues.PelvisAlpha = (GetCurveValue(NAME_Enable_FootIK_L) + GetCurveValue(NAME_Enable_FootIK_R)) / 2.0f;
+	FootIKValues.PelvisAlpha = (GetCurveValue(FCharacterCurveName::NAME_Enable_FootIK_L) + GetCurveValue(
+		FCharacterCurveName::NAME_Enable_FootIK_R)) / 2.0f;
 
 	if (FootIKValues.PelvisAlpha > 0.0f)
 	{
@@ -209,7 +221,7 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 	IKFootFloorLoc.Z = OwnerComp->GetSocketLocation(RootBone).Z;
 
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(Character);
+	Params.AddIgnoredActor(Character.Get());
 
 	const FVector TraceStart = IKFootFloorLoc + FVector(0.0, 0.0, GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.IK_TraceDistanceAboveFoot); // TODO
 	const FVector TraceEnd = IKFootFloorLoc - FVector(0.0, 0.0, GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.IK_TraceDistanceBelowFoot); // TODO
@@ -237,8 +249,8 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 
 void UCharacterAnimInstance::DynamicTransitionCheck()
 {
-	FTransform SocketTransformA = GetOwningComponent()->GetSocketTransform(IkFootL_BoneName, RTS_Component);
-	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_l, RTS_Component);
+	FTransform SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_IkFoot_L, RTS_Component);
+	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_VB_Foot_Target_L, RTS_Component);
 
 	float Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
@@ -253,8 +265,8 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 		PlayDynamicTransition(0.1f, Params);
 	}
 
-	SocketTransformA = GetOwningComponent()->GetSocketTransform(IkFootR_BoneName, RTS_Component);
-	SocketTransformB = GetOwningComponent()->GetSocketTransform(NAME_VB___foot_target_r, RTS_Component);
+	SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_IkFoot_R, RTS_Component);
+	SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_VB_Foot_Target_R, RTS_Component);
 
 	Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
@@ -272,7 +284,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 
 void UCharacterAnimInstance::PlayTransition(const FOrganicDynamicMontage& Parameters)
 {
-	PlaySlotAnimationAsDynamicMontage(Parameters.Animation, FOrganicCurveName::NAME_Grounded_Slot,
+	PlaySlotAnimationAsDynamicMontage(Parameters.Animation, FCharacterCurveName::NAME_Grounded_Slot,
 									  Parameters.BlendInTime, Parameters.BlendOutTime, Parameters.PlayRate, 1,
 									  0.0f, Parameters.StartTime);
 }
@@ -305,5 +317,5 @@ void UCharacterAnimInstance::PlayDynamicTransitionDelay()
 
 bool UCharacterAnimInstance::CanDynamicTransition() const
 {
-	return GetCurveValue(FOrganicCurveName::NAME_Enable_Transition) >= 0.99f;
+	return GetCurveValue(FCharacterCurveName::NAME_Enable_Transition) >= 0.99f;
 }

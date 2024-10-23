@@ -204,7 +204,7 @@ void UCharacterLocomotionAnimComponent::UpdateAirborneValues(float DeltaSeconds)
 
 void UCharacterLocomotionAnimComponent::UpdateRagdollValues()
 {
-	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FOrganicBoneName::NAME_Root).Size();
+	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root).Size();
 	OrganicAnimData.FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
 }
 
@@ -312,12 +312,12 @@ FAnimConfig_TurnInPlaceAsset UCharacterLocomotionAnimComponent::GetTurnInPlaceAs
 float UCharacterLocomotionAnimComponent::CalculateStrideBlend() const
 {
 	const float CurveTime = Movement.Speed / GetOwningComponent()->GetComponentScale().Z;
-	const float ClampedGait = GetAnimCurveClamped(FOrganicCurveName::NAME_Gait, -1.0, 0.0f, 1.0f);
+	const float ClampedGait = GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -1.0, 0.0f, 1.0f);
 	const float LerpStrideBlend = FMath::Lerp(AnimConfig->StrideBlend_N_Walk->GetFloatValue(CurveTime),
 	                                          AnimConfig->StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
 	
 	return FMath::Lerp(LerpStrideBlend, AnimConfig->StrideBlend_C_Walk->GetFloatValue(Movement.Speed),
-	                   GetCurveValue(FOrganicCurveName::NAME_BasePose_C));
+	                   GetCurveValue(FCharacterCurveName::NAME_BasePose_C));
 }
 
 float UCharacterLocomotionAnimComponent::CalculateGaitBlend() const
@@ -329,10 +329,10 @@ float UCharacterLocomotionAnimComponent::CalculateStandingPlayRate() const
 {
 	const float LerpSpeed = FMath::Lerp(Movement.Speed / AnimConfig->OrganicConfig.AnimatedWalkSpeed,
 	                                    Movement.Speed / AnimConfig->OrganicConfig.AnimatedRunSpeed,
-	                                    GetAnimCurveClamped(FOrganicCurveName::NAME_Gait, -1.0f, 0.0f, 1.0f));
+	                                    GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -1.0f, 0.0f, 1.0f));
 
 	const float SprintAffectedSpeed = FMath::Lerp(LerpSpeed, Movement.Speed / AnimConfig->OrganicConfig.AnimatedSprintSpeed,
-	                                              GetAnimCurveClamped(FOrganicCurveName::NAME_Gait, -2.0f, 0.0f, 1.0f));
+	                                              GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -2.0f, 0.0f, 1.0f));
 
 	return FMath::Clamp(SprintAffectedSpeed / Grounded.StrideBlend / GetOwningComponent()->GetComponentScale().Z, 0.0f, 3.0f);
 }
@@ -379,7 +379,7 @@ float UCharacterLocomotionAnimComponent::CalculateLandPrediction() const
 		if (OrganicMovement->HitWalkableFloor(HitResult))
 		{
 			return FMath::Lerp(AnimConfig->LandPrediction->GetFloatValue(HitResult.Time), 0.0f,
-			                   GetCurveValue(FOrganicCurveName::NAME_Mask_LandPrediction));
+			                   GetCurveValue(FCharacterCurveName::NAME_Mask_LandPrediction));
 		}
 	}
 	return 0.0f;
@@ -456,7 +456,7 @@ bool UCharacterLocomotionAnimComponent::CanRotateInPlace() const
 
 bool UCharacterLocomotionAnimComponent::CanTurnInPlace() const
 {
-	return RotationMode.LookingDirection() && GetCurveValue(FOrganicCurveName::NAME_Enable_Transition) >= 0.99f;
+	return RotationMode.LookingDirection() && GetCurveValue(FCharacterCurveName::NAME_Enable_Transition) >= 0.99f;
 }
 
 void UCharacterLocomotionAnimComponent::OnJumped()
