@@ -3,8 +3,42 @@
 #include "Animation/CharacterAnimInstance.h"
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
+#include "Components/ShapeComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
+#include "Curves/CurveVector.h"
 #include "Organic/Characters/BaseCharacter.h"
+
+bool UCharacterAnimInstance::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer)
+{
+	if (IncreaseBuffer)
+	{
+		return Angle >= MinAngle - Buffer && Angle <= MaxAngle + Buffer;
+	}
+	return Angle >= MinAngle + Buffer && Angle <= MaxAngle - Buffer;
+}
+
+EOrganicMovementDirection UCharacterAnimInstance::CalculateQuadrant(EOrganicMovementDirection Current,
+                                                                    float FRThreshold, float FLThreshold,
+                                                                    float BRThreshold, float BLThreshold, float Buffer,
+                                                                    float Angle)
+{
+	if (AngleInRange(Angle, FLThreshold, FRThreshold, Buffer,
+					 Current != EOrganicMovementDirection::Forward && Current != EOrganicMovementDirection::Backward))
+	{
+		return EOrganicMovementDirection::Forward;
+	}
+	if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer,
+					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+	{
+		return EOrganicMovementDirection::Right;
+	}
+	if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer,
+					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+	{
+		return EOrganicMovementDirection::Left;
+	}
+	return EOrganicMovementDirection::Backward;
+}
 
 void UCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -18,9 +52,32 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 		
 		if (OrganicMovement.IsValid())
 		{
-			//CollisionShape = MakeCollisionShape();
-			//OrganicMovement->OnJumpedDelegate.AddUniqueDynamic(this, &UCharacterLocomotionAnimComponent::OnJumped);
+			CollisionShape = MakeCollisionShape();
+			OrganicMovement->OnJumpedDelegate.AddUniqueDynamic(this, &UCharacterAnimInstance::OnJumped);
 		}
+	}
+}
+
+void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeUpdateAnimation(DeltaSeconds);
+	
+	if (!Character.IsValid() || !OrganicMovement.IsValid()) return;
+	
+	UpdateMovementInfo(DeltaSeconds);
+	UpdateViewInfo(DeltaSeconds);
+
+	if (MovementState.Grounded())
+	{
+		UpdateGroundedValues(DeltaSeconds);
+	}
+	else if (MovementState.Airborne())
+	{
+		UpdateAirborneValues(DeltaSeconds);
+	}
+	else if (MovementState.Ragdoll())
+	{
+		UpdateRagdollValues(DeltaSeconds);
 	}
 }
 
@@ -28,45 +85,139 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
 	if (!Character.IsValid()) return;
 	
+	Movement.Acceleration = OrganicMovement->GetInstantAcceleration();
+	Movement.Velocity = OrganicMovement->GetVelocity();
+	Movement.Speed = OrganicMovement->GetSpeedXY();
+	
+	Movement.ActorRotation = OrganicMovement->GetRootCollisionRotation();
+	Movement.ViewRotation = OrganicMovement->GetInputRotation();
+	Movement.ViewYawRate = OrganicMovement->GetViewYawRate();
+
+	Movement.MovementInputAmount = OrganicMovement->GetMovementInputValue();
+	Movement.bHasMovementInput = OrganicMovement->HasMovementInput();
+	Movement.bIsMoving = OrganicMovement->IsMoving();
+
+	Movement.PrevMovementState = OrganicMovement->GetPrevMovementState();
+
+	MovementState = OrganicMovement->GetMovementState();
+	RotationMode = OrganicMovement->GetRotationMode();
+	Stance = OrganicMovement->GetStance();
+	Gait = OrganicMovement->GetGait();
 	MovementAction = Character->GetMovementAction();
 	OverlayState = Character->GetOverlayState();
 	
 	// LayerBlendingValues.OverlayOverrideState = Character->GetOverlayOverrideState();
 	
-	Super::UpdateMovementInfo(DeltaSeconds);
-
 	UpdateLayerValues(DeltaSeconds);
 	UpdateFootIK(DeltaSeconds);
 }
 
 void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 {
-	Super::UpdateViewInfo(DeltaSeconds);
+	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation, Movement.ViewRotation, DeltaSeconds,
+												 AnimConfig->CharacterConfig.SmoothedAimingRotationInterpSpeed);
+
+	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
+	Delta.Normalize();
+	
+	View.AimingAngle.X = Delta.Yaw;
+	View.AimingAngle.Y = Delta.Pitch;
+
+	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
+	Delta.Normalize();
+	
+	OrganicAnimData.SmoothedAimingAngle.X = Delta.Yaw;
+	OrganicAnimData.SmoothedAimingAngle.Y = Delta.Pitch;
+
+	if (!RotationMode.VelocityDirection())
+	{
+		View.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>({-90.0f, 90.0f}, {1.0f, 0.0f}, View.AimingAngle.Y);
+		View.SpineRotation.Roll = 0.0f;
+		View.SpineRotation.Pitch = 0.0f;
+		View.SpineRotation.Yaw = View.AimingAngle.X / 4.0f;
+	}
+	else if (Movement.bHasMovementInput)
+	{
+		Delta = Movement.Acceleration.ToOrientationRotator() - Movement.ActorRotation;
+		Delta.Normalize();
+		
+		const float InterpTarget = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, Delta.Yaw);
+		View.InputYawOffsetTime = FMath::FInterpTo(View.InputYawOffsetTime, InterpTarget, DeltaSeconds, AnimConfig->CharacterConfig.InputYawOffsetInterpSpeed);
+	}
+
+	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f}, FMath::Abs(OrganicAnimData.SmoothedAimingAngle.X));
+	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f}, FMath::Abs(OrganicAnimData.SmoothedAimingAngle.X));
+	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, OrganicAnimData.SmoothedAimingAngle.X);
+}
+
+void UCharacterAnimInstance::UpdateMovementValues(float DeltaSeconds)
+{
+	const FOrganicAnim_VelocityBlend& TargetBlend = CalculateVelocityBlend();
+	
+	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds,
+											 AnimConfig->CharacterConfig.VelocityBlendInterpSpeed);
+	VelocityBlend.Backward = FMath::FInterpTo(VelocityBlend.Backward, TargetBlend.Backward, DeltaSeconds,
+											  AnimConfig->CharacterConfig.VelocityBlendInterpSpeed);
+	VelocityBlend.Left = FMath::FInterpTo(VelocityBlend.Left, TargetBlend.Left, DeltaSeconds,
+										  AnimConfig->CharacterConfig.VelocityBlendInterpSpeed);
+	VelocityBlend.Right = FMath::FInterpTo(VelocityBlend.Right, TargetBlend.Right, DeltaSeconds,
+										   AnimConfig->CharacterConfig.VelocityBlendInterpSpeed);
+
+	Grounded.DiagonalScale = CalculateDiagonalScale();
+
+	OrganicAnimData.RelativeAccelerationAmount = CalculateRelativeAccelerationAmount();
+	
+	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, OrganicAnimData.RelativeAccelerationAmount.Y, DeltaSeconds,
+									 AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
+	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, OrganicAnimData.RelativeAccelerationAmount.X, DeltaSeconds,
+									 AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
+
+	Grounded.WalkRunBlend = CalculateGaitBlend();
+	Grounded.StrideBlend = CalculateStrideBlend();
+
+	Grounded.StandingPlayRate = CalculateStandingPlayRate();
+	Grounded.CrouchingPlayRate = CalculateCrouchingPlayRate();
+}
+
+void UCharacterAnimInstance::UpdateRotationValues(float DeltaSeconds)
+{
+	MovementDirection = CalculateMovementDirection();
+
+	FRotator Delta = Movement.Velocity.ToOrientationRotator() - Movement.ViewRotation;
+	Delta.Normalize();
+	
+	const FVector& FBOffset = AnimConfig->YawOffset_FB->GetVectorValue(Delta.Yaw);
+	Grounded.FYaw = FBOffset.X;
+	Grounded.BYaw = FBOffset.Y;
+	
+	const FVector& LROffset = AnimConfig->YawOffset_LR->GetVectorValue(Delta.Yaw);
+	Grounded.LYaw = LROffset.X;
+	Grounded.RYaw = LROffset.Y;
 }
 
 void UCharacterAnimInstance::UpdateLayerValues(float DeltaSeconds)
 {
-	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FCharacterCurveName::NAME_Mask_AimOffset));
+	LayerBlending.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FCharacterCurveName::NAME_Mask_AimOffset));
 
-	LayerBlendingValues.BasePose_N = GetCurveValue(FCharacterCurveName::NAME_BasePose_N);
-	LayerBlendingValues.BasePose_CLF = GetCurveValue(FCharacterCurveName::NAME_BasePose_C);
+	LayerBlending.BasePose_N = GetCurveValue(FCharacterCurveName::NAME_BasePose_N);
+	LayerBlending.BasePose_CLF = GetCurveValue(FCharacterCurveName::NAME_BasePose_C);
 
-	LayerBlendingValues.Spine_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Spine_Add);
-	LayerBlendingValues.Head_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Head_Add);
-	LayerBlendingValues.Arm_L_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_Add);
-	LayerBlendingValues.Arm_R_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_Add);
-	LayerBlendingValues.Hand_L = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_L);
-	LayerBlendingValues.Hand_R = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_R);
+	LayerBlending.Spine_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Spine_Add);
+	LayerBlending.Head_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Head_Add);
+	LayerBlending.Arm_L_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_Add);
+	LayerBlending.Arm_R_Add = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_Add);
+	LayerBlending.Hand_L = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_L);
+	LayerBlending.Hand_R = GetCurveValue(FCharacterLayerName::NAME_Layering_Hand_R);
 
-	LayerBlendingValues.EnableHandIK_L = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_L),
+	LayerBlending.EnableHandIK_L = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_L),
 													 GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L));
-	LayerBlendingValues.EnableHandIK_R = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_R),
+	LayerBlending.EnableHandIK_R = FMath::Lerp(0.0f, GetCurveValue(FCharacterCurveName::NAME_Enable_HandIK_R),
 													 GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R));
 
-	LayerBlendingValues.Arm_L_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_LS);
-	LayerBlendingValues.Arm_L_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlendingValues.Arm_L_LS));
-	LayerBlendingValues.Arm_R_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_LS);
-	LayerBlendingValues.Arm_R_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlendingValues.Arm_R_LS));
+	LayerBlending.Arm_L_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_L_LS);
+	LayerBlending.Arm_L_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlending.Arm_L_LS));
+	LayerBlending.Arm_R_LS = GetCurveValue(FCharacterLayerName::NAME_Layering_Arm_R_LS);
+	LayerBlending.Arm_R_MS = static_cast<float>(1 - FMath::FloorToInt(LayerBlending.Arm_R_LS));
 }
 
 void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
@@ -75,11 +226,11 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	FVector FootOffsetRTarget = FVector::ZeroVector;
 
 	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterCurveName::NAME_FootLock_L,
-				   FCharacterBoneName::NAME_IkFoot_L, FootIKValues.FootLock_L_Alpha, FootIKValues.UseFootLockCurve_L,
-				   FootIKValues.FootLock_L_Location, FootIKValues.FootLock_L_Rotation);
+				   FCharacterBoneName::NAME_IkFoot_L, FootIK.FootLock_L_Alpha, FootIK.UseFootLockCurve_L,
+				   FootIK.FootLock_L_Location, FootIK.FootLock_L_Rotation);
 	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterCurveName::NAME_FootLock_R,
-				   FCharacterBoneName::NAME_IkFoot_R, FootIKValues.FootLock_R_Alpha, FootIKValues.UseFootLockCurve_R,
-				   FootIKValues.FootLock_R_Location, FootIKValues.FootLock_R_Rotation);
+				   FCharacterBoneName::NAME_IkFoot_R, FootIK.FootLock_R_Alpha, FootIK.UseFootLockCurve_R,
+				   FootIK.FootLock_R_Location, FootIK.FootLock_R_Rotation);
 
 	if (MovementState.Airborne())
 	{
@@ -90,25 +241,348 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	{
 		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterBoneName::NAME_IkFoot_L,
 		               FCharacterBoneName::NAME_Root, FootOffsetLTarget,
-		               FootIKValues.FootOffset_L_Location, FootIKValues.FootOffset_L_Rotation);
+		               FootIK.FootOffset_L_Location, FootIK.FootOffset_L_Rotation);
 		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterBoneName::NAME_IkFoot_R,
 		               FCharacterBoneName::NAME_Root, FootOffsetRTarget,
-		               FootIKValues.FootOffset_R_Location, FootIKValues.FootOffset_R_Rotation);
+		               FootIK.FootOffset_R_Location, FootIK.FootOffset_R_Rotation);
 		SetPelvisIKOffset(DeltaSeconds, FootOffsetLTarget, FootOffsetRTarget);
 	}
 }
 
 void UCharacterAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 {
-	Super::UpdateGroundedValues(DeltaSeconds);
+	bool bPreviousShouldMove = Grounded.bShouldMove;
+	Grounded.bShouldMove = ShouldMoveCheck();
 
-	if (!Grounded.bShouldMove)
+	if (!bPreviousShouldMove && Grounded.bShouldMove)
 	{
+		OrganicAnimData.ElapsedDelayTime = 0.0f;
+		Grounded.bRotateL = false;
+		Grounded.bRotateR = false;
+	}
+
+	if (Grounded.bShouldMove)
+	{
+		UpdateMovementValues(DeltaSeconds);
+		UpdateRotationValues(DeltaSeconds);
+	}
+	else
+	{
+		if (CanRotateInPlace())
+		{
+			RotateInPlaceCheck();
+		}
+		else
+		{
+			Grounded.bRotateL = false;
+			Grounded.bRotateR = false;
+		}
+
+		if (CanTurnInPlace())
+		{
+			TurnInPlaceCheck(DeltaSeconds);
+		}
+		else
+		{
+			OrganicAnimData.ElapsedDelayTime = 0.0f;
+		}
+		
 		if (CanDynamicTransition())
 		{
 			DynamicTransitionCheck();
 		}
 	}
+}
+
+void UCharacterAnimInstance::UpdateAirborneValues(float DeltaSeconds)
+{
+	Airborne.FallSpeed = Movement.Velocity.Z;
+	Airborne.LandPrediction = CalculateLandPrediction();
+
+	const FOrganicAnim_LeanAmount& AirborneLeanAmount = CalculateAirLeanAmount();
+	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, AirborneLeanAmount.LR, DeltaSeconds, AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
+	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, AirborneLeanAmount.FB, DeltaSeconds, AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
+}
+
+void UCharacterAnimInstance::UpdateRagdollValues(float DeltaSeconds)
+{
+	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root).Size();
+	OrganicAnimData.FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
+}
+
+void UCharacterAnimInstance::RotateInPlaceCheck()
+{
+	Grounded.bRotateL = View.AimingAngle.X < AnimConfig->RotateInPlace.RotateMinThreshold;
+	Grounded.bRotateR = View.AimingAngle.X > AnimConfig->RotateInPlace.RotateMaxThreshold;
+
+	if (Grounded.bRotateL || Grounded.bRotateR)
+	{
+		Grounded.RotateRate = FMath::GetMappedRangeValueClamped<float, float>(
+			{AnimConfig->RotateInPlace.ViewYawRateMinRange, AnimConfig->RotateInPlace.ViewYawRateMaxRange},
+			{AnimConfig->RotateInPlace.MinPlayRate, AnimConfig->RotateInPlace.MaxPlayRate}, Movement.ViewYawRate);
+	}
+}
+
+void UCharacterAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
+{
+	if (FMath::Abs(View.AimingAngle.X) <= AnimConfig->TurnInPlace.TurnCheckMinAngle || Movement.ViewYawRate >=
+		AnimConfig->TurnInPlace.AimYawRateLimit)
+	{
+		OrganicAnimData.ElapsedDelayTime = 0.0f;
+		return;
+	}
+
+	OrganicAnimData.ElapsedDelayTime += DeltaSeconds;
+	
+	float ClampedAimAngle = FMath::GetMappedRangeValueClamped<float, float>(
+		{AnimConfig->TurnInPlace.TurnCheckMinAngle, 180.0f},
+		{AnimConfig->TurnInPlace.MinAngleDelay, AnimConfig->TurnInPlace.MaxAngleDelay}, View.AimingAngle.X);
+
+	if (OrganicAnimData.ElapsedDelayTime > ClampedAimAngle)
+	{
+		FRotator TurnInPlaceYawRot = Movement.ViewRotation;
+		TurnInPlaceYawRot.Roll = 0.0f;
+		TurnInPlaceYawRot.Pitch = 0.0f;
+
+		TurnInPlace(TurnInPlaceYawRot, 1.0f, 0.0f, false);
+	}
+}
+
+void UCharacterAnimInstance::TurnInPlace(const FRotator& TargetRotation, float PlayRateScale, float StartTime, bool OverrideCurrent)
+{
+	FRotator Delta = TargetRotation - Movement.ActorRotation;
+	Delta.Normalize();
+
+	float TurnAngle = Delta.Yaw;
+	auto TargetTurnAsset = GetTurnInPlaceAsset(TurnAngle);
+
+	if (!OverrideCurrent && IsPlayingSlotAnimation(TargetTurnAsset.Animation, TargetTurnAsset.SlotName))
+	{
+		return;
+	}
+	
+	PlaySlotAnimationAsDynamicMontage(TargetTurnAsset.Animation, TargetTurnAsset.SlotName, 0.2f, 0.2f,
+									  TargetTurnAsset.PlayRate * PlayRateScale, 1, 0.0f, StartTime);
+
+	if (TargetTurnAsset.ScaleTurnAngle)
+	{
+		Grounded.RotationScale = TurnAngle / TargetTurnAsset.AnimatedAngle * TargetTurnAsset.PlayRate * PlayRateScale;
+	}
+	else
+	{
+		Grounded.RotationScale = TargetTurnAsset.PlayRate * PlayRateScale;
+	}	
+}
+
+FAnimConfig_TurnInPlaceAsset UCharacterAnimInstance::GetTurnInPlaceAsset(float TurnAngle) const
+{
+	FAnimConfig_TurnInPlaceAsset TargetTurnAsset;
+	if (Stance.Standing())
+	{
+		if (FMath::Abs(TurnAngle) < AnimConfig->TurnInPlace.Turn180Threshold)
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.N_TurnIP_L90
+								  : AnimConfig->TurnInPlace.N_TurnIP_R90;
+		}
+		else
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.N_TurnIP_L180
+								  : AnimConfig->TurnInPlace.N_TurnIP_R180;
+		}
+	}
+	else
+	{
+		if (FMath::Abs(TurnAngle) < AnimConfig->TurnInPlace.Turn180Threshold)
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.CLF_TurnIP_L90
+								  : AnimConfig->TurnInPlace.CLF_TurnIP_R90;
+		}
+		else
+		{
+			TargetTurnAsset = TurnAngle < 0.0f
+								  ? AnimConfig->TurnInPlace.CLF_TurnIP_L180
+								  : AnimConfig->TurnInPlace.CLF_TurnIP_R180;
+		}
+	}
+	return TargetTurnAsset;
+}
+
+float UCharacterAnimInstance::CalculateStrideBlend() const
+{
+	const float CurveTime = Movement.Speed / GetOwningComponent()->GetComponentScale().Z;
+	const float ClampedGait = GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -1.0, 0.0f, 1.0f);
+	const float LerpStrideBlend = FMath::Lerp(AnimConfig->StrideBlend_N_Walk->GetFloatValue(CurveTime),
+											  AnimConfig->StrideBlend_N_Run->GetFloatValue(CurveTime), ClampedGait);
+	
+	return FMath::Lerp(LerpStrideBlend, AnimConfig->StrideBlend_C_Walk->GetFloatValue(Movement.Speed),
+					   GetCurveValue(FCharacterCurveName::NAME_BasePose_C));
+}
+
+float UCharacterAnimInstance::CalculateGaitBlend() const
+{
+	return Gait.Walking() ? 0.0f : 1.0;
+}
+
+float UCharacterAnimInstance::CalculateStandingPlayRate() const
+{
+	const float LerpSpeed = FMath::Lerp(Movement.Speed / AnimConfig->CharacterConfig.AnimatedWalkSpeed,
+										Movement.Speed / AnimConfig->CharacterConfig.AnimatedRunSpeed,
+										GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -1.0f, 0.0f, 1.0f));
+
+	const float SprintAffectedSpeed = FMath::Lerp(LerpSpeed, Movement.Speed / AnimConfig->CharacterConfig.AnimatedSprintSpeed,
+												  GetAnimCurveClamped(FCharacterCurveName::NAME_Gait, -2.0f, 0.0f, 1.0f));
+
+	return FMath::Clamp(SprintAffectedSpeed / Grounded.StrideBlend / GetOwningComponent()->GetComponentScale().Z, 0.0f, 3.0f);
+}
+
+float UCharacterAnimInstance::CalculateDiagonalScale() const
+{
+	return AnimConfig->DiagonalScale->GetFloatValue(FMath::Abs(VelocityBlend.Forward + VelocityBlend.Backward));
+}
+
+float UCharacterAnimInstance::CalculateCrouchingPlayRate() const
+{
+	return FMath::Clamp(
+	Movement.Speed / AnimConfig->CharacterConfig.AnimatedCrouchSpeed / Grounded.StrideBlend / GetOwningComponent()->
+	GetComponentScale().Z, 0.0f, 2.0f);
+}
+
+float UCharacterAnimInstance::CalculateLandPrediction() const
+{
+	if (Airborne.FallSpeed >= -200.0f)
+	{
+		return 0.0f;
+	}
+
+	if (const UShapeComponent* ShapeComp = Cast<UShapeComponent>(OrganicMovement->GetGenPawnOwner()->GetRootComponent()))
+	{
+		const FVector& CapsuleWorldLoc = ShapeComp->GetComponentLocation();
+		const float VelocityZ = Movement.Velocity.Z;
+
+		FVector VelocityClamped = Movement.Velocity;
+		VelocityClamped.Z = FMath::Clamp(VelocityZ, -4000.0f, -200.0f);
+		VelocityClamped.Normalize();
+
+		const FVector TraceLength = VelocityClamped * FMath::GetMappedRangeValueClamped<float, float>(
+			{0.0f, -4000.0f}, {50.0f, 2000.0f}, VelocityZ);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(OrganicMovement->GetOwner());
+
+		FHitResult HitResult;
+		
+		GetWorld()->SweepSingleByChannel(HitResult, CapsuleWorldLoc, CapsuleWorldLoc + TraceLength, FQuat::Identity,
+										 ECC_Visibility, CollisionShape, Params);
+
+		if (OrganicMovement->HitWalkableFloor(HitResult))
+		{
+			return FMath::Lerp(AnimConfig->LandPrediction->GetFloatValue(HitResult.Time), 0.0f,
+							   GetCurveValue(FCharacterCurveName::NAME_Mask_LandPrediction));
+		}
+	}
+	return 0.0f;
+}
+
+FVector UCharacterAnimInstance::CalculateRelativeAccelerationAmount() const
+{
+	if (FVector::DotProduct(Movement.Acceleration, Movement.Velocity) > 0.0f)
+	{
+		float MaxAcc = OrganicMovement->GetInputAcceleration();
+		return Movement.ActorRotation.UnrotateVector(Movement.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
+	}
+
+	float MaxBrakingDec = OrganicMovement->GetBrakingDeceleration();
+	return Movement.ActorRotation.UnrotateVector(Movement.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
+}
+
+FOrganicAnim_VelocityBlend UCharacterAnimInstance::CalculateVelocityBlend() const
+{
+	const FVector LocRelativeVelocityDir =
+		Movement.ActorRotation.UnrotateVector(Movement.Velocity.GetSafeNormal(0.1f));
+	
+	const float Sum = FMath::Abs(LocRelativeVelocityDir.X) + FMath::Abs(LocRelativeVelocityDir.Y) +
+		FMath::Abs(LocRelativeVelocityDir.Z);
+	
+	const FVector RelativeDir = LocRelativeVelocityDir / Sum;
+	
+	FOrganicAnim_VelocityBlend Result;
+	Result.Forward = FMath::Clamp(RelativeDir.X, 0.0f, 1.0f);
+	Result.Backward = FMath::Abs(FMath::Clamp(RelativeDir.X, -1.0f, 0.0f));
+	Result.Left = FMath::Abs(FMath::Clamp(RelativeDir.Y, -1.0f, 0.0f));
+	Result.Right = FMath::Clamp(RelativeDir.Y, 0.0f, 1.0f);
+	
+	return Result;
+}
+
+FOrganicAnim_LeanAmount UCharacterAnimInstance::CalculateAirLeanAmount() const
+{
+	FOrganicAnim_LeanAmount CalcLeanAmount;
+	const FVector& UnrotatedVel = Movement.ActorRotation.UnrotateVector(Movement.Velocity) / 350.0f;
+	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
+	InversedVect *= AnimConfig->LeanAirborne->GetFloatValue(Airborne.FallSpeed);
+	CalcLeanAmount.LR = InversedVect.X;
+	CalcLeanAmount.FB = InversedVect.Y;
+	return CalcLeanAmount;
+}
+
+EOrganicMovementDirection UCharacterAnimInstance::CalculateMovementDirection() const
+{
+	if (Gait.Sprinting() || RotationMode.VelocityDirection())
+	{
+		return EOrganicMovementDirection::Forward;
+	}
+
+	FRotator Delta = Movement.Velocity.ToOrientationRotator() - Movement.ViewRotation;
+	Delta.Normalize();
+	return CalculateQuadrant(MovementDirection, 70.0f, -70.0f, 110.0f, -110.0f, 5.0f, Delta.Yaw);
+}
+
+float UCharacterAnimInstance::GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const
+{
+	return FMath::Clamp(GetCurveValue(Name) + Bias, ClampMin, ClampMax);
+}
+
+bool UCharacterAnimInstance::ShouldMoveCheck() const
+{
+	return (Movement.bIsMoving && Movement.bHasMovementInput) || Movement.Speed > 150.0f;
+}
+
+bool UCharacterAnimInstance::CanRotateInPlace() const
+{
+	return RotationMode.ControlDirection();
+}
+
+bool UCharacterAnimInstance::CanTurnInPlace() const
+{
+	return RotationMode.LookingDirection() && GetCurveValue(FCharacterCurveName::NAME_Enable_Transition) >= 0.99f;
+}
+
+void UCharacterAnimInstance::OnJumped()
+{
+	Airborne.bJumped = true;
+	Airborne.JumpPlayRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 600.0f}, {1.2f, 1.5f}, Movement.Speed);
+
+	GetWorld()->GetTimerManager().SetTimer(OnJumpedTimer, this, &UCharacterAnimInstance::OnJumpedDelay, 0.1f, false);
+}
+
+void UCharacterAnimInstance::OnPivot()
+{
+	Grounded.bPivot = Movement.Speed < AnimConfig->CharacterConfig.TriggerPivotSpeedLimit;
+
+	GetWorld()->GetTimerManager().SetTimer(OnPivotTimer, this, &UCharacterAnimInstance::OnPivotDelay, 0.1f, false);
+}
+
+void UCharacterAnimInstance::OnJumpedDelay()
+{
+	Airborne.bJumped = false;
+}
+
+void UCharacterAnimInstance::OnPivotDelay()
+{
+	Grounded.bPivot = false;
 }
 
 void UCharacterAnimInstance::SetFootLocking(float DeltaSeconds, FName EnableFootIKCurve, FName FootLockCurve,
@@ -177,31 +651,31 @@ void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Loc
 
 void UCharacterAnimInstance::SetPelvisIKOffset(float DeltaSeconds, FVector FootOffsetLTarget, FVector FootOffsetRTarget)
 {
-	FootIKValues.PelvisAlpha = (GetCurveValue(FCharacterCurveName::NAME_Enable_FootIK_L) + GetCurveValue(
+	FootIK.PelvisAlpha = (GetCurveValue(FCharacterCurveName::NAME_Enable_FootIK_L) + GetCurveValue(
 		FCharacterCurveName::NAME_Enable_FootIK_R)) / 2.0f;
 
-	if (FootIKValues.PelvisAlpha > 0.0f)
+	if (FootIK.PelvisAlpha > 0.0f)
 	{
 		FVector PelvisTarget = FootOffsetLTarget.Z < FootOffsetRTarget.Z ? FootOffsetLTarget : FootOffsetRTarget;
-		float InterpSpeed = PelvisTarget.Z > FootIKValues.PelvisOffset.Z ? 10.0f : 15.0f;
+		float InterpSpeed = PelvisTarget.Z > FootIK.PelvisOffset.Z ? 10.0f : 15.0f;
 
-		FootIKValues.PelvisOffset = FMath::VInterpTo(FootIKValues.PelvisOffset, PelvisTarget, DeltaSeconds, InterpSpeed);
+		FootIK.PelvisOffset = FMath::VInterpTo(FootIK.PelvisOffset, PelvisTarget, DeltaSeconds, InterpSpeed);
 	}
 	else
 	{
-		FootIKValues.PelvisOffset = FVector::ZeroVector;
+		FootIK.PelvisOffset = FVector::ZeroVector;
 	}
 }
 
 void UCharacterAnimInstance::ResetIKOffsets(float DeltaSeconds)
 {
-	FootIKValues.FootOffset_L_Location = FMath::VInterpTo(FootIKValues.FootOffset_L_Location,
+	FootIK.FootOffset_L_Location = FMath::VInterpTo(FootIK.FootOffset_L_Location,
 														  FVector::ZeroVector, DeltaSeconds, 15.0f);
-	FootIKValues.FootOffset_R_Location = FMath::VInterpTo(FootIKValues.FootOffset_R_Location,
+	FootIK.FootOffset_R_Location = FMath::VInterpTo(FootIK.FootOffset_R_Location,
 														  FVector::ZeroVector, DeltaSeconds, 15.0f);
-	FootIKValues.FootOffset_L_Rotation = FMath::RInterpTo(FootIKValues.FootOffset_L_Rotation,
+	FootIK.FootOffset_L_Rotation = FMath::RInterpTo(FootIK.FootOffset_L_Rotation,
 														  FRotator::ZeroRotator, DeltaSeconds, 15.0f);
-	FootIKValues.FootOffset_R_Rotation = FMath::RInterpTo(FootIKValues.FootOffset_R_Rotation,
+	FootIK.FootOffset_R_Rotation = FMath::RInterpTo(FootIK.FootOffset_R_Rotation,
 														  FRotator::ZeroRotator, DeltaSeconds, 15.0f);
 }
 
@@ -256,7 +730,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
 		FOrganicDynamicMontage Params;
-		Params.Animation = TransitionAnim_R;
+		Params.Animation = AnimConfig->TransitionAnim_R;
 		Params.BlendInTime = 0.2f;
 		Params.BlendOutTime = 0.2f;
 		Params.PlayRate = 1.5f;
@@ -272,7 +746,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
 		FOrganicDynamicMontage Params;
-		Params.Animation = TransitionAnim_L;
+		Params.Animation = AnimConfig->TransitionAnim_L;
 		Params.BlendInTime = 0.2f;
 		Params.BlendOutTime = 0.2f;
 		Params.PlayRate = 1.5f;
@@ -318,4 +792,30 @@ void UCharacterAnimInstance::PlayDynamicTransitionDelay()
 bool UCharacterAnimInstance::CanDynamicTransition() const
 {
 	return GetCurveValue(FCharacterCurveName::NAME_Enable_Transition) >= 0.99f;
+}
+
+FCollisionShape UCharacterAnimInstance::MakeCollisionShape() const
+{
+	FCollisionShape NewShape;
+	switch (OrganicMovement->GetRootCollisionShape())
+	{
+	case EGenCollisionShape::VerticalCapsule:
+	case EGenCollisionShape::HorizontalCapsule:
+		{
+			NewShape = FCollisionShape::MakeCapsule(OrganicMovement->GetRootCollisionExtent());
+			break;
+		}
+	case EGenCollisionShape::Sphere:
+		{
+			NewShape = FCollisionShape::MakeSphere(OrganicMovement->GetRootCollisionExtent().X);
+			break;
+		}
+	case EGenCollisionShape::Box:
+		{
+			NewShape = FCollisionShape::MakeBox(OrganicMovement->GetRootCollisionExtent());
+			break;
+		}
+	default: break;
+	}
+	return NewShape;
 }
