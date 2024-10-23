@@ -6,7 +6,6 @@
 #include "AbilitySystemInterface.h"
 #include "GenPawn.h"
 #include "OrganicActorInterface.h"
-#include "Library/OrganicLibrary.h"
 #include "BaseOrganic.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumped);
@@ -21,7 +20,6 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
-	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -72,136 +70,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
 	TObjectPtr<class UMovementModelConfig> DefaultMovementModel;
 
-#pragma region Movement
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic|Movement")
-	FDataTableRowHandle MovementTable;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Movement")
-	FOrganicMovementModel MovementModel;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
-	EOrganicMovementState MovementState = EOrganicMovementState::None;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
-	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
-
-#pragma endregion Movement
-
-#pragma region Rotation
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Rotation")
-	EOrganicRotationMode InputRotationMode = EOrganicRotationMode::VelocityDirection;
-
-	UPROPERTY(VisibleInstanceOnly, Replicated, Category = "Base Organic|Rotation")
-	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
-	
-#pragma endregion Rotation
-
-#pragma region Stance
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Stance")
-	EOrganicStance InputStance = EOrganicStance::Standing;
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Stance")
-	EOrganicStance Stance = EOrganicStance::Standing;
-
-#pragma endregion Stance
-
-#pragma region Gait
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Base Organic|Gait")
-	EOrganicGait InputGait = EOrganicGait::Medium;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Gait")
-	EOrganicGait Gait = EOrganicGait::Medium;
-
-#pragma endregion Gait
-
-#pragma region Overlay
-
-	UPROPERTY(BlueprintReadOnly, Category = "Base Organic|Overlay")
-	int32 OverlayOverrideState = 0;
-
-#pragma endregion Overlay
-
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnJumped OnJumpedDelegate;
-
-	void OnMovementModeChanged();
-
-#pragma region Movement
-	
-	void SetMovementModel();
-
-	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
-	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementState; }
-
-	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
-
-	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
-
-#pragma endregion Movement
-	
-#pragma region Rotation
-	
-	void SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
-	FORCEINLINE EOrganicRotationMode GetInputRotationMode() const { return InputRotationMode; }
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
-	
-	void SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce = false);
-	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce);
-
-	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
-
-#pragma endregion Rotation
-	
-#pragma region Stance
-	
-	void SetInputStance(EOrganicStance NewInputStance);
-	FORCEINLINE EOrganicStance GetInputStance() const { return InputStance; }
-	
-	UFUNCTION(Server, Reliable)
-	void Server_SetInputStance(EOrganicStance NewInputStance);
-	
-	void SetStance(const EOrganicStance NewStance, bool bForce = false);
-	FORCEINLINE EOrganicStance GetStance() const { return Stance; }
-
-	virtual void OnStanceChanged(EOrganicStance PreviousStance);
-	
-#pragma endregion Stance
-	
-#pragma region Gait
-	
-	void SetInputGait(EOrganicGait NewInputGait);
-	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
-
-	void SetGait(const EOrganicGait NewGait, bool bForce = false);
-	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
-	
-	void OnGaitChanged(EOrganicGait PreviousGait);
-
-#pragma endregion Gait
-	
-#pragma region Overlay
-
-	void SetOverlayOverrideState(int32 NewState);
-	FORCEINLINE int32 GetOverlayOverrideState() const { return OverlayOverrideState; }
-
-#pragma endregion Overlay
-
-	void ForceUpdateCharacterState();
-
-	void OnSprint(bool bEnabled);
-	void OnCrouch();
-	void OnUnCrouch();
-	void OnJump();
 
 	bool IsSprinting() const;
 	bool IsAirborne() const;

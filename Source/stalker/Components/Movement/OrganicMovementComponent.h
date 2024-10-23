@@ -9,6 +9,8 @@
 
 class UMovementModelConfig;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnOrganicJumped);
+
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponent
 {
@@ -17,15 +19,14 @@ class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponen
 public:
 	UOrganicMovementComponent();
 
+	UPROPERTY(BlueprintAssignable)
+	FOnOrganicJumped OnJumpedDelegate;
+
 	virtual void SetUpdatedComponent(USceneComponent* NewUpdatedComponent) override;
 	
 	virtual void BindReplicationData_Implementation() override;
 
-	virtual void PhysicsGrounded(float DeltaSeconds) override;
-	virtual void PhysicsAirborne(float DeltaSeconds) override;
-	
 	virtual void PreMovementUpdate_Implementation(float DeltaSeconds) override;
-	virtual void PerformMovement(float DeltaSeconds) override;
 	virtual void MovementUpdate_Implementation(float DeltaSeconds) override;
 	virtual void MovementUpdateSimulated_Implementation(float DeltaSeconds) override;
 
@@ -35,8 +36,6 @@ public:
 protected:
 	TObjectPtr<class ABaseOrganic> OrganicOwner;
 
-	//TObjectPtr<AActor> OrganicOwner;
-
 #pragma region Movement
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
@@ -45,10 +44,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	FMovementModel_Settings MovementSettings;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement")
 	FOrganicMovementState MovementStatus = EOrganicMovementState::None;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Movement")
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement")
 	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
 	
 #pragma endregion Movement
@@ -76,16 +75,18 @@ protected:
 #pragma region Gait
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base Organic|Gait")
-	EOrganicGait InputGait = EOrganicGait::Medium;
+	EOrganicGait InputGait = EOrganicGait::Run;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Base Organic|Gait")
-	FOrganicGait Gait = EOrganicGait::Medium;
+	FOrganicGait Gait = EOrganicGait::Run;
 
 #pragma endregion Gait
 
+private:
+	
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
-	EOrganicGait AllowedGait = EOrganicGait::Slow;
+	EOrganicGait AllowedGait = EOrganicGait::Walk;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Jump")
@@ -186,8 +187,8 @@ public:
 
 	void UpdateGroundRotation(float DeltaTime);
 	void UpdateAirborneRotation(float DeltaTime);
-	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
 	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
+	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
 	
 	FORCEINLINE FVector GetInstantAcceleration() const { return InstantAcceleration; }
 
@@ -238,4 +239,5 @@ public:
 	void OnJump();
 	void OnCrouch();
 	void OnUnCrouch();
+	void OnSprint(bool bEnabled);
 };

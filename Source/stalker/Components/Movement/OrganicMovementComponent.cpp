@@ -1,15 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Components/Movement/OrganicMovementComponent.h"
-
 #include "MovementModelConfig.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Organic/BaseOrganic.h"
 
 UOrganicMovementComponent::UOrganicMovementComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-	
 	TargetMaxSpeed = MaxDesiredSpeed;
 }
 
@@ -35,16 +32,6 @@ void UOrganicMovementComponent::BindReplicationData_Implementation()
 	BindBool(bJustCrouched, false, true, true);
 }
 
-void UOrganicMovementComponent::PhysicsGrounded(float DeltaSeconds)
-{
-	Super::PhysicsGrounded(DeltaSeconds);
-}
-
-void UOrganicMovementComponent::PhysicsAirborne(float DeltaSeconds)
-{
-	Super::PhysicsAirborne(DeltaSeconds);
-}
-
 void UOrganicMovementComponent::PreMovementUpdate_Implementation(float DeltaSeconds)
 {
 	Super::PreMovementUpdate_Implementation(DeltaSeconds);
@@ -53,11 +40,6 @@ void UOrganicMovementComponent::PreMovementUpdate_Implementation(float DeltaSeco
 	{
 		bJustJumped = false;
 	}
-}
-
-void UOrganicMovementComponent::PerformMovement(float DeltaSeconds)
-{
-	Super::PerformMovement(DeltaSeconds);
 }
 
 void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds)
@@ -320,16 +302,16 @@ EOrganicGait UOrganicMovementComponent::CalculateAllowedGait() const
 	{
 		if (!RotationMode.ControlDirection())
 		{
-			if (InputGait == EOrganicGait::Fast)
+			if (InputGait == EOrganicGait::Sprint)
 			{
-				return EOrganicGait::Fast;
+				return EOrganicGait::Sprint;
 			}
 			return InputGait;
 		}
 	}
-	if (InputGait == EOrganicGait::Fast)
+	if (InputGait == EOrganicGait::Sprint)
 	{
-		return EOrganicGait::Medium;
+		return EOrganicGait::Run;
 	}
 	return InputGait;
 }
@@ -337,21 +319,21 @@ EOrganicGait UOrganicMovementComponent::CalculateAllowedGait() const
 EOrganicGait UOrganicMovementComponent::CalculateActualGait(EOrganicGait NewAllowedGait) const
 {
 	float Speed = GetSpeedXY();
-	if (Speed > MovementSettings.MediumSpeed + 10.0f)
+	if (Speed > MovementSettings.RunSpeed + 10.0f)
 	{
-		if (NewAllowedGait == EOrganicGait::Fast)
+		if (NewAllowedGait == EOrganicGait::Sprint)
 		{
-			return EOrganicGait::Fast;
+			return EOrganicGait::Sprint;
 		}
-		return EOrganicGait::Medium;
+		return EOrganicGait::Run;
 	}
 	
-	if (Speed >= MovementSettings.SlowSpeed + 10.0f)
+	if (Speed >= MovementSettings.WalkSpeed + 10.0f)
 	{
-		return EOrganicGait::Medium;
+		return EOrganicGait::Run;
 	}
 	
-	return EOrganicGait::Slow;
+	return EOrganicGait::Walk;
 }
 
 void UOrganicMovementComponent::SetAllowedGait(EOrganicGait DesiredGait)
@@ -364,7 +346,7 @@ void UOrganicMovementComponent::SetAllowedGait(EOrganicGait DesiredGait)
 
 float UOrganicMovementComponent::CalculateGroundRotationRate() const
 {
-	float CurveValue = MovementSettings.RotationRateCurve->GetFloatValue(GetMappedSpeed());
+	float CurveValue = MovementSettings.RotationCurve->GetFloatValue(GetMappedSpeed());
 	float MappedViewYawRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 300.0f}, {0.5f, 1.0f}, ViewYawRate);
 	return CurveValue * MappedViewYawRate;
 }
@@ -382,9 +364,9 @@ float UOrganicMovementComponent::GetMappedSpeed() const
 {
 	float Speed = Velocity.Size2D();
 	
-	float LocWalkSpeed = MovementSettings.SlowSpeed;
-	float LocRunSpeed = MovementSettings.MediumSpeed;
-	float LocSprintSpeed = MovementSettings.FastSpeed;
+	float LocWalkSpeed = MovementSettings.WalkSpeed;
+	float LocRunSpeed = MovementSettings.RunSpeed;
+	float LocSprintSpeed = MovementSettings.SprintSpeed;
 	
 	if (Speed > LocRunSpeed)
 	{
@@ -459,13 +441,6 @@ void UOrganicMovementComponent::UpdateAirborneRotation(float DeltaTime)
 	}
 }
 
-void UOrganicMovementComponent::RotateRootCollision(const FRotator& Target, float TargetInterpSpeed,
-                                                    float ActorInterpSpeed, float DeltaTime)
-{
-	TargetRotation = FMath::RInterpConstantTo(TargetRotation, Target, DeltaTime, TargetInterpSpeed);
-	SetRootCollisionRotation(FMath::RInterpTo(GetRootCollisionRotation(), TargetRotation, DeltaTime, ActorInterpSpeed));
-}
-
 void UOrganicMovementComponent::LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime)
 {
 	FRotator AimDelta = ViewRotation - GetRootCollisionRotation();
@@ -480,6 +455,13 @@ void UOrganicMovementComponent::LimitRotation(float AimYawMin, float AimYawMax, 
 		
 		RotateRootCollision({0.0f, TargetYaw, 0.0f}, 0.0f, InterpSpeed, DeltaTime);
 	}
+}
+
+void UOrganicMovementComponent::RotateRootCollision(const FRotator& Target, float TargetInterpSpeed,
+                                                    float ActorInterpSpeed, float DeltaTime)
+{
+	TargetRotation = FMath::RInterpConstantTo(TargetRotation, Target, DeltaTime, TargetInterpSpeed);
+	SetRootCollisionRotation(FMath::RInterpTo(GetRootCollisionRotation(), TargetRotation, DeltaTime, ActorInterpSpeed));
 }
 
 void UOrganicMovementComponent::UpdateSprint(bool bRequestedSprint)
@@ -541,11 +523,11 @@ void UOrganicMovementComponent::Sprinting()
 {
 	if (bJustSprinting)
 	{
-		OrganicOwner->OnSprint(true);
+		OnSprint(true);
 	}
 	else
 	{
-		OrganicOwner->OnSprint(false);
+		OnSprint(false);
 	}
 }
 
@@ -553,11 +535,11 @@ void UOrganicMovementComponent::Crouching()
 {
 	if (bJustCrouched)
 	{
-		OrganicOwner->OnCrouch();
+		OnCrouch();
 	}
 	else
 	{
-		OrganicOwner->OnUnCrouch();
+		OnUnCrouch();
 	}
 }
 
@@ -565,7 +547,7 @@ void UOrganicMovementComponent::Jumping()
 {
 	if (bJustJumped)
 	{
-		OrganicOwner->OnJump();
+		OnJump();
 	}
 }
 
@@ -612,14 +594,33 @@ bool UOrganicMovementComponent::CanJump() const
 void UOrganicMovementComponent::OnJump()
 {
 	AddImpulse({0.0f, 0.0f, JumpForce}, true);
+	
+	if (MovementStatus == EOrganicMovementState::Ground)
+	{
+		if (Stance == EOrganicStance::Standing)
+		{
+			OnJumpedDelegate.Broadcast();
+		}
+		else if (Stance == EOrganicStance::Crouching)
+		{
+			OnUnCrouch();
+		}
+	}
 }
 
 void UOrganicMovementComponent::OnCrouch()
 {
 	bJustCrouched = true;
+	SetStance(EOrganicStance::Crouching);
 }
 
 void UOrganicMovementComponent::OnUnCrouch()
 {
 	bJustCrouched = false;
+	SetStance(EOrganicStance::Standing);
+}
+
+void UOrganicMovementComponent::OnSprint(bool bEnabled)
+{
+	bEnabled ? SetInputGait(EOrganicGait::Sprint) : SetInputGait(EOrganicGait::Run);
 }

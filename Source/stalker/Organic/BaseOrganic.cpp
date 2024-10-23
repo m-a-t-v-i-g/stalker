@@ -43,7 +43,6 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 	{
 		CapsuleComponent->InitCapsuleSize(34.0f, 88.0f);
 		CapsuleComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
-
 		CapsuleComponent->CanCharacterStepUpOn = ECB_No;
 		CapsuleComponent->SetShouldUpdatePhysicsVolume(true);
 		CapsuleComponent->SetCanEverAffectNavigation(false);
@@ -74,11 +73,14 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 	}
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UStalkerAbilityComponent>(AbilitySystemComponentName);
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->SetIsReplicated(true);
+		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
-	OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
-
+		OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
+	}
+	
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
 	
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(WeaponComponentName);
@@ -128,26 +130,19 @@ void ABaseOrganic::PostInitializeComponents()
 	}
 }
 
-void ABaseOrganic::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void ABaseOrganic::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	if (auto ASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
 	{
-		GetAbilitySystemComponent<UStalkerAbilityComponent>()->InitAbilitySystem(NewController, this);
+		ASC->InitAbilitySystem(NewController, this);
 	}
 }
 
 void ABaseOrganic::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ABaseOrganic, RotationMode, COND_SimulatedOnly);
 }
 
 UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
@@ -155,137 +150,12 @@ UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
 	return AbilitySystemComponent.Get();
 }
 
-void ABaseOrganic::OnMovementModeChanged()
-{
-	
-}
-
-void ABaseOrganic::SetMovementModel()
-{
-	
-}
-
-void ABaseOrganic::SetMovementState(const EOrganicMovementState NewMovementState, bool bForce)
-{
-	
-}
-
-void ABaseOrganic::SetStance(const EOrganicStance NewStance, bool bForce)
-{
-	
-}
-
-void ABaseOrganic::OnStanceChanged(EOrganicStance PreviousStance)
-{
-	
-}
-
-void ABaseOrganic::SetInputGait(EOrganicGait NewInputGait)
-{
-	
-}
-
-void ABaseOrganic::SetGait(const EOrganicGait NewGait, bool bForce)
-{
-	
-}
-
-void ABaseOrganic::OnGaitChanged(EOrganicGait PreviousGait)
-{
-	
-}
-
-void ABaseOrganic::SetOverlayOverrideState(int32 NewState)
-{
-	OverlayOverrideState = NewState;
-}
-
-void ABaseOrganic::ForceUpdateCharacterState()
-{
-	
-}
-
-void ABaseOrganic::OnMovementStateChanged(const EOrganicMovementState PreviousState)
-{
-	
-}
-
-void ABaseOrganic::SetInputRotationMode(EOrganicRotationMode NewInputRotationMode)
-{
-	
-}
-
-void ABaseOrganic::Server_SetInputRotationMode_Implementation(EOrganicRotationMode NewInputRotationMode)
-{
-	
-}
-
-void ABaseOrganic::SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce)
-{
-	
-}
-
-void ABaseOrganic::Server_SetRotationMode_Implementation(EOrganicRotationMode NewRotationMode, bool bForce)
-{
-
-}
-
-void ABaseOrganic::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
-{
-	
-}
-
-void ABaseOrganic::SetInputStance(EOrganicStance NewInputStance)
-{
-	
-}
-
-void ABaseOrganic::Server_SetInputStance_Implementation(EOrganicStance NewInputStance)
-{
-	
-}
-
-void ABaseOrganic::OnSprint(bool bEnabled)
-{
-	// bEnabled ? SetInputGait(EOrganicGait::Fast) : SetInputGait(EOrganicGait::Medium);
-}
-
-void ABaseOrganic::OnCrouch()
-{
-	// SetStance(EOrganicStance::Crouching);
-}
-
-void ABaseOrganic::OnUnCrouch()
-{
-	// SetStance(EOrganicStance::Standing);
-}
-
-void ABaseOrganic::OnJump()
-{
-	
-	/*
-	if (MovementState == EOrganicMovementState::Ground)
-	{
-		if (Stance == EOrganicStance::Standing)
-		{
-			OrganicMovement->OnJump();
-			OnJumpedDelegate.Broadcast();
-		}
-		else if (Stance == EOrganicStance::Crouching)
-		{
-			OrganicMovement->OnUnCrouch();
-		}
-	}
-	*/
-	
-}
-
 bool ABaseOrganic::IsSprinting() const
 {
-	return GetGait() == EOrganicGait::Fast;
+	return false;
 }
 
 bool ABaseOrganic::IsAirborne() const
 {
-	return GetMovementState() == EOrganicMovementState::Airborne;
+	return false;
 }

@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OrganicAnimInstance.h"
+#include "Components/CharacterLocomotionAnimComponent.h"
 #include "Library/CharacterLibrary.h"
 #include "CharacterAnimInstance.generated.h"
 
 UCLASS()
-class STALKER_API UCharacterAnimInstance : public UOrganicAnimInstance
+class STALKER_API UCharacterAnimInstance : public UCharacterLocomotionAnimComponent
 {
 	GENERATED_BODY()
 
@@ -16,7 +16,7 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 
 	virtual void UpdateMovementInfo(float DeltaSeconds) override;
-	virtual void UpdateViewValues(float DeltaSeconds) override;
+	virtual void UpdateViewInfo(float DeltaSeconds) override;
 	virtual void UpdateLayerValues(float DeltaSeconds);
 	virtual void UpdateFootIK(float DeltaSeconds);
 

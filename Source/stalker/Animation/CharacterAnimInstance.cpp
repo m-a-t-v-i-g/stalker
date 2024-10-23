@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Animation/CharacterAnimInstance.h"
-
+#include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Organic/Characters/BaseCharacter.h"
@@ -20,7 +20,7 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 	MovementAction = Character->GetMovementAction();
 	OverlayState = Character->GetOverlayState();
 	
-	LayerBlendingValues.OverlayOverrideState = Character->GetOverlayOverrideState();
+	// LayerBlendingValues.OverlayOverrideState = Character->GetOverlayOverrideState();
 	
 	Super::UpdateMovementInfo(DeltaSeconds);
 
@@ -28,23 +28,22 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 	UpdateFootIK(DeltaSeconds);
 }
 
-void UCharacterAnimInstance::UpdateViewValues(float DeltaSeconds)
+void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 {
-	Super::UpdateViewValues(DeltaSeconds);
+	Super::UpdateViewInfo(DeltaSeconds);
 }
 
 void UCharacterAnimInstance::UpdateLayerValues(float DeltaSeconds)
 {
-	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(NAME_Mask_AimOffset));
+	LayerBlendingValues.EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FOrganicCurveName::NAME_Mask_AimOffset));
 
-	LayerBlendingValues.BasePose_N = GetCurveValue(NAME_BasePose_N);
-	LayerBlendingValues.BasePose_CLF = GetCurveValue(NAME_BasePose_CLF);
+	LayerBlendingValues.BasePose_N = GetCurveValue(FOrganicCurveName::NAME_BasePose_N);
+	LayerBlendingValues.BasePose_CLF = GetCurveValue(FOrganicCurveName::NAME_BasePose_C);
 
 	LayerBlendingValues.Spine_Add = GetCurveValue(NAME_Layering_Spine_Add);
 	LayerBlendingValues.Head_Add = GetCurveValue(NAME_Layering_Head_Add);
 	LayerBlendingValues.Arm_L_Add = GetCurveValue(NAME_Layering_Arm_L_Add);
 	LayerBlendingValues.Arm_R_Add = GetCurveValue(NAME_Layering_Arm_R_Add);
-
 	LayerBlendingValues.Hand_R = GetCurveValue(NAME_Layering_Hand_R);
 	LayerBlendingValues.Hand_L = GetCurveValue(NAME_Layering_Hand_L);
 
@@ -78,10 +77,10 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	}
 	else if (!MovementState.Ragdoll())
 	{
-		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_L, IkFootL_BoneName, NAME__ALSCharacterAnimInstance__root,
+		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_L, IkFootL_BoneName, FOrganicBoneName::NAME_Root,
 					   FootOffsetLTarget,
 					   FootIKValues.FootOffset_L_Location, FootIKValues.FootOffset_L_Rotation);
-		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_R, IkFootR_BoneName, NAME__ALSCharacterAnimInstance__root,
+		SetFootOffsets(DeltaSeconds, NAME_Enable_FootIK_R, IkFootR_BoneName, FOrganicBoneName::NAME_Root,
 					   FootOffsetRTarget,
 					   FootIKValues.FootOffset_R_Location, FootIKValues.FootOffset_R_Rotation);
 		SetPelvisIKOffset(DeltaSeconds, FootOffsetLTarget, FootOffsetRTarget);
@@ -273,7 +272,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 
 void UCharacterAnimInstance::PlayTransition(const FOrganicDynamicMontage& Parameters)
 {
-	PlaySlotAnimationAsDynamicMontage(Parameters.Animation, NAME_Grounded_Slot,
+	PlaySlotAnimationAsDynamicMontage(Parameters.Animation, FOrganicCurveName::NAME_Grounded_Slot,
 									  Parameters.BlendInTime, Parameters.BlendOutTime, Parameters.PlayRate, 1,
 									  0.0f, Parameters.StartTime);
 }
@@ -306,5 +305,5 @@ void UCharacterAnimInstance::PlayDynamicTransitionDelay()
 
 bool UCharacterAnimInstance::CanDynamicTransition() const
 {
-	return GetCurveValue(NAME_Enable_Transition) >= 0.99f;
+	return GetCurveValue(FOrganicCurveName::NAME_Enable_Transition) >= 0.99f;
 }

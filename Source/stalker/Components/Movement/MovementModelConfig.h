@@ -15,35 +15,32 @@ struct FMovementModel_Settings
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float SlowSpeed = 0.0f;
+	float WalkSpeed = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float MediumSpeed = 0.0f;
+	float RunSpeed = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float FastSpeed = 0.0f;
+	float SprintSpeed = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
 	TObjectPtr<UCurveVector> MovementCurve;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	TObjectPtr<UCurveFloat> RotationRateCurve;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	TObjectPtr<UCurveFloat> RotateLeftCurve;
+	TObjectPtr<UCurveFloat> RotationCurve;
 
 	float GetSpeedForGait(const EOrganicGait Gait) const
 	{
 		switch (Gait)
 		{
-		case EOrganicGait::Slow:
-			return SlowSpeed;
-		case EOrganicGait::Medium:
-			return MediumSpeed;
-		case EOrganicGait::Fast:
-			return FastSpeed;
+		case EOrganicGait::Walk:
+			return WalkSpeed;
+		case EOrganicGait::Run:
+			return RunSpeed;
+		case EOrganicGait::Sprint:
+			return SprintSpeed;
 		default:
-			return MediumSpeed;
+			return RunSpeed;
 		}
 	}
 };
@@ -67,11 +64,11 @@ class STALKER_API UMovementModelConfig : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
-	FMovementModel_Stance ControlDirection;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Model")
 	FMovementModel_Stance VelocityDirection;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
 	FMovementModel_Stance LookingDirection;
+	
+	UPROPERTY(EditAnywhere, Category = "Movement Model")
+	FMovementModel_Stance ControlDirection;
 };

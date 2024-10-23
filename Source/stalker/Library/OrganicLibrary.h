@@ -19,9 +19,9 @@ enum class EOrganicMovementState : uint8
 UENUM(BlueprintType)
 enum class EOrganicRotationMode : uint8
 {
-	VelocityDirection,
-	LookingDirection,
-	ControlDirection
+	VelocityDirection	 UMETA(DisplayName = "Velocity"),
+	LookingDirection	 UMETA(DisplayName = "Looking"),
+	ControlDirection	 UMETA(DisplayName = "Controller")
 };
 
 UENUM(BlueprintType)
@@ -35,9 +35,9 @@ enum class EOrganicStance : uint8
 UENUM(BlueprintType)
 enum class EOrganicGait : uint8
 {
-	Slow,
-	Medium,
-	Fast
+	Walk,
+	Run,
+	Sprint
 };
 
 UENUM(BlueprintType)
@@ -82,10 +82,10 @@ struct FOrganicMovementState
 {
 	GENERATED_USTRUCT_BODY()
 
-private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
 	EOrganicMovementState State = EOrganicMovementState::None;
 
+private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
 	bool bNone = true;
 
@@ -167,15 +167,18 @@ struct FOrganicStance
 {
 	GENERATED_USTRUCT_BODY()
 
-private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
 	EOrganicStance Stance = EOrganicStance::Standing;
 
+private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
 	bool bStanding = true;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
 	bool bCrouching = false;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
+	bool bCrawling = false;
 
 public:
 	FOrganicStance()
@@ -194,6 +197,7 @@ public:
 		Stance = NewStance;
 		bStanding = Stance == EOrganicStance::Standing;
 		bCrouching = Stance == EOrganicStance::Crouching;
+		bCrawling = Stance == EOrganicStance::Crawling;
 	}
 };
 
@@ -202,10 +206,10 @@ struct FOrganicGait
 {
 	GENERATED_USTRUCT_BODY()
 
-private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
-	EOrganicGait Gait = EOrganicGait::Slow;
+	EOrganicGait Gait = EOrganicGait::Walk;
 
+private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
 	bool bWalking = true;
 
@@ -231,81 +235,11 @@ public:
 	void operator=(const EOrganicGait NewGait)
 	{
 		Gait = NewGait;
-		bWalking = Gait == EOrganicGait::Slow;
-		bRunning = Gait == EOrganicGait::Medium;
-		bSprinting = Gait == EOrganicGait::Fast;
+		bWalking = Gait == EOrganicGait::Walk;
+		bRunning = Gait == EOrganicGait::Run;
+		bSprinting = Gait == EOrganicGait::Sprint;
 	}
 };
-
-#pragma region Movement Settings
-
-USTRUCT(BlueprintType)
-struct FOrganicMovementSettings
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float SlowSpeed = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float MediumSpeed = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	float FastSpeed = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	TObjectPtr<UCurveVector> MovementCurve = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	TObjectPtr<UCurveFloat> RotationRateCurve = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	TObjectPtr<UCurveFloat> RotateLeftCurve = nullptr;
-
-	float GetSpeedForGait(const EOrganicGait Gait) const
-	{
-		switch (Gait)
-		{
-		case EOrganicGait::Slow:
-			return SlowSpeed;
-		case EOrganicGait::Medium:
-			return MediumSpeed;
-		case EOrganicGait::Fast:
-			return FastSpeed;
-		default:
-			return MediumSpeed;
-		}
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FOrganicMovementStances
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementSettings Standing;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementSettings Crouching;
-};
-
-USTRUCT(BlueprintType)
-struct FOrganicMovementModel : public FTableRowBase
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStances ControlDirection;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStances VelocityDirection;
-
-	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FOrganicMovementStances LookingDirection;
-};
-
-#pragma endregion Movement Settings
 
 #pragma region Animation
 
