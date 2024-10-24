@@ -3,10 +3,14 @@
 #include "Animation/CharacterAnimInstance.h"
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
+#include "Camera/CameraComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "Curves/CurveVector.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Organic/Characters/BaseCharacter.h"
+#include "Player/PlayerCharacter.h"
 
 bool UCharacterAnimInstance::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer)
 {
@@ -114,14 +118,50 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 {
-	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation, Movement.ViewRotation, DeltaSeconds,
-												 AnimConfig->CharacterConfig.SmoothedAimingRotationInterpSpeed);
-
 	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
 	Delta.Normalize();
-	
+
 	View.AimingAngle.X = Delta.Yaw;
 	View.AimingAngle.Y = Delta.Pitch;
+	
+	if (Character->GetController())
+	{
+		if (auto Char = Character->FindComponentByClass<UCameraComponent>())
+		{
+			FHitResult HitResult;
+			FVector ViewLoc = Char->GetComponentLocation();
+			FRotator ViewRot = Char->GetComponentRotation();
+			FRotator LookTo;
+			FVector PointToLook;
+			
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Char->GetComponentLocation(),
+										 ViewLoc + ViewRot.Vector() * 10000.0f, ECC_Visibility);
+
+			if (!bHit)
+			{
+				
+				PointToLook = HitResult.TraceEnd;
+			}
+			else
+			{
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 32.0f, 16, FColor::Green, false, -1, 0, 5.0f);
+
+				PointToLook = HitResult.ImpactPoint;
+			}
+
+			FVector FromLoc = Character->GetActorLocation();
+			FromLoc.Z = FromLoc.Z + 45.0f;
+			LookTo = UKismetMathLibrary::NormalizedDeltaRotator(
+					UKismetMathLibrary::FindLookAtRotation(FromLoc, PointToLook), Movement.ActorRotation);
+			
+			View.AimOffset = FMath::Vector2DInterpTo(View.AimOffset, {LookTo.Yaw, LookTo.Pitch}, DeltaSeconds, 10.f);
+			
+			UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("P: %f, Y: %f"), LookTo.Pitch, LookTo.Yaw), true, false, FLinearColor::Red, DeltaSeconds, "KAL");
+		}
+	}
+
+	View.SmoothedViewRotation = FMath::RInterpTo(View.SmoothedViewRotation, Movement.ViewRotation, DeltaSeconds,
+												 AnimConfig->CharacterConfig.SmoothedAimingRotationInterpSpeed);
 
 	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
 	Delta.Normalize();

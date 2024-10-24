@@ -133,6 +133,9 @@ struct FOrganicAnim_ViewInfo
 	FRotator SpineRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View Info")
+	FVector2D AimOffset = FVector2D::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View Info")
 	FVector2D AimingAngle = FVector2D::ZeroVector;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View Info")
