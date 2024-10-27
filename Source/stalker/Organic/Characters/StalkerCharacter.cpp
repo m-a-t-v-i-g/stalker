@@ -4,6 +4,7 @@
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Armor/CharacterArmorComponent.h"
 #include "Inventory/CharacterInventoryComponent.h"
+#include "Movement/OrganicMovementComponent.h"
 #include "Weapons/CharacterWeaponComponent.h"
 
 FName AStalkerCharacter::ArmorComponentName {"CharArmorComp"};
@@ -27,6 +28,7 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 	if (auto AbilitySystemComp = GetAbilitySystemComponent<UStalkerAbilityComponent>())
 	{
 		AbilitySystemComp->InitAbilitySystem(NewController, this);
+		
 		for (auto& DefaultAbility : DefaultAbilities)
 		{
 			if (!DefaultAbility) continue;
@@ -37,6 +39,7 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
 	{
 		CharacterInventory->PreInitializeContainer();
+		
 		if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
 		{
 			CharacterWeapon->PreInitializeWeapon();
@@ -46,11 +49,13 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 			CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
 			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
 		}
+		
 		if (auto CharacterArmor = GetArmorComponent())
 		{
 			CharacterArmor->PreInitializeArmor();
 			CharacterArmor->PostInitializeArmor();
 		}
+		
 		CharacterInventory->PostInitializeContainer();
 	}
 	bIsStalkerInitialized = true;
@@ -83,12 +88,12 @@ void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 
 void AStalkerCharacter::OnAimingStart()
 {
-	
+	GetOrganicMovement()->SetRotationMode(EOrganicRotationMode::ControlDirection, true);
 }
 
 void AStalkerCharacter::OnAimingStop()
 {
-	
+	GetOrganicMovement()->SetRotationMode(GetOrganicMovement()->GetInputRotationMode(), true);
 }
 
 void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)

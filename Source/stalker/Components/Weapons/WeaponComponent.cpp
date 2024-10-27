@@ -91,3 +91,21 @@ FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)
 	}
 	return FoundSlot;
 }
+
+bool UWeaponComponent::IsAutonomousProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_AutonomousProxy;
+}
+
+bool UWeaponComponent::IsSimulatedProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
+}

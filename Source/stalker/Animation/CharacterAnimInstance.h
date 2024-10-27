@@ -275,52 +275,52 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Input Information")
 	TWeakObjectPtr<ABaseCharacter> Character;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FOrganicMovementState MovementState = EOrganicMovementState::None;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FOrganicStance Stance = EOrganicStance::Standing;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FOrganicGait Gait = EOrganicGait::Walk;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FCharacterMovementAction MovementAction = ECharacterMovementAction::None;
 	
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FCharacterOverlayState OverlayState = ECharacterOverlayState::Default;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_MovementInfo Movement;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_GroundedInfo Grounded;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_AirborneInfo Airborne;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_ViewInfo View;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_VelocityBlend VelocityBlend;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_LeanAmount LeanAmount;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_MovementDirection MovementDirection;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FAnimOrganicLayerBlending LayerBlending;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FAnimOrganicFootIK FootIK;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Anim Graph")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
 	FOrganicAnim_InstanceData OrganicAnimData;
 
 	virtual void NativeInitializeAnimation() override;

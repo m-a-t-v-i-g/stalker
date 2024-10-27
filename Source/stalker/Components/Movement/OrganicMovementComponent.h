@@ -19,6 +19,9 @@ class STALKER_API UOrganicMovementComponent : public UGenOrganicMovementComponen
 public:
 	UOrganicMovementComponent();
 
+	UPROPERTY(BlueprintReadOnly, Category = "Character Movement|Movement")
+	EOrganicGait AllowedGait = EOrganicGait::Walk;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnOrganicJumped OnJumpedDelegate;
 
@@ -32,10 +35,106 @@ public:
 
 	virtual void OnMovementModeUpdated_Implementation(EGenMovementMode PreviousMovementMode) override;
 	virtual void OnMovementModeChangedSimulated_Implementation(EGenMovementMode PreviousMovementMode) override;
+	
+#pragma region Movement
 
+	void SetMovementModel(UMovementModelConfig* ModelConfig);
+	
+	void SetMovementSettings(FMovementModel_Settings NewMovementSettings);
+	FMovementModel_Settings GetMovementSettings() const;
+
+	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
+	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementStatus; }
+	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
+
+	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
+
+#pragma endregion Movement
+
+#pragma region Rotation
+
+	void SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
+	FORCEINLINE EOrganicRotationMode GetInputRotationMode() const { return InputRotationMode; }
+
+	void SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce = false);
+	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
+
+	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
+
+#pragma endregion Rotation
+
+#pragma region Stance
+
+	void SetInputStance(EOrganicStance NewInputStance);
+	FORCEINLINE EOrganicStance GetInputStance() const { return InputStance; }
+	
+	void SetStance(const EOrganicStance NewStance, bool bForce = false);
+	FORCEINLINE EOrganicStance GetStance() const { return Stance; }
+
+	virtual void OnStanceChanged(EOrganicStance PreviousStance);
+	
+#pragma endregion Stance
+
+#pragma region Gait
+
+	void SetInputGait(EOrganicGait NewInputGait);
+	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
+
+	void SetGait(const EOrganicGait NewGait, bool bForce = false);
+	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
+	
+	void OnGaitChanged(EOrganicGait PreviousGait);
+
+	void UpdateGait();
+	
+	EOrganicGait CalculateAllowedGait() const;
+	EOrganicGait CalculateActualGait(EOrganicGait NewAllowedGait) const;
+	
+	void SetAllowedGait(EOrganicGait DesiredGait);
+
+#pragma endregion Gait
+
+	void ForceUpdateAllStates();
+
+	float CalculateGroundRotationRate() const;
+
+	float GetAnimCurveValue(FName CurveName) const;
+	
+	float GetMappedSpeed() const;
+
+	void UpdateGroundRotation(float DeltaTime);
+	void UpdateAirborneRotation(float DeltaTime);
+	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
+	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
+	
+	FORCEINLINE FVector GetInstantAcceleration() const { return InstantAcceleration; }
+
+	FORCEINLINE FRotator GetInputRotation() const { return ViewRotation; }
+	
+	FORCEINLINE FRotator GetLastPawnRotation() const { return PrevPawnRotation; }
+	
+	FORCEINLINE FRotator GetLastComponentRotation() const { return PrevComponentRotation; }
+	
+	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
+
+	FORCEINLINE float GetMovementInputValue() const { return MovementInputValue; }
+
+	FORCEINLINE bool HasMovementInput() const { return bHasMovementInput; }
+
+	FORCEINLINE bool IsMoving() const { return bIsMoving; }
+	
 protected:
 	TObjectPtr<class ABaseOrganic> OrganicOwner;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Jump")
+	float JumpForce = 500.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Sprint")
+	float SpeedInterpSpeed = 2.5f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "View")
+	float ViewInterpSpeed = 10.0f;
+	
 #pragma region Movement
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
@@ -82,21 +181,22 @@ protected:
 
 #pragma endregion Gait
 
-private:
+	float TargetMaxSpeed = 0.0f;
 	
-public:
-	UPROPERTY(BlueprintReadOnly, Category = "CharacterMovement|Movement")
-	EOrganicGait AllowedGait = EOrganicGait::Walk;
+	void CalculateMovement(float DeltaSeconds);
+	
+	void Sprinting();
+	void Crouching();
+	void Jumping();
 
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Jump")
-	float JumpForce = 500.0f;
+	virtual bool CanSprint() const;
+	virtual bool CanCrouch() const;
+	virtual bool CanJump() const;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Sprint")
-	float SpeedInterpSpeed = 2.5f;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "View")
-	float ViewInterpSpeed = 10.0f;
+	void OnJump();
+	void OnCrouch();
+	void OnUnCrouch();
+	void OnSprint(bool bEnabled);
 	
 private:
 	bool bWantsChangeMovementSettings = false;
@@ -107,9 +207,9 @@ private:
 	
 	FRotator ViewRotation;
 
-	float ViewYawRate;
+	float ViewYawRate = 0.0f;
 	
-	float PreviousViewYaw;
+	float PreviousViewYaw = 0.0f;
 
 	FRotator TargetRotation;
 	
@@ -125,91 +225,6 @@ private:
 	
 	bool bIsMoving = false;
 
-public:
-	
-#pragma region Movement
-
-	void SetMovementModel(UMovementModelConfig* ModelConfig);
-	
-	void SetMovementSettings(FMovementModel_Settings NewMovementSettings);
-	FMovementModel_Settings GetMovementSettings() const;
-
-	void SetMovementState(const EOrganicMovementState NewMovementState, bool bForce = false);
-	FORCEINLINE EOrganicMovementState GetMovementState() const { return MovementStatus; }
-	FORCEINLINE EOrganicMovementState GetPrevMovementState() const { return PrevMovementState; }
-
-	void OnMovementStateChanged(const EOrganicMovementState PreviousState);
-
-#pragma endregion Movement
-
-#pragma region Rotation
-
-	void SetInputRotationMode(EOrganicRotationMode NewInputRotationMode);
-	FORCEINLINE EOrganicRotationMode GetInputRotationMode() const { return InputRotationMode; }
-
-	void SetRotationMode(EOrganicRotationMode NewRotationMode, bool bForce = false);
-	FORCEINLINE EOrganicRotationMode GetRotationMode() const { return RotationMode; }
-
-	void OnRotationModeChanged(EOrganicRotationMode PrevRotationMode);
-
-#pragma endregion Rotation
-
-	void SetInputStance(EOrganicStance NewInputStance);
-	FORCEINLINE EOrganicStance GetInputStance() const { return InputStance; }
-	
-	void SetStance(const EOrganicStance NewStance, bool bForce = false);
-	FORCEINLINE EOrganicStance GetStance() const { return Stance; }
-
-	virtual void OnStanceChanged(EOrganicStance PreviousStance);
-	
-	void SetInputGait(EOrganicGait NewInputGait);
-	FORCEINLINE EOrganicGait GetInputGait() const { return InputGait; }
-
-	void SetGait(const EOrganicGait NewGait, bool bForce = false);
-	FORCEINLINE EOrganicGait GetGait() const { return Gait; }
-	
-	void OnGaitChanged(EOrganicGait PreviousGait);
-
-	void ForceUpdateAllStates();
-
-	void UpdateGait();
-	
-	EOrganicGait CalculateAllowedGait() const;
-	EOrganicGait CalculateActualGait(EOrganicGait NewAllowedGait) const;
-	
-	void SetAllowedGait(EOrganicGait DesiredGait);
-
-	float CalculateGroundRotationRate() const;
-
-	float GetAnimCurveValue(FName CurveName) const;
-	
-	float GetMappedSpeed() const;
-
-	void UpdateGroundRotation(float DeltaTime);
-	void UpdateAirborneRotation(float DeltaTime);
-	void LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime);
-	void RotateRootCollision(const FRotator& Target, float TargetInterpSpeed, float ActorInterpSpeed, float DeltaTime);
-	
-	FORCEINLINE FVector GetInstantAcceleration() const { return InstantAcceleration; }
-
-	FORCEINLINE FRotator GetInputRotation() const { return ViewRotation; }
-	
-	FORCEINLINE FRotator GetLastPawnRotation() const { return PrevPawnRotation; }
-	
-	FORCEINLINE FRotator GetLastComponentRotation() const { return PrevComponentRotation; }
-	
-	FORCEINLINE float GetViewYawRate() const { return ViewYawRate; }
-
-	FORCEINLINE float GetMovementInputValue() const { return MovementInputValue; }
-
-	FORCEINLINE bool HasMovementInput() const { return bHasMovementInput; }
-
-	FORCEINLINE bool IsMoving() const { return bIsMoving; }
-	
-protected:
-	float TargetMaxSpeed = 0.0f;
-	
-private:
 	bool bWantsToSprint = false;
 	bool bWantsToCrouch = false;
 	bool bWantsToJump = false;
@@ -225,19 +240,4 @@ private:
 	void UpdateSprint(bool bRequestedSprint);
 	void UpdateCrouch(bool bRequestedCrouch);
 	void UpdateJump(bool bRequestedJump);
-
-protected:
-	void Sprinting();
-	void Crouching();
-	void Jumping();
-
-	virtual bool CanSprint() const;
-	virtual bool CanCrouch() const;
-	virtual bool CanJump() const;
-	
-public:
-	void OnJump();
-	void OnCrouch();
-	void OnUnCrouch();
-	void OnSprint(bool bEnabled);
 };

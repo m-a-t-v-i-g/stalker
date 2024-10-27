@@ -27,7 +27,7 @@ void AWeaponActor::StartAttack()
 	if (bInFireRate)
 	{
 		CallAttack();
-		WeaponParams->bAutomatic ? SetRepeatFireTimer() : SetInFireRateTimer();
+		WeaponParams->bAutomatic ? SetRepetitiveFireTimer() : SetSingleFireTimer();
 	}
 	bHoldTrigger = true;
 }
@@ -62,7 +62,7 @@ void AWeaponActor::StopAttack()
 	if (WeaponParams->bAutomatic)
 	{
 		GetWorldTimerManager().ClearTimer(RepeatAttackTimer);
-		SetInFireRateTimer();
+		SetSingleFireTimer();
 	}
 	bHoldTrigger = false;
 }
@@ -77,7 +77,7 @@ bool AWeaponActor::IsAmmoAvailable(const UClass* AmmoClass) const
 	return WeaponParams->AmmoClasses.Contains(AmmoClass);
 }
 
-void AWeaponActor::SetInFireRateTimer()
+void AWeaponActor::SetSingleFireTimer()
 {
 	if (!CanAttackTimer.IsValid())
 	{
@@ -91,7 +91,7 @@ void AWeaponActor::SetInFireRateTimer()
 	}
 }
 
-void AWeaponActor::SetRepeatFireTimer()
+void AWeaponActor::SetRepetitiveFireTimer()
 {
 	FTimerDelegate RepeatAttackDelegate;
 	RepeatAttackDelegate.BindLambda([&, this]

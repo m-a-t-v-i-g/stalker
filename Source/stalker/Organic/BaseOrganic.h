@@ -39,6 +39,9 @@ public:
 	static FName InventoryComponentName;
 	static FName WeaponComponentName;
 
+protected:
+	virtual void Tick(float DeltaSeconds) override;
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Mesh;

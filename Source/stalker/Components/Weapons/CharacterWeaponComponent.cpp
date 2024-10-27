@@ -93,7 +93,7 @@ void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 
 void UCharacterWeaponComponent::PlayBasicAction()
 {
-	auto RightItem = GetItemAtRightHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	if (!RightItem || !IsRightItemActorValid()) return;
 
 	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
@@ -113,7 +113,7 @@ void UCharacterWeaponComponent::PlayBasicAction()
 
 void UCharacterWeaponComponent::StopBasicAction()
 {
-	auto RightItem = GetItemAtRightHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	if (!RightItem || !IsRightItemActorValid()) return;
 
 	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
@@ -133,7 +133,7 @@ void UCharacterWeaponComponent::StopBasicAction()
 
 void UCharacterWeaponComponent::PlayAlternativeAction()
 {
-	auto RightItem = GetItemAtRightHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	if (!RightItem || !IsRightItemActorValid()) return;
 
 	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
@@ -144,6 +144,9 @@ void UCharacterWeaponComponent::PlayAlternativeAction()
 
 	switch (RightItemBeh->RightMouseReaction)
 	{
+	case EMouseButtonReaction::Alternative:
+		StartAlternative();
+		break;
 	case EMouseButtonReaction::Aiming:
 		StartAiming();
 		break;
@@ -153,7 +156,7 @@ void UCharacterWeaponComponent::PlayAlternativeAction()
 
 void UCharacterWeaponComponent::StopAlternativeAction()
 {
-	auto RightItem = GetItemAtRightHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	if (!RightItem || !IsRightItemActorValid()) return;
 
 	FItemBehavior* RightItemBeh = WeaponBehaviorData->ItemsMap.Find(RightItem->GetItemRowName());
@@ -164,6 +167,9 @@ void UCharacterWeaponComponent::StopAlternativeAction()
 
 	switch (RightItemBeh->RightMouseReaction)
 	{
+	case EMouseButtonReaction::Alternative:
+		StopAlternative();
+		break;
 	case EMouseButtonReaction::Aiming:
 		StopAiming();
 		break;
@@ -173,8 +179,12 @@ void UCharacterWeaponComponent::StopAlternativeAction()
 
 void UCharacterWeaponComponent::StartFire()
 {
-	auto RightItem = GetActorAtRightHand();
-	if (!IsRightItemActorValid()) return;
+	auto RightItem = GetItemActorAtRightHand();
+	
+	if (!IsRightItemActorValid())
+	{
+		return;
+	}
 
 	if (auto RightWeapon = Cast<AWeaponActor>(RightItem))
 	{
@@ -185,7 +195,7 @@ void UCharacterWeaponComponent::StartFire()
 		RightWeapon->StartAttack();
 	}
 
-	if (!GetOwner()->HasAuthority())
+	if (IsAutonomousProxy())
 	{
 		ServerStartFire();
 	}
@@ -198,8 +208,12 @@ void UCharacterWeaponComponent::ServerStartFire_Implementation()
 
 void UCharacterWeaponComponent::StopFire()
 {
-	auto RightItem = GetActorAtRightHand();
-	if (!IsRightItemActorValid()) return;
+	auto RightItem = GetItemActorAtRightHand();
+	
+	if (!IsRightItemActorValid())
+	{
+		return;
+	}
 
 	if (auto RightWeapon = Cast<AWeaponActor>(RightItem))
 	{
@@ -210,7 +224,7 @@ void UCharacterWeaponComponent::StopFire()
 		RightWeapon->StopAttack();
 	}
 	
-	if (!GetOwner()->HasAuthority())
+	if (IsAutonomousProxy())
 	{
 		ServerStopFire();
 	}
@@ -219,6 +233,26 @@ void UCharacterWeaponComponent::StopFire()
 void UCharacterWeaponComponent::ServerStopFire_Implementation()
 {
 	StopFire();
+}
+
+void UCharacterWeaponComponent::StartAlternative()
+{
+	
+}
+
+void UCharacterWeaponComponent::ServerStartAlternative_Implementation()
+{
+	
+}
+
+void UCharacterWeaponComponent::StopAlternative()
+{
+	
+}
+
+void UCharacterWeaponComponent::ServerStopAlternative_Implementation()
+{
+	
 }
 
 void UCharacterWeaponComponent::StartAiming()
@@ -255,7 +289,7 @@ void UCharacterWeaponComponent::ServerStopAiming_Implementation()
 
 void UCharacterWeaponComponent::TryReloadWeapon()
 {
-	auto RightItem = GetItemAtRightHand<UWeaponObject>();
+	auto RightItem = GetItemObjectAtRightHand<UWeaponObject>();
 	if (!RightItem || RightItem->IsMagFull() || !HasAmmoForReload()) return;
 	
 	if (!GetOwner()->HasAuthority())
@@ -268,7 +302,7 @@ void UCharacterWeaponComponent::TryReloadWeapon()
 
 void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 {
-	auto RightWeapon = GetItemAtRightHand<UWeaponObject>();
+	auto RightWeapon = GetItemObjectAtRightHand<UWeaponObject>();
 	if (!RightWeapon || RightWeapon->IsMagFull() || !HasAmmoForReload()) return;
 
 	UAmmoObject* Ammo = GetAmmoForReload();
@@ -350,7 +384,7 @@ bool UCharacterWeaponComponent::HasAmmoForReload() const
 UAmmoObject* UCharacterWeaponComponent::GetAmmoForReload() const
 {
 	UAmmoObject* ResultAmmo = nullptr;
-	if (auto RightItem = GetItemAtRightHand<UWeaponObject>())
+	if (auto RightItem = GetItemObjectAtRightHand<UWeaponObject>())
 	{
 		auto Params = RightItem->GetWeaponParams();
 		for (auto AmmoClass : Params.AmmoClasses)
@@ -377,8 +411,8 @@ void UCharacterWeaponComponent::EquipOrUnEquipHands(const FString& SlotName, UIt
 	
 	ECharacterOverlayState TargetOverlay = ECharacterOverlayState::Default;
 	
-	auto LeftItem = GetItemAtLeftHand();
-	auto RightItem = GetItemAtRightHand();
+	auto LeftItem = GetItemObjectAtLeftHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	
 	FItemBehavior* RightItemBeh = nullptr;
 	if (RightItem)
@@ -478,8 +512,8 @@ void UCharacterWeaponComponent::UnEquipHands(const FString& SlotName)
 	if (!SlotPtr->IsArmed()) return;
 
 	auto SlotObject = SlotPtr->ArmedItemObject;
-	auto LeftItem = GetItemAtLeftHand();
-	auto RightItem = GetItemAtRightHand();
+	auto LeftItem = GetItemObjectAtLeftHand();
+	auto RightItem = GetItemObjectAtRightHand();
 	
 	if (LeftItem == SlotObject)
 	{
@@ -585,7 +619,7 @@ void UCharacterWeaponComponent::OnSlotEquipped(UItemObject* ItemObject, bool bMo
 	}
 }
 
-UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
+UItemObject* UCharacterWeaponComponent::GetItemObjectAtLeftHand() const
 {
 	UItemObject* ItemObject = nullptr;
 	if (LeftHandItem)
@@ -595,7 +629,7 @@ UItemObject* UCharacterWeaponComponent::GetItemAtLeftHand() const
 	return ItemObject;
 }
 
-UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
+UItemObject* UCharacterWeaponComponent::GetItemObjectAtRightHand() const
 {
 	UItemObject* ItemObject = nullptr;
 	if (RightHandItem)
@@ -605,12 +639,12 @@ UItemObject* UCharacterWeaponComponent::GetItemAtRightHand() const
 	return ItemObject;
 }
 
-AItemActor* UCharacterWeaponComponent::GetActorAtLeftHand() const
+AItemActor* UCharacterWeaponComponent::GetItemActorAtLeftHand() const
 {
 	return LeftHandItem;
 }
 
-AItemActor* UCharacterWeaponComponent::GetActorAtRightHand() const
+AItemActor* UCharacterWeaponComponent::GetItemActorAtRightHand() const
 {
 	return RightHandItem;
 }

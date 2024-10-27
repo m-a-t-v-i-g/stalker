@@ -10,6 +10,7 @@ enum class ECharacterOverlayState : uint8
 {
 	Default,
 	Item,
+	Weapon,
 
 	// DEPRECATED
 	Rifle,

@@ -46,13 +46,16 @@ public:
 	
 	void StopAttack();
 
+	virtual void StartAlternative();
+	virtual void StopAlternative();
+	
 	virtual bool CheckAttackAvailability() const;
 	
 	bool IsAmmoAvailable(const UClass* AmmoClass) const;
 
 protected:
-	void SetInFireRateTimer();
-	void SetRepeatFireTimer();
+	void SetSingleFireTimer();
+	void SetRepetitiveFireTimer();
 
 	float GetDefaultFireRate() const;
 	virtual float CalculateFireRate() const;

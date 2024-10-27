@@ -150,6 +150,16 @@ UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
 	return AbilitySystemComponent.Get();
 }
 
+void ABaseOrganic::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (IsLocallyControlled())
+	{
+		
+	}
+}
+
 bool ABaseOrganic::IsSprinting() const
 {
 	return false;

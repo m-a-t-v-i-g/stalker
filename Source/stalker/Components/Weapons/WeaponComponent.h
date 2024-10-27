@@ -96,4 +96,8 @@ public:
 	virtual bool IsArmed() const;
 	
 	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
+	
+	bool IsAutonomousProxy() const;
+
+	bool IsSimulatedProxy() const;
 };

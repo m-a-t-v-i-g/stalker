@@ -101,7 +101,7 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
-	
+
 	void PlayBasicAction();
 	void StopBasicAction();
 	
@@ -117,6 +117,16 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerStopFire();
+	
+	void StartAlternative();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerStartAlternative();
+	
+	void StopAlternative();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerStopAlternative();
 	
 	void StartAiming();
 	
@@ -160,22 +170,34 @@ protected:
 public:
 	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, bool bEquipped, FString SlotName);
 	
-	FORCEINLINE UItemObject* GetItemAtLeftHand() const;
-	FORCEINLINE UItemObject* GetItemAtRightHand() const;
+	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
+	FORCEINLINE UItemObject* GetItemObjectAtRightHand() const;
 
 	template<class T>
-	T* GetItemAtRightHand() const
+	T* GetItemObjectAtLeftHand() const
 	{
-		return Cast<T>(GetItemAtRightHand());
+		return Cast<T>(GetItemObjectAtLeftHand());
 	}
 
-	FORCEINLINE AItemActor* GetActorAtLeftHand() const;
-	FORCEINLINE AItemActor* GetActorAtRightHand() const;
+	template<class T>
+	T* GetItemObjectAtRightHand() const
+	{
+		return Cast<T>(GetItemObjectAtRightHand());
+	}
+
+	FORCEINLINE AItemActor* GetItemActorAtLeftHand() const;
+	FORCEINLINE AItemActor* GetItemActorAtRightHand() const;
 	
 	template<class T>
-	T* GetActorAtRightHand() const
+	T* GetItemActorAtLeftHand() const
 	{
-		return Cast<T>(GetActorAtRightHand());
+		return Cast<T>(GetItemActorAtLeftHand());
+	}
+	
+	template<class T>
+	T* GetItemActorAtRightHand() const
+	{
+		return Cast<T>(GetItemActorAtRightHand());
 	}
 	
 	FORCEINLINE bool IsLeftItemActorValid() const;

@@ -2,7 +2,6 @@
 
 #include "Components/Movement/OrganicMovementComponent.h"
 #include "MovementModelConfig.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Organic/BaseOrganic.h"
 
 UOrganicMovementComponent::UOrganicMovementComponent()
@@ -46,11 +45,62 @@ void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds
 {
 	Super::MovementUpdate_Implementation(DeltaSeconds);
 
-	PrevPawnRotation = GetInRotation();
+	CalculateMovement(DeltaSeconds);
+	
+	UpdateSprint(bWantsToSprint);
+	UpdateCrouch(bWantsToCrouch);
+	UpdateJump(bWantsToJump);
+}
+
+void UOrganicMovementComponent::MovementUpdateSimulated_Implementation(float DeltaSeconds)
+{
+	Super::MovementUpdateSimulated_Implementation(DeltaSeconds);
+
+	CalculateMovement(DeltaSeconds);
+	
+	Sprinting();
+	Crouching();
+	Jumping();
+}
+
+void UOrganicMovementComponent::OnMovementModeUpdated_Implementation(EGenMovementMode PreviousMovementMode)
+{
+	Super::OnMovementModeUpdated_Implementation(PreviousMovementMode);
+	
+	if (IsMovingOnGround())
+	{
+		SetMovementState(EOrganicMovementState::Ground);
+	}
+	else if (IsAirborne())
+	{
+		SetMovementState(EOrganicMovementState::Airborne);
+	}
+}
+
+void UOrganicMovementComponent::OnMovementModeChangedSimulated_Implementation(EGenMovementMode PreviousMovementMode)
+{
+	Super::OnMovementModeChangedSimulated_Implementation(PreviousMovementMode);
+	
+	if (IsMovingOnGround())
+	{
+		SetMovementState(EOrganicMovementState::Ground);
+	}
+	else if (IsAirborne())
+	{
+		SetMovementState(EOrganicMovementState::Airborne);
+	}
+}
+
+void UOrganicMovementComponent::CalculateMovement(float DeltaSeconds)
+{
+	if (!IsSimulatedProxy())
+	{
+		PrevPawnRotation = GetInRotation();
+		ViewRotation = FMath::RInterpTo(ViewRotation, GetInControlRotation(), DeltaSeconds, ViewInterpSpeed);
+	}
+	
 	PrevComponentRotation = GetRootCollisionRotation();
-
-	ViewRotation = FMath::RInterpTo(ViewRotation, GetInControlRotation(), DeltaSeconds, ViewInterpSpeed);
-
+	
 	const FVector PrevAcceleration = (GetVelocity() - PreviousVelocity) / DeltaSeconds;
 	InstantAcceleration = PrevAcceleration.IsNearlyZero() ? InstantAcceleration / 2 : PrevAcceleration;
 
@@ -86,57 +136,6 @@ void UOrganicMovementComponent::MovementUpdate_Implementation(float DeltaSeconds
 	
 	PreviousVelocity = GetVelocity();
 	PreviousViewYaw = ViewRotation.Yaw;
-	
-	UpdateSprint(bWantsToSprint);
-	UpdateCrouch(bWantsToCrouch);
-	UpdateJump(bWantsToJump);
-}
-
-void UOrganicMovementComponent::MovementUpdateSimulated_Implementation(float DeltaSeconds)
-{
-	Super::MovementUpdateSimulated_Implementation(DeltaSeconds);
-
-	if (bWantsChangeMovementSettings)
-	{
-		TargetMaxSpeed = MovementSettings.GetSpeedForGait(AllowedGait);
-		bWantsChangeMovementSettings = false;
-	}
-
-	MaxDesiredSpeed = FMath::FInterpTo(MaxDesiredSpeed, TargetMaxSpeed, DeltaSeconds, SpeedInterpSpeed);
-	
-	PrevComponentRotation = GetRootCollisionRotation();
-
-	Sprinting();
-	Crouching();
-	Jumping();
-}
-
-void UOrganicMovementComponent::OnMovementModeUpdated_Implementation(EGenMovementMode PreviousMovementMode)
-{
-	Super::OnMovementModeUpdated_Implementation(PreviousMovementMode);
-	
-	if (IsMovingOnGround())
-	{
-		SetMovementState(EOrganicMovementState::Ground);
-	}
-	else if (IsAirborne())
-	{
-		SetMovementState(EOrganicMovementState::Airborne);
-	}
-}
-
-void UOrganicMovementComponent::OnMovementModeChangedSimulated_Implementation(EGenMovementMode PreviousMovementMode)
-{
-	Super::OnMovementModeChangedSimulated_Implementation(PreviousMovementMode);
-	
-	if (IsMovingOnGround())
-	{
-		SetMovementState(EOrganicMovementState::Ground);
-	}
-	else if (IsAirborne())
-	{
-		SetMovementState(EOrganicMovementState::Airborne);
-	}
 }
 
 void UOrganicMovementComponent::SetMovementModel(UMovementModelConfig* ModelConfig)
@@ -199,8 +198,6 @@ void UOrganicMovementComponent::SetMovementState(const EOrganicMovementState New
 		PrevMovementState = MovementStatus;
 		MovementStatus = NewMovementState;
 		OnMovementStateChanged(PrevMovementState);
-		
-		UKismetSystemLibrary::PrintString(this, FString("Set state"), true, false, FLinearColor::Red, 0.5f, "ggg");
 	}
 }
 
@@ -209,6 +206,7 @@ void UOrganicMovementComponent::OnMovementStateChanged(const EOrganicMovementSta
 	if (MovementStatus.Airborne())
 	{
 		TargetRotation = GetRootCollisionRotation();
+		
 		if (Stance == EOrganicStance::Crouching)
 		{
 			OnUnCrouch();
@@ -225,7 +223,7 @@ void UOrganicMovementComponent::SetRotationMode(EOrganicRotationMode NewRotation
 {
 	if (bForce || RotationMode != NewRotationMode)
 	{
-		const EOrganicRotationMode Prev = RotationMode;
+		const EOrganicRotationMode Prev = RotationMode.RotationMode;
 		RotationMode = NewRotationMode;
 		OnRotationModeChanged(Prev);
 	}
@@ -233,7 +231,10 @@ void UOrganicMovementComponent::SetRotationMode(EOrganicRotationMode NewRotation
 
 void UOrganicMovementComponent::OnRotationModeChanged(EOrganicRotationMode PrevRotationMode)
 {
-	SetMovementSettings(GetMovementSettings());
+	if (RotationMode != PrevRotationMode)
+	{
+		SetMovementSettings(GetMovementSettings());
+	}
 }
 
 void UOrganicMovementComponent::SetInputStance(EOrganicStance NewInputStance)
@@ -245,7 +246,7 @@ void UOrganicMovementComponent::SetStance(const EOrganicStance NewStance, bool b
 {
 	if (bForce || Stance != NewStance)
 	{
-		const EOrganicStance Prev = Stance;
+		const EOrganicStance Prev = Stance.Stance;
 		Stance = NewStance;
 		OnStanceChanged(Prev);
 	}
@@ -253,7 +254,10 @@ void UOrganicMovementComponent::SetStance(const EOrganicStance NewStance, bool b
 
 void UOrganicMovementComponent::OnStanceChanged(EOrganicStance PreviousStance)
 {
-	SetMovementSettings(GetMovementSettings());
+	if (Stance != PreviousStance)
+	{
+		SetMovementSettings(GetMovementSettings());
+	}
 }
 
 void UOrganicMovementComponent::SetInputGait(EOrganicGait NewInputGait)
@@ -273,15 +277,10 @@ void UOrganicMovementComponent::SetGait(const EOrganicGait NewGait, bool bForce)
 
 void UOrganicMovementComponent::OnGaitChanged(EOrganicGait PreviousGait)
 {
-	
-}
-
-void UOrganicMovementComponent::ForceUpdateAllStates()
-{
-	SetMovementState(MovementStatus, true);
-	SetRotationMode(InputRotationMode, true);
-	SetStance(InputStance, true);
-	SetGait(InputGait, true);
+	if (Gait != PreviousGait)
+	{
+		// Logic
+	}
 }
 
 void UOrganicMovementComponent::UpdateGait()
@@ -319,6 +318,7 @@ EOrganicGait UOrganicMovementComponent::CalculateAllowedGait() const
 EOrganicGait UOrganicMovementComponent::CalculateActualGait(EOrganicGait NewAllowedGait) const
 {
 	float Speed = GetSpeedXY();
+	
 	if (Speed > MovementSettings.RunSpeed + 10.0f)
 	{
 		if (NewAllowedGait == EOrganicGait::Sprint)
@@ -344,6 +344,14 @@ void UOrganicMovementComponent::SetAllowedGait(EOrganicGait DesiredGait)
 	bWantsChangeMovementSettings = true;
 }
 
+void UOrganicMovementComponent::ForceUpdateAllStates()
+{
+	SetMovementState(MovementStatus, true);
+	SetRotationMode(InputRotationMode, true);
+	SetStance(InputStance, true);
+	SetGait(InputGait, true);
+}
+
 float UOrganicMovementComponent::CalculateGroundRotationRate() const
 {
 	float CurveValue = MovementSettings.RotationCurve->GetFloatValue(GetMappedSpeed());
@@ -362,7 +370,7 @@ float UOrganicMovementComponent::GetAnimCurveValue(FName CurveName) const
 
 float UOrganicMovementComponent::GetMappedSpeed() const
 {
-	float Speed = Velocity.Size2D();
+	float Speed = GetSpeedXY();
 	
 	float LocWalkSpeed = MovementSettings.WalkSpeed;
 	float LocRunSpeed = MovementSettings.RunSpeed;
@@ -372,10 +380,12 @@ float UOrganicMovementComponent::GetMappedSpeed() const
 	{
 		return FMath::GetMappedRangeValueClamped<float, float>({LocRunSpeed, LocSprintSpeed}, {2.0f, 3.0f}, Speed);
 	}
+	
 	if (Speed > LocWalkSpeed)
 	{
 		return FMath::GetMappedRangeValueClamped<float, float>({LocWalkSpeed, LocRunSpeed}, {1.0f, 2.0f}, Speed);
 	}
+	
 	return FMath::GetMappedRangeValueClamped<float, float>({0.0f, LocWalkSpeed}, {0.0f, 1.0f}, Speed);
 }
 
@@ -384,6 +394,7 @@ void UOrganicMovementComponent::UpdateGroundRotation(float DeltaTime)
 	if ((bIsMoving && bHasMovementInput) || GetSpeedXY() > 150.0f) // TODO: && !HasAnyRootMotion())
 	{
 		const float GroundedRotationRate = CalculateGroundRotationRate();
+		
 		if (RotationMode.ControlDirection())
 		{
 			RotateRootCollision({0.0f, ViewRotation.Yaw, 0.0f}, 1000.0f, 2.5f, DeltaTime);
