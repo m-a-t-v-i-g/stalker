@@ -126,8 +126,8 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 	Delta = View.SmoothedViewRotation - Movement.ActorRotation;
 	Delta.Normalize();
 	
-	OrganicAnimData.SmoothedAimingAngle.X = Delta.Yaw;
-	OrganicAnimData.SmoothedAimingAngle.Y = Delta.Pitch;
+	View.SmoothedAimingAngle.X = Delta.Yaw;
+	View.SmoothedAimingAngle.Y = Delta.Pitch;
 
 	if (!RotationMode.VelocityDirection())
 	{
@@ -145,9 +145,9 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 		View.InputYawOffsetTime = FMath::FInterpTo(View.InputYawOffsetTime, InterpTarget, DeltaSeconds, AnimConfig->CharacterConfig.InputYawOffsetInterpSpeed);
 	}
 
-	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f}, FMath::Abs(OrganicAnimData.SmoothedAimingAngle.X));
-	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f}, FMath::Abs(OrganicAnimData.SmoothedAimingAngle.X));
-	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, OrganicAnimData.SmoothedAimingAngle.X);
+	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f}, FMath::Abs(View.SmoothedAimingAngle.X));
+	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f}, FMath::Abs(View.SmoothedAimingAngle.X));
+	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, View.SmoothedAimingAngle.X);
 }
 
 void UCharacterAnimInstance::UpdateMovementValues(float DeltaSeconds)
@@ -165,11 +165,11 @@ void UCharacterAnimInstance::UpdateMovementValues(float DeltaSeconds)
 
 	Grounded.DiagonalScale = CalculateDiagonalScale();
 
-	OrganicAnimData.RelativeAccelerationAmount = CalculateRelativeAccelerationAmount();
+	Movement.RelativeAccelerationAmount = CalculateRelativeAccelerationAmount();
 	
-	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, OrganicAnimData.RelativeAccelerationAmount.Y, DeltaSeconds,
+	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, Movement.RelativeAccelerationAmount.Y, DeltaSeconds,
 									 AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
-	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, OrganicAnimData.RelativeAccelerationAmount.X, DeltaSeconds,
+	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, Movement.RelativeAccelerationAmount.X, DeltaSeconds,
 									 AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
 
 	Grounded.WalkRunBlend = CalculateGaitBlend();
@@ -256,7 +256,7 @@ void UCharacterAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 
 	if (!bPreviousShouldMove && Grounded.bShouldMove)
 	{
-		OrganicAnimData.ElapsedDelayTime = 0.0f;
+		Grounded.TurnElapsedDelayTime = 0.0f;
 		Grounded.bRotateL = false;
 		Grounded.bRotateR = false;
 	}
@@ -284,7 +284,7 @@ void UCharacterAnimInstance::UpdateGroundedValues(float DeltaSeconds)
 		}
 		else
 		{
-			OrganicAnimData.ElapsedDelayTime = 0.0f;
+			Grounded.TurnElapsedDelayTime = 0.0f;
 		}
 		
 		if (CanDynamicTransition())
@@ -307,7 +307,7 @@ void UCharacterAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 void UCharacterAnimInstance::UpdateRagdollValues(float DeltaSeconds)
 {
 	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root).Size();
-	OrganicAnimData.FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
+	Ragdoll.FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
 }
 
 void UCharacterAnimInstance::RotateInPlaceCheck()
@@ -328,17 +328,17 @@ void UCharacterAnimInstance::TurnInPlaceCheck(float DeltaSeconds)
 	if (FMath::Abs(View.AimingAngle.X) <= AnimConfig->TurnInPlace.TurnCheckMinAngle || Movement.ViewYawRate >=
 		AnimConfig->TurnInPlace.AimYawRateLimit)
 	{
-		OrganicAnimData.ElapsedDelayTime = 0.0f;
+		Grounded.TurnElapsedDelayTime = 0.0f;
 		return;
 	}
 
-	OrganicAnimData.ElapsedDelayTime += DeltaSeconds;
+	Grounded.TurnElapsedDelayTime += DeltaSeconds;
 	
 	float ClampedAimAngle = FMath::GetMappedRangeValueClamped<float, float>(
 		{AnimConfig->TurnInPlace.TurnCheckMinAngle, 180.0f},
 		{AnimConfig->TurnInPlace.MinAngleDelay, AnimConfig->TurnInPlace.MaxAngleDelay}, View.AimingAngle.X);
 
-	if (OrganicAnimData.ElapsedDelayTime > ClampedAimAngle)
+	if (Grounded.TurnElapsedDelayTime > ClampedAimAngle)
 	{
 		FRotator TurnInPlaceYawRot = Movement.ViewRotation;
 		TurnInPlaceYawRot.Roll = 0.0f;

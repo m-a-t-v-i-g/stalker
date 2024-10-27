@@ -47,6 +47,9 @@ struct FCharacterAnim_MovementInfo
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Info")
 	ECharacterMovementState PrevMovementState = ECharacterMovementState::None;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Info")
+	FVector RelativeAccelerationAmount = FVector::ZeroVector;
 };
 
 USTRUCT(BlueprintType)
@@ -101,6 +104,9 @@ struct FCharacterAnim_GroundedInfo
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grounded Info")
 	float RYaw = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grounded Info")
+	float TurnElapsedDelayTime = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -152,6 +158,9 @@ struct FCharacterAnim_ViewInfo
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View Info")
 	float RightYawTime = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View Info")
+	FVector2D SmoothedAimingAngle = FVector2D::ZeroVector;
 };
 
 USTRUCT(BlueprintType)
@@ -341,21 +350,12 @@ struct FCharacterAnim_DynamicMontage
 };
 
 USTRUCT(BlueprintType)
-struct FCharacterAnim_InstanceData
+struct FCharacterAnim_Ragdoll
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Moving")
-	FVector RelativeAccelerationAmount = FVector::ZeroVector;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "View")
-	FVector2D SmoothedAimingAngle = FVector2D::ZeroVector;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ragdoll")
 	float FlailRate = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn In Place")
-	float ElapsedDelayTime = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -483,7 +483,7 @@ protected:
 	FCharacterAnim_FootIK FootIK;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FCharacterAnim_InstanceData OrganicAnimData;
+	FCharacterAnim_Ragdoll Ragdoll;
 
 #pragma endregion Anim Graph
 

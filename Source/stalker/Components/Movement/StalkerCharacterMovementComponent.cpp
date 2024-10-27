@@ -407,8 +407,10 @@ bool UStalkerCharacterMovementComponent::CanSprint() const
 
 			return FMath::Abs(Delta.Yaw) < 50.0f;
 		}
+		
 		return false;
 	}
+	
 	return bCanSprint & !bCannotSprint;
 }
 

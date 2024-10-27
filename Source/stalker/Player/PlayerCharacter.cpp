@@ -149,11 +149,6 @@ void APlayerCharacter::IA_View(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Jump(const FInputActionValue& Value)
 {
-	if (!CheckJumpAbility())
-	{
-		return;
-	}
-	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction1();
@@ -166,11 +161,6 @@ void APlayerCharacter::IA_Jump(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Crouch(const FInputActionValue& Value)
 {
-	if (!CheckCrouchAbility())
-	{
-		return;
-	}
-	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction2();
@@ -183,11 +173,6 @@ void APlayerCharacter::IA_Crouch(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 {
-	if (!CheckSprintAbility())
-	{
-		return;
-	}
-	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction3();

@@ -115,18 +115,3 @@ bool AStalkerCharacter::CheckReloadAbility()
 {
 	return true;
 }
-
-bool AStalkerCharacter::CheckSprintAbility()
-{
-	return GetOrganicMovement()->CanSprint();
-}
-
-bool AStalkerCharacter::CheckCrouchAbility()
-{
-	return GetOrganicMovement()->CanCrouch();
-}
-
-bool AStalkerCharacter::CheckJumpAbility()
-{
-	return GetOrganicMovement()->CanJump();
-}

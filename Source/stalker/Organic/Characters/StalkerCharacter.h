@@ -24,9 +24,6 @@ public:
 	virtual bool CheckFireAbility();
 	virtual bool CheckAimingAbility();
 	virtual bool CheckReloadAbility();
-	virtual bool CheckSprintAbility();
-	virtual bool CheckCrouchAbility();
-	virtual bool CheckJumpAbility();
 
 	virtual void SetupCharacterLocally(AController* NewController);
 	
