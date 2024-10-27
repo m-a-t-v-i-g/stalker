@@ -192,6 +192,7 @@ void UCharacterWeaponComponent::StartFire()
 		{
 			OnAimingStart.Broadcast();
 		}
+		
 		RightWeapon->StartAttack();
 	}
 
@@ -221,6 +222,7 @@ void UCharacterWeaponComponent::StopFire()
 		{
 			OnAimingStop.Broadcast();
 		}
+		
 		RightWeapon->StopAttack();
 	}
 	
@@ -292,11 +294,12 @@ void UCharacterWeaponComponent::TryReloadWeapon()
 	auto RightItem = GetItemObjectAtRightHand<UWeaponObject>();
 	if (!RightItem || RightItem->IsMagFull() || !HasAmmoForReload()) return;
 	
-	if (!GetOwner()->HasAuthority())
+	if (IsAutonomousProxy())
 	{
 		ReloadingData.ReloadTime = RightItem->GetWeaponParams().ReloadTime;
 		SetReloadTimer();
 	}
+	
 	ServerTryReloadWeapon();
 }
 
@@ -323,7 +326,7 @@ void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 
 void UCharacterWeaponComponent::MulticastReloadWeapon_Implementation(float ReloadTime)
 {
-	if (GetOwnerRole() == ROLE_SimulatedProxy)
+	if (IsSimulatedProxy())
 	{
 		ReloadingData.ReloadTime = ReloadTime;
 		SetReloadTimer();
@@ -334,11 +337,15 @@ void UCharacterWeaponComponent::CompleteReloadWeapon()
 {
 	if (GetOwner()->HasAuthority())
 	{
-		if (!ReloadingData.IsValid()) return;
+		if (!ReloadingData.IsValid())
+		{
+			return;
+		}
 
 		GetCharacterInventory()->SubtractOrRemoveItem(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
 		ReloadingData.WeaponObject->IncreaseAmmo(ReloadingData.AmmoCount);
 	}
+	
 	ClearReloadingData(true);
 
 	UKismetSystemLibrary::PrintString(this, FString("Reload completed!"), true, false, FLinearColor::Green);
@@ -358,6 +365,7 @@ void UCharacterWeaponComponent::SetReloadTimer()
 	{
 		CompleteReloadWeapon();
 	});
+	
 	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, ReloadDelegate, ReloadingData.ReloadTime, false);
 	OnReloadStart.Broadcast(ReloadingData.ReloadTime);
 

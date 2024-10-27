@@ -67,6 +67,14 @@ void AWeaponActor::StopAttack()
 	bHoldTrigger = false;
 }
 
+void AWeaponActor::StartAlternative()
+{
+}
+
+void AWeaponActor::StopAlternative()
+{
+}
+
 bool AWeaponActor::CheckAttackAvailability() const
 {
 	return GetItemObject<UWeaponObject>()->CanAttack();
