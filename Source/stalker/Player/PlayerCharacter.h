@@ -67,7 +67,7 @@ protected:
 	FString InputAbilityName;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	UPlayerInputConfig* InputConfig;
+	TObjectPtr<UPlayerInputConfig> InputConfig;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TObjectPtr<UAbilitySet> AbilitySet;

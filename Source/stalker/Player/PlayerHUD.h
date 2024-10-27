@@ -7,7 +7,7 @@
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
-class UStalkerAbilityComponent;
+class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UItemsContainerComponent;
 
@@ -35,7 +35,7 @@ public:
 	static UClass* StaticInteractiveItemWidgetClass;
 	static float TileSize;
 	
-	void InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void ToggleTab(EHUDTab& Tab, bool bForce = false);
 	

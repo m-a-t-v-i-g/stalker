@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerManagerWidget.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
 #include "UI/Inventory/CharacterEquipmentWidget.h"
@@ -29,7 +29,7 @@ bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return bResult;
 }
 
-void UPlayerManagerWidget::InitializeManager(UStalkerAbilityComponent* AbilityComp,
+void UPlayerManagerWidget::InitializeManager(UOrganicAbilityComponent* AbilityComp,
                                              UCharacterInventoryComponent* CharInventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;

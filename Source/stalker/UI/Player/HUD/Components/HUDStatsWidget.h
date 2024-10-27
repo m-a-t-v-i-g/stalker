@@ -9,7 +9,7 @@
 struct FOnAttributeChangeData;
 
 class UOrganicAttributeSet;
-class UStalkerAbilityComponent;
+class UOrganicAbilityComponent;
 
 UCLASS()
 class STALKER_API UHUDStatsWidget : public UUserWidget
@@ -30,7 +30,7 @@ private:
 	TWeakObjectPtr<const UOrganicAttributeSet> Attributes;
 
 public:
-	void SetupStatsWidget(UStalkerAbilityComponent* AbilityComp);
+	void SetupStatsWidget(UOrganicAbilityComponent* AbilityComp);
 
 protected:
 	void OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);

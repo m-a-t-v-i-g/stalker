@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerCharacter.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Armor/CharacterArmorComponent.h"
 #include "Inventory/CharacterInventoryComponent.h"
 #include "Movement/StalkerCharacterMovementComponent.h"
@@ -13,6 +13,9 @@ AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer
 	ObjectInitializer.SetDefaultSubobjectClass<UCharacterInventoryComponent>(InventoryComponentName)
 	                 .SetDefaultSubobjectClass<UCharacterWeaponComponent>(WeaponComponentName))
 {
+	// TODO:
+	//OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
+	
 	ArmorComponent = CreateDefaultSubobject<UCharacterArmorComponent>(ArmorComponentName);
 }
 
@@ -25,7 +28,7 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 		return;
 	}
 
-	if (auto AbilitySystemComp = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		AbilitySystemComp->InitAbilitySystem(NewController, this);
 	}
@@ -88,12 +91,22 @@ void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 
 void AStalkerCharacter::OnAimingStart()
 {
-	GetOrganicMovement()->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+	
+	GetCharacterMovement()->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
 }
 
 void AStalkerCharacter::OnAimingStop()
 {
-	GetOrganicMovement()->SetRotationMode(GetOrganicMovement()->GetInputRotationMode(), true);
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+	
+	GetCharacterMovement()->SetRotationMode(GetCharacterMovement()->GetInputRotationMode(), true);
 }
 
 void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)

@@ -26,7 +26,7 @@ void APlayerHUD::PostInitializeComponents()
 	}
 }
 
-void APlayerHUD::InitializePlayerHUD(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
+void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	if (MainWidget)
 	{

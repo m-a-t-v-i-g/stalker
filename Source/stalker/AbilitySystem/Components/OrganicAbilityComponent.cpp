@@ -1,21 +1,21 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "StalkerAbilityComponent.h"
+#include "OrganicAbilityComponent.h"
 
 #include "AbilitySystem/Abilities/StalkerGameplayAbility.h"
 #include "AbilitySystem/Attributes/OrganicAttributeSet.h"
 
-UStalkerAbilityComponent::UStalkerAbilityComponent()
+UOrganicAbilityComponent::UOrganicAbilityComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UStalkerAbilityComponent::InitAbilitySystem(AController* InController, AActor* InActor)
+void UOrganicAbilityComponent::InitAbilitySystem(AController* InController, AActor* InActor)
 {
 	InitAbilityActorInfo(InController, InActor);
 }
 
-void UStalkerAbilityComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
+void UOrganicAbilityComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
 	
@@ -29,7 +29,7 @@ void UStalkerAbilityComponent::AbilityInputTagPressed(const FGameplayTag& InputT
 	}
 }
 
-void UStalkerAbilityComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
+void UOrganicAbilityComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
 		
@@ -43,7 +43,7 @@ void UStalkerAbilityComponent::AbilityInputTagReleased(const FGameplayTag& Input
 	}
 }
 
-void UStalkerAbilityComponent::ProcessAbilityInput(float DeltaSeconds)
+void UOrganicAbilityComponent::ProcessAbilityInput(float DeltaSeconds)
 {
 	static TArray<FGameplayAbilitySpecHandle> AbilitiesToActivate;
 	AbilitiesToActivate.Reset();

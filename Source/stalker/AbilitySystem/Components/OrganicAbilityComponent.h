@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
-#include "StalkerAbilityComponent.generated.h"
+#include "OrganicAbilityComponent.generated.h"
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup = "Stalker")
-class STALKER_API UStalkerAbilityComponent : public UAbilitySystemComponent
+class STALKER_API UOrganicAbilityComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 
@@ -17,7 +17,7 @@ protected:
 	TArray<FGameplayAbilitySpecHandle> InputHeldSpecHandles;
 
 public:
-	UStalkerAbilityComponent();
+	UOrganicAbilityComponent();
 	
 	void InitAbilitySystem(AController* InController, AActor* InActor);
 	

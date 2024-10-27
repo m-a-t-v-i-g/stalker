@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerManagerWidget.generated.h"
 
-class UStalkerAbilityComponent;
+class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UItemsContainerComponent;
 class UItemObject;
@@ -46,7 +46,7 @@ protected:
 	TObjectPtr<class UCharacterEquipmentWidget> Equipment;
 
 private:
-	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 	
 	TWeakObjectPtr<UItemsContainerComponent> LootingItemsContainer;
@@ -54,7 +54,7 @@ private:
 	EPlayerManagerTab ActiveTab;
 	
 public:
-	void InitializeManager(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 	void StartUpgrading();

@@ -37,6 +37,11 @@ public:
 	}
 	
 protected:
+	/* TODO:
+	UPROPERTY(VisibleAnywhere, Category = "Attributes")
+	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
+	*/
+
 	void OnAimingStart();
 	void OnAimingStop();
 	void OnOverlayChanged(ECharacterOverlayState NewOverlay);

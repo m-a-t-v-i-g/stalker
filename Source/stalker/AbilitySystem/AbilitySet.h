@@ -32,7 +32,7 @@ class STALKER_API UAbilitySet : public UPrimaryDataAsset
 public:
 	UAbilitySet(const FObjectInitializer& ObjectInitializer);
 
-	void GiveToAbilitySystem(class UStalkerAbilityComponent* ASC, UObject* SourceObject = nullptr) const;
+	void GiveToAbilitySystem(class UOrganicAbilityComponent* ASC, UObject* SourceObject = nullptr) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta = (TitleProperty = Ability))

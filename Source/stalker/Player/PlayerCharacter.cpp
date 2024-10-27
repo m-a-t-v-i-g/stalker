@@ -1,22 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/PlayerCharacter.h"
-
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerPlayerController.h"
 #include "AbilitySystem/AbilitySet.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "DataAssets/InputDataAsset.h"
-#include "Input/PlayerInputConfig.h"
 #include "Input/StalkerInputComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Weapons/CharacterWeaponComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void APlayerCharacter::PostInitializeComponents()
@@ -95,7 +91,7 @@ void APlayerCharacter::SetCharacterData()
 {
 	if (AbilitySet)
 	{
-		AbilitySet->GiveToAbilitySystem(GetAbilitySystemComponent<UStalkerAbilityComponent>());
+		AbilitySet->GiveToAbilitySystem(GetAbilitySystemComponent<UOrganicAbilityComponent>());
 	}
 }
 
@@ -247,7 +243,7 @@ void APlayerCharacter::IA_Reload(const FInputActionValue& Value)
 
 void APlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	if (UStalkerAbilityComponent* LyraASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	if (UOrganicAbilityComponent* LyraASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		LyraASC->AbilityInputTagPressed(InputTag);
 	}
@@ -255,7 +251,7 @@ void APlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 
 void APlayerCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (UStalkerAbilityComponent* LyraASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	if (UOrganicAbilityComponent* LyraASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		LyraASC->AbilityInputTagReleased(InputTag);
 	}

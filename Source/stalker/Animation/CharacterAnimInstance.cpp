@@ -48,7 +48,7 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 
 	if (Character.IsValid())
 	{
-		CharacterMovement = Character->GetOrganicMovement();
+		CharacterMovement = Character->GetCharacterMovement();
 		
 		if (CharacterMovement.IsValid())
 		{
@@ -704,7 +704,7 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
 
 	FRotator TargetRotOffset = FRotator::ZeroRotator;
-	if (Character->GetOrganicMovement()->HitWalkableFloor(HitResult))
+	if (Character->GetCharacterMovement()->HitWalkableFloor(HitResult))
 	{
 		FVector ImpactPoint = HitResult.ImpactPoint;
 		FVector ImpactNormal = HitResult.ImpactNormal;

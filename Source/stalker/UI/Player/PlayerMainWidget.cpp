@@ -2,12 +2,12 @@
 
 #include "PlayerMainWidget.h"
 #include "PlayerManagerWidget.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp)
+void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = InventoryComp;

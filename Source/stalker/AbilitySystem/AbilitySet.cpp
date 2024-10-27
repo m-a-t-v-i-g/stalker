@@ -2,13 +2,13 @@
 
 #include "AbilitySet.h"
 #include "Abilities/GameplayAbility.h"
-#include "Components/StalkerAbilityComponent.h"
+#include "Components/OrganicAbilityComponent.h"
 
 UAbilitySet::UAbilitySet(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
 
-void UAbilitySet::GiveToAbilitySystem(UStalkerAbilityComponent* ASC, UObject* SourceObject) const
+void UAbilitySet::GiveToAbilitySystem(UOrganicAbilityComponent* ASC, UObject* SourceObject) const
 {
 	check(ASC);
 

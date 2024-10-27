@@ -26,11 +26,11 @@ protected:
 	TObjectPtr<UUserWidget> PDA;
 	
 private:
-	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<class UCharacterInventoryComponent> OwnInventoryComponent;
 	
 public:
-	void InitializeMainWidget(UStalkerAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	
 	void ToggleTab(EHUDTab ActivateTab);
 

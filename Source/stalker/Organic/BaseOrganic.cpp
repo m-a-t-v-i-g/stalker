@@ -3,18 +3,13 @@
 #include "Organic/BaseOrganic.h"
 #include "GenCapsuleComponent.h"
 #include "AbilitySystem/Attributes/OrganicAttributeSet.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/ArrowComponent.h"
-#include "Components/Inventory/InventoryComponent.h"
 #include "Components/Movement/StalkerCharacterMovementComponent.h"
-#include "Components/Weapons/WeaponComponent.h"
 
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
-FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
 FName ABaseOrganic::CapsuleName {"OrganicCollision"};
 FName ABaseOrganic::AbilitySystemComponentName {"AbilityComp"};
-FName ABaseOrganic::InventoryComponentName {"InventoryComp"};
-FName ABaseOrganic::WeaponComponentName {"WeaponComp"};
 
 ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -62,24 +57,15 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		Mesh->SetCanEverAffectNavigation(false);
 	}
 	
-	OrganicMovement = CreateDefaultSubobject<UStalkerCharacterMovementComponent>(OrganicMovementName);
-	if (OrganicMovement)
-	{
-		OrganicMovement->UpdatedComponent = CapsuleComponent;
-	}
-	
-	AbilitySystemComponent = CreateDefaultSubobject<UStalkerAbilityComponent>(AbilitySystemComponentName);
+	AbilitySystemComponent = CreateDefaultSubobject<UOrganicAbilityComponent>(AbilitySystemComponentName);
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->SetIsReplicated(true);
 		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-	
+
+		/* DEPRECATED */
 		OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
 	}
-	
-	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
-	
-	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(WeaponComponentName);
 	
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");
@@ -99,44 +85,14 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 	SetReplicatingMovement(false);
 }
 
-void ABaseOrganic::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	if (GetMesh())
-	{
-		GetMesh()->AddTickPrerequisiteActor(this);
-		
-		if (GetOrganicMovement() && GetMesh()->PrimaryComponentTick.bCanEverTick)
-		{
-			GetMesh()->PrimaryComponentTick.AddPrerequisite(GetOrganicMovement(), GetOrganicMovement()->PrimaryComponentTick);
-		}
-	}
-	
-	if (GetOrganicMovement() && GetCapsuleComponent())
-	{
-		GetOrganicMovement()->UpdateNavAgent(*CapsuleComponent);
-	}
-
-	if (DefaultMovementModel)
-	{
-		GetOrganicMovement()->SetMovementModel(DefaultMovementModel);
-	}
-}
-
 void ABaseOrganic::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (auto ASC = GetAbilitySystemComponent<UStalkerAbilityComponent>())
+	if (auto ASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		ASC->InitAbilitySystem(NewController, this);
 	}
-}
-
-void ABaseOrganic::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
 UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const

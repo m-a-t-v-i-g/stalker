@@ -5,7 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerCharacter.h"
 #include "PlayerHUD.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/Inventory/CharacterInventoryComponent.h"
 #include "DataAssets/InputDataAsset.h"
 
@@ -24,7 +24,7 @@ void AStalkerPlayerController::OnPossess(APawn* InPawn)
 	{
 		if (!bIsControllerInitialized)
 		{
-			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
 											Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
 			bIsControllerInitialized = true;
 		}
@@ -42,7 +42,7 @@ void AStalkerPlayerController::OnRep_Pawn()
 	{
 		if (!bIsControllerInitialized)
 		{
-			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UStalkerAbilityComponent>(),
+			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
 										   Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
 			bIsControllerInitialized = true;
 		}
@@ -80,7 +80,7 @@ void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> New
 
 void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (auto PawnAbilityComp = GetPawn()->GetComponentByClass<UStalkerAbilityComponent>())
+	if (auto PawnAbilityComp = GetPawn()->GetComponentByClass<UOrganicAbilityComponent>())
 	{
 		PawnAbilityComp->ProcessAbilityInput(DeltaTime);
 	}

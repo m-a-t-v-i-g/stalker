@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
-class UStalkerAbilityComponent;
+class UOrganicAbilityComponent;
 
 UCLASS(DisplayName = "HUD Widget")
 class STALKER_API UHUDWidget : public UUserWidget
@@ -18,8 +18,8 @@ protected:
 	TObjectPtr<class UHUDStatsWidget> StatsWidget;
 
 private:
-	TWeakObjectPtr<UStalkerAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	
 public:
-	void InitializeHUD(UStalkerAbilityComponent* AbilityComp);
+	void InitializeHUD(UOrganicAbilityComponent* AbilityComp);
 };

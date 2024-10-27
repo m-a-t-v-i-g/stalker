@@ -2,10 +2,10 @@
 
 #include "HUDStatsWidget.h"
 #include "AbilitySystem/Attributes/OrganicAttributeSet.h"
-#include "AbilitySystem/Components/StalkerAbilityComponent.h"
+#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/ProgressBar.h"
 
-void UHUDStatsWidget::SetupStatsWidget(UStalkerAbilityComponent* AbilityComp)
+void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp)
 {
 	Attributes = Cast<UOrganicAttributeSet>(AbilityComp->GetAttributeSet(UOrganicAttributeSet::StaticClass()));
 	if (!Attributes.IsValid()) return;
