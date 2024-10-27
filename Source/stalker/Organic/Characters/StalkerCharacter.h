@@ -6,12 +6,9 @@
 #include "BaseCharacter.h"
 #include "StalkerCharacter.generated.h"
 
-class UGameplayAbility;
-class UItemObject;
-class UWeaponComponent;
-class AStalkerPlayerController;
+class UCharacterArmorComponent;
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class STALKER_API AStalkerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
@@ -19,32 +16,20 @@ class STALKER_API AStalkerCharacter : public ABaseCharacter
 public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
+	static FName ArmorComponentName;
+
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 
-	static FName ArmorComponentName;
+	virtual bool CheckFireAbility();
+	virtual bool CheckAimingAbility();
+	virtual bool CheckReloadAbility();
+	virtual bool CheckSprintAbility();
+	virtual bool CheckCrouchAbility();
+	virtual bool CheckJumpAbility();
 
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Character")
-	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
-	
-private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UCharacterArmorComponent> ArmorComponent;
-	
-	bool bIsStalkerInitialized = false;
-	
-public:
 	virtual void SetupCharacterLocally(AController* NewController);
 	
-protected:
-	void OnAimingStart();
-	void OnAimingStop();
-	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
-
-public:
-	virtual bool CheckReloadAbility();
-
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterArmorComponent* GetArmorComponent() const { return ArmorComponent; }
 
@@ -53,4 +38,15 @@ public:
 	{
 		return Cast<T>(GetArmorComponent());
 	}
+	
+protected:
+	void OnAimingStart();
+	void OnAimingStop();
+	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
+	
+	bool bIsStalkerInitialized = false;
 };

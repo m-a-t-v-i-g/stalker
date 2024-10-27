@@ -30,8 +30,6 @@ protected:
 	virtual void BindViewInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
 
-	virtual bool CheckReloadAbility() override;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	

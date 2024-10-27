@@ -14,10 +14,10 @@ struct FAnimConfig_TurnInPlaceAsset
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turn In Place Asset")
-	TObjectPtr<UAnimSequenceBase> Animation;
+	TObjectPtr<UAnimSequenceBase> Animation = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turn In Place Asset")
-	FName SlotName;
+	FName SlotName = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turn In Place Asset")
 	float AnimatedAngle = 0.0f;
@@ -103,18 +103,6 @@ struct FAnimConfig_CharacterConfig
 {
 	GENERATED_USTRUCT_BODY()
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration|Character")
-	float DynamicTransitionThreshold = 8.0f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration|Character")
-	float FootHeight = 13.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration|Character")
-	float IK_TraceDistanceAboveFoot = 50.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration|Character")
-	float IK_TraceDistanceBelowFoot = 45.0f;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
 	float AnimatedWalkSpeed = 150.0f;
 
@@ -141,6 +129,19 @@ struct FAnimConfig_CharacterConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
 	float TriggerPivotSpeedLimit = 200.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
+	float DynamicTransitionThreshold = 8.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
+	float FootHeight = 13.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
+	float IK_TraceDistanceAboveFoot = 50.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Configuration")
+	float IK_TraceDistanceBelowFoot = 45.0f;
+	
 };
 
 UCLASS()

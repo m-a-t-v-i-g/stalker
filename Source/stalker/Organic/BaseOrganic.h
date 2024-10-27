@@ -8,8 +8,6 @@
 #include "OrganicActorInterface.h"
 #include "BaseOrganic.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumped);
-
 UCLASS()
 class STALKER_API ABaseOrganic : public AGenPawn, public IOrganicActorInterface, public IAbilitySystemInterface
 {
@@ -39,31 +37,30 @@ public:
 	static FName InventoryComponentName;
 	static FName WeaponComponentName;
 
-protected:
-	virtual void Tick(float DeltaSeconds) override;
-	
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UOrganicMovementComponent> OrganicMovement;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStalkerCharacterMovementComponent> OrganicMovement;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCapsuleComponent> CapsuleComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStalkerAbilityComponent> AbilitySystemComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInventoryComponent> InventoryComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Base Organic", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWeaponComponent> WeaponComponent;
 	
 #if WITH_EDITORONLY_DATA
+	
 	UPROPERTY()
 	TObjectPtr<class UArrowComponent> ArrowComponent;
+	
 #endif
 
 protected:
@@ -74,17 +71,11 @@ protected:
 	TObjectPtr<class UMovementModelConfig> DefaultMovementModel;
 
 public:
-	UPROPERTY(BlueprintAssignable)
-	FOnJumped OnJumpedDelegate;
-
-	bool IsSprinting() const;
-	bool IsAirborne() const;
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return Mesh; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
-	FORCEINLINE UOrganicMovementComponent* GetOrganicMovement() const { return OrganicMovement; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UStalkerCharacterMovementComponent* GetOrganicMovement() const { return OrganicMovement; }
 	
 	template <class T>
 	T* GetOrganicMovement() const
@@ -92,7 +83,7 @@ public:
 		return Cast<T>(GetOrganicMovement());
 	}
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 
 	template <class T>
@@ -101,7 +92,7 @@ public:
 		return Cast<T>(GetCapsuleComponent());
 	}
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 	template <class T>
@@ -110,7 +101,7 @@ public:
 		return Cast<T>(GetInventoryComponent());
 	}
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Organic")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
 
 	template <class T>

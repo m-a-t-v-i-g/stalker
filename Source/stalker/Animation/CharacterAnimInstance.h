@@ -9,12 +9,12 @@
 #include "Library/CharacterLibrary.h"
 #include "CharacterAnimInstance.generated.h"
 
-class UOrganicMovementComponent;
+class UStalkerCharacterMovementComponent;
 class UCharacterAnimConfig;
 class ABaseCharacter;
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_MovementInfo
+struct FCharacterAnim_MovementInfo
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -46,16 +46,16 @@ struct FOrganicAnim_MovementInfo
 	bool bIsMoving = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Info")
-	EOrganicMovementState PrevMovementState = EOrganicMovementState::None;
+	ECharacterMovementState PrevMovementState = ECharacterMovementState::None;
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_GroundedInfo
+struct FCharacterAnim_GroundedInfo
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Grounded Info")
-	EOrganicHipsDirection TrackedHipsDirection = EOrganicHipsDirection::F;
+	ECharacterHipsDirection TrackedHipsDirection = ECharacterHipsDirection::F;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grounded Info")
 	bool bShouldMove = false;
@@ -104,7 +104,7 @@ struct FOrganicAnim_GroundedInfo
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_AirborneInfo
+struct FCharacterAnim_AirborneInfo
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -122,7 +122,7 @@ struct FOrganicAnim_AirborneInfo
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_ViewInfo
+struct FCharacterAnim_ViewInfo
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -155,7 +155,7 @@ struct FOrganicAnim_ViewInfo
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_VelocityBlend
+struct FCharacterAnim_VelocityBlend
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -173,7 +173,7 @@ struct FOrganicAnim_VelocityBlend
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_LeanAmount
+struct FCharacterAnim_LeanAmount
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -185,53 +185,163 @@ struct FOrganicAnim_LeanAmount
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_MovementDirection
+struct FCharacterAnim_LayerBlending
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
-	EOrganicMovementDirection MovementDirection = EOrganicMovementDirection::Forward;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	int32 OverlayOverrideState = 0;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
-	bool bForward = true;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float EnableAimOffset = 1.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
-	bool bRight = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float BasePose_N = 1.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
-	bool bLeft = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float BasePose_CLF = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
-	bool bBackward = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_L = 0.0f;
 
-public:
-	FOrganicAnim_MovementDirection() {}
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_L_Add = 0.0f;
 
-	FOrganicAnim_MovementDirection(const EOrganicMovementDirection InitialMovementDirection)
-	{
-		*this = InitialMovementDirection;
-	}
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_L_LS = 0.0f;
 
-	const bool& Forward() const { return bForward; }
-	const bool& Backward() const { return bBackward; }
-	const bool& Left() const { return bLeft; }
-	const bool& Right() const { return bRight; }
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_L_MS = 0.0f;
 
-	operator EOrganicMovementDirection() const { return MovementDirection; }
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_R = 0.0f;
 
-	void operator=(const EOrganicMovementDirection NewMovementDirection)
-	{
-		MovementDirection = NewMovementDirection;
-		bForward = MovementDirection == EOrganicMovementDirection::Forward;
-		bBackward = MovementDirection == EOrganicMovementDirection::Backward;
-		bLeft = MovementDirection == EOrganicMovementDirection::Left;
-		bRight = MovementDirection == EOrganicMovementDirection::Right;
-	}
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_R_Add = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_R_LS = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Arm_R_MS = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Hand_L = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Hand_R = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Legs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Legs_Add = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Pelvis = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Pelvis_Add = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Spine = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Spine_Add = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Head = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float Head_Add = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float EnableHandIK_L = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
+	float EnableHandIK_R = 1.0f;
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicAnim_InstanceData
+struct FCharacterAnim_FootIK
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	float FootLock_L_Alpha = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	float FootLock_R_Alpha = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	bool UseFootLockCurve_L = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	bool UseFootLockCurve_R = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector FootLock_L_Location = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector TargetFootLock_R_Location = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector FootLock_R_Location = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator TargetFootLock_L_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator FootLock_L_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator TargetFootLock_R_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator FootLock_R_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector FootOffset_L_Location = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector FootOffset_R_Location = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator FootOffset_L_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FRotator FootOffset_R_Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	FVector PelvisOffset = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Foot IK")
+	float PelvisAlpha = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FCharacterAnim_DynamicMontage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Montage")
+	TObjectPtr<UAnimSequenceBase> Animation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Montage")
+	float BlendInTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Montage")
+	float BlendOutTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Montage")
+	float PlayRate = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Montage")
+	float StartTime = 0.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FCharacterAnim_InstanceData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -248,6 +358,52 @@ struct FOrganicAnim_InstanceData
 	float ElapsedDelayTime = 0.0f;
 };
 
+USTRUCT(BlueprintType)
+struct FCharacterAnim_MovementDirection
+{
+	GENERATED_USTRUCT_BODY()
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	ECharacterMovementDirection MovementDirection = ECharacterMovementDirection::Forward;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bForward = true;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bRight = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bLeft = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Movement Direction")
+	bool bBackward = false;
+
+public:
+	FCharacterAnim_MovementDirection() {}
+
+	FCharacterAnim_MovementDirection(const ECharacterMovementDirection InitialMovementDirection)
+	{
+		*this = InitialMovementDirection;
+	}
+
+	const bool& Forward() const { return bForward; }
+	const bool& Backward() const { return bBackward; }
+	const bool& Left() const { return bLeft; }
+	const bool& Right() const { return bRight; }
+
+	operator ECharacterMovementDirection() const { return MovementDirection; }
+
+	void operator=(const ECharacterMovementDirection NewMovementDirection)
+	{
+		MovementDirection = NewMovementDirection;
+		bForward = MovementDirection == ECharacterMovementDirection::Forward;
+		bBackward = MovementDirection == ECharacterMovementDirection::Backward;
+		bLeft = MovementDirection == ECharacterMovementDirection::Left;
+		bRight = MovementDirection == ECharacterMovementDirection::Right;
+	}
+};
+
 UCLASS()
 class STALKER_API UCharacterAnimInstance : public UAnimInstance
 {
@@ -262,7 +418,7 @@ public:
 	
 	static bool AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer);
 
-	static EOrganicMovementDirection CalculateQuadrant(EOrganicMovementDirection Current, float FRThreshold, float FLThreshold,
+	static ECharacterMovementDirection CalculateQuadrant(ECharacterMovementDirection Current, float FRThreshold, float FLThreshold,
 													   float BRThreshold, float BLThreshold, float Buffer, float Angle);
 	
 protected:
@@ -270,22 +426,24 @@ protected:
 	TObjectPtr<const UCharacterAnimConfig> AnimConfig;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Input Information")
-	TWeakObjectPtr<UOrganicMovementComponent> OrganicMovement;
+	TWeakObjectPtr<UStalkerCharacterMovementComponent> CharacterMovement;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Input Information")
 	TWeakObjectPtr<ABaseCharacter> Character;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
-	FOrganicMovementState MovementState = EOrganicMovementState::None;
+#pragma region Input Info
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
-	FOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
+	FCharacterMovementState MovementState = ECharacterMovementState::None;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
-	FOrganicStance Stance = EOrganicStance::Standing;
+	FCharacterRotationMode RotationMode = ECharacterRotationMode::VelocityDirection;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
-	FOrganicGait Gait = EOrganicGait::Walk;
+	FCharacterStanceType Stance = ECharacterStanceType::Standing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	FCharacterGaitType Gait = ECharacterGaitType::Walk;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FCharacterMovementAction MovementAction = ECharacterMovementAction::None;
@@ -293,35 +451,41 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
 	FCharacterOverlayState OverlayState = ECharacterOverlayState::Default;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_MovementInfo Movement;
+#pragma endregion Input Info
+
+#pragma region Anim Graph
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_GroundedInfo Grounded;
+	FCharacterAnim_MovementInfo Movement;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_AirborneInfo Airborne;
+	FCharacterAnim_GroundedInfo Grounded;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_ViewInfo View;
+	FCharacterAnim_AirborneInfo Airborne;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_VelocityBlend VelocityBlend;
+	FCharacterAnim_ViewInfo View;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_LeanAmount LeanAmount;
+	FCharacterAnim_VelocityBlend VelocityBlend;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_MovementDirection MovementDirection;
+	FCharacterAnim_LeanAmount LeanAmount;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FAnimOrganicLayerBlending LayerBlending;
+	FCharacterAnim_MovementDirection MovementDirection;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FAnimOrganicFootIK FootIK;
+	FCharacterAnim_LayerBlending LayerBlending;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
-	FOrganicAnim_InstanceData OrganicAnimData;
+	FCharacterAnim_FootIK FootIK;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anim Graph")
+	FCharacterAnim_InstanceData OrganicAnimData;
+
+#pragma endregion Anim Graph
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
@@ -350,9 +514,9 @@ protected:
 	float CalculateCrouchingPlayRate() const;
 	float CalculateLandPrediction() const;
 	FVector CalculateRelativeAccelerationAmount() const;
-	FOrganicAnim_VelocityBlend CalculateVelocityBlend() const;
-	FOrganicAnim_LeanAmount CalculateAirLeanAmount() const;
-	EOrganicMovementDirection CalculateMovementDirection() const;
+	FCharacterAnim_VelocityBlend CalculateVelocityBlend() const;
+	FCharacterAnim_LeanAmount CalculateAirLeanAmount() const;
+	ECharacterMovementDirection CalculateMovementDirection() const;
 
 	float GetAnimCurveClamped(const FName& Name, float Bias, float ClampMin, float ClampMax) const;
 
@@ -381,7 +545,7 @@ protected:
 	                            FRotator& CurRotationOffset);
 
 	UFUNCTION(BlueprintCallable, Category = "Organic|Grounded")
-	void SetTrackedHipsDirection(EOrganicHipsDirection HipsDirection)
+	void SetTrackedHipsDirection(ECharacterHipsDirection HipsDirection)
 	{
 		Grounded.TrackedHipsDirection = HipsDirection;
 	}
@@ -389,13 +553,13 @@ protected:
 	void DynamicTransitionCheck();
 	
 	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayTransition(const FOrganicDynamicMontage& Parameters);
+	void PlayTransition(const FCharacterAnim_DynamicMontage& Parameters);
 
 	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayTransitionChecked(const FOrganicDynamicMontage& Parameters);
+	void PlayTransitionChecked(const FCharacterAnim_DynamicMontage& Parameters);
 
 	UFUNCTION(BlueprintCallable, Category = "Organic|Animation")
-	void PlayDynamicTransition(float ReTriggerDelay, FOrganicDynamicMontage Parameters);
+	void PlayDynamicTransition(float ReTriggerDelay, FCharacterAnim_DynamicMontage Parameters);
 	
 	void PlayDynamicTransitionDelay();
 

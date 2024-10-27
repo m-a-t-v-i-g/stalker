@@ -4,7 +4,7 @@
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
 #include "Components/ShapeComponent.h"
-#include "Components/Movement/OrganicMovementComponent.h"
+#include "Components/Movement/StalkerCharacterMovementComponent.h"
 #include "Curves/CurveVector.h"
 #include "Organic/Characters/BaseCharacter.h"
 
@@ -17,27 +17,27 @@ bool UCharacterAnimInstance::AngleInRange(float Angle, float MinAngle, float Max
 	return Angle >= MinAngle + Buffer && Angle <= MaxAngle - Buffer;
 }
 
-EOrganicMovementDirection UCharacterAnimInstance::CalculateQuadrant(EOrganicMovementDirection Current,
+ECharacterMovementDirection UCharacterAnimInstance::CalculateQuadrant(ECharacterMovementDirection Current,
                                                                     float FRThreshold, float FLThreshold,
                                                                     float BRThreshold, float BLThreshold, float Buffer,
                                                                     float Angle)
 {
 	if (AngleInRange(Angle, FLThreshold, FRThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Forward && Current != EOrganicMovementDirection::Backward))
+					 Current != ECharacterMovementDirection::Forward && Current != ECharacterMovementDirection::Backward))
 	{
-		return EOrganicMovementDirection::Forward;
+		return ECharacterMovementDirection::Forward;
 	}
 	if (AngleInRange(Angle, FRThreshold, BRThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+					 Current != ECharacterMovementDirection::Right && Current != ECharacterMovementDirection::Left))
 	{
-		return EOrganicMovementDirection::Right;
+		return ECharacterMovementDirection::Right;
 	}
 	if (AngleInRange(Angle, BLThreshold, FLThreshold, Buffer,
-					 Current != EOrganicMovementDirection::Right && Current != EOrganicMovementDirection::Left))
+					 Current != ECharacterMovementDirection::Right && Current != ECharacterMovementDirection::Left))
 	{
-		return EOrganicMovementDirection::Left;
+		return ECharacterMovementDirection::Left;
 	}
-	return EOrganicMovementDirection::Backward;
+	return ECharacterMovementDirection::Backward;
 }
 
 void UCharacterAnimInstance::NativeInitializeAnimation()
@@ -48,12 +48,12 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 
 	if (Character.IsValid())
 	{
-		OrganicMovement = Character->GetOrganicMovement();
+		CharacterMovement = Character->GetOrganicMovement();
 		
-		if (OrganicMovement.IsValid())
+		if (CharacterMovement.IsValid())
 		{
 			CollisionShape = MakeCollisionShape();
-			OrganicMovement->OnJumpedDelegate.AddUniqueDynamic(this, &UCharacterAnimInstance::OnJumped);
+			CharacterMovement->OnJumpedDelegate.AddUniqueDynamic(this, &UCharacterAnimInstance::OnJumped);
 		}
 	}
 }
@@ -62,7 +62,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	
-	if (!Character.IsValid() || !OrganicMovement.IsValid()) return;
+	if (!Character.IsValid() || !CharacterMovement.IsValid()) return;
 	
 	UpdateMovementInfo(DeltaSeconds);
 	UpdateViewInfo(DeltaSeconds);
@@ -85,24 +85,24 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
 	if (!Character.IsValid()) return;
 	
-	Movement.Acceleration = OrganicMovement->GetInstantAcceleration();
-	Movement.Velocity = OrganicMovement->GetVelocity();
-	Movement.Speed = OrganicMovement->GetSpeedXY();
+	Movement.Acceleration = CharacterMovement->GetInstantAcceleration();
+	Movement.Velocity = CharacterMovement->GetVelocity();
+	Movement.Speed = CharacterMovement->GetSpeedXY();
 	
-	Movement.ActorRotation = OrganicMovement->GetRootCollisionRotation();
-	Movement.ViewRotation = OrganicMovement->GetInputRotation();
-	Movement.ViewYawRate = OrganicMovement->GetViewYawRate();
+	Movement.ActorRotation = CharacterMovement->GetRootCollisionRotation();
+	Movement.ViewRotation = CharacterMovement->GetInputRotation();
+	Movement.ViewYawRate = CharacterMovement->GetViewYawRate();
 
-	Movement.MovementInputAmount = OrganicMovement->GetMovementInputValue();
-	Movement.bHasMovementInput = OrganicMovement->HasMovementInput();
-	Movement.bIsMoving = OrganicMovement->IsMoving();
+	Movement.MovementInputAmount = CharacterMovement->GetMovementInputValue();
+	Movement.bHasMovementInput = CharacterMovement->HasMovementInput();
+	Movement.bIsMoving = CharacterMovement->IsMoving();
 
-	Movement.PrevMovementState = OrganicMovement->GetPrevMovementState();
+	Movement.PrevMovementState = CharacterMovement->GetPrevMovementState();
 
-	MovementState = OrganicMovement->GetMovementState();
-	RotationMode = OrganicMovement->GetRotationMode();
-	Stance = OrganicMovement->GetStance();
-	Gait = OrganicMovement->GetGait();
+	MovementState = CharacterMovement->GetMovementState();
+	RotationMode = CharacterMovement->GetRotationMode();
+	Stance = CharacterMovement->GetStance();
+	Gait = CharacterMovement->GetGait();
 	MovementAction = Character->GetMovementAction();
 	OverlayState = Character->GetOverlayState();
 	
@@ -152,7 +152,7 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateMovementValues(float DeltaSeconds)
 {
-	const FOrganicAnim_VelocityBlend& TargetBlend = CalculateVelocityBlend();
+	const FCharacterAnim_VelocityBlend& TargetBlend = CalculateVelocityBlend();
 	
 	VelocityBlend.Forward = FMath::FInterpTo(VelocityBlend.Forward, TargetBlend.Forward, DeltaSeconds,
 											 AnimConfig->CharacterConfig.VelocityBlendInterpSpeed);
@@ -299,7 +299,7 @@ void UCharacterAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 	Airborne.FallSpeed = Movement.Velocity.Z;
 	Airborne.LandPrediction = CalculateLandPrediction();
 
-	const FOrganicAnim_LeanAmount& AirborneLeanAmount = CalculateAirLeanAmount();
+	const FCharacterAnim_LeanAmount& AirborneLeanAmount = CalculateAirLeanAmount();
 	LeanAmount.LR = FMath::FInterpTo(LeanAmount.LR, AirborneLeanAmount.LR, DeltaSeconds, AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
 	LeanAmount.FB = FMath::FInterpTo(LeanAmount.FB, AirborneLeanAmount.FB, DeltaSeconds, AnimConfig->CharacterConfig.GroundedLeanInterpSpeed);
 }
@@ -457,7 +457,7 @@ float UCharacterAnimInstance::CalculateLandPrediction() const
 		return 0.0f;
 	}
 
-	if (const UShapeComponent* ShapeComp = Cast<UShapeComponent>(OrganicMovement->GetGenPawnOwner()->GetRootComponent()))
+	if (const UShapeComponent* ShapeComp = Cast<UShapeComponent>(CharacterMovement->GetGenPawnOwner()->GetRootComponent()))
 	{
 		const FVector& CapsuleWorldLoc = ShapeComp->GetComponentLocation();
 		const float VelocityZ = Movement.Velocity.Z;
@@ -470,14 +470,14 @@ float UCharacterAnimInstance::CalculateLandPrediction() const
 			{0.0f, -4000.0f}, {50.0f, 2000.0f}, VelocityZ);
 
 		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(OrganicMovement->GetOwner());
+		Params.AddIgnoredActor(CharacterMovement->GetOwner());
 
 		FHitResult HitResult;
 		
 		GetWorld()->SweepSingleByChannel(HitResult, CapsuleWorldLoc, CapsuleWorldLoc + TraceLength, FQuat::Identity,
 										 ECC_Visibility, CollisionShape, Params);
 
-		if (OrganicMovement->HitWalkableFloor(HitResult))
+		if (CharacterMovement->HitWalkableFloor(HitResult))
 		{
 			return FMath::Lerp(AnimConfig->LandPrediction->GetFloatValue(HitResult.Time), 0.0f,
 							   GetCurveValue(FCharacterCurveName::NAME_Mask_LandPrediction));
@@ -490,15 +490,15 @@ FVector UCharacterAnimInstance::CalculateRelativeAccelerationAmount() const
 {
 	if (FVector::DotProduct(Movement.Acceleration, Movement.Velocity) > 0.0f)
 	{
-		float MaxAcc = OrganicMovement->GetInputAcceleration();
+		float MaxAcc = CharacterMovement->GetInputAcceleration();
 		return Movement.ActorRotation.UnrotateVector(Movement.Acceleration.GetClampedToMaxSize(MaxAcc) / MaxAcc);
 	}
 
-	float MaxBrakingDec = OrganicMovement->GetBrakingDeceleration();
+	float MaxBrakingDec = CharacterMovement->GetBrakingDeceleration();
 	return Movement.ActorRotation.UnrotateVector(Movement.Acceleration.GetClampedToMaxSize(MaxBrakingDec) / MaxBrakingDec);
 }
 
-FOrganicAnim_VelocityBlend UCharacterAnimInstance::CalculateVelocityBlend() const
+FCharacterAnim_VelocityBlend UCharacterAnimInstance::CalculateVelocityBlend() const
 {
 	const FVector LocRelativeVelocityDir =
 		Movement.ActorRotation.UnrotateVector(Movement.Velocity.GetSafeNormal(0.1f));
@@ -508,7 +508,7 @@ FOrganicAnim_VelocityBlend UCharacterAnimInstance::CalculateVelocityBlend() cons
 	
 	const FVector RelativeDir = LocRelativeVelocityDir / Sum;
 	
-	FOrganicAnim_VelocityBlend Result;
+	FCharacterAnim_VelocityBlend Result;
 	Result.Forward = FMath::Clamp(RelativeDir.X, 0.0f, 1.0f);
 	Result.Backward = FMath::Abs(FMath::Clamp(RelativeDir.X, -1.0f, 0.0f));
 	Result.Left = FMath::Abs(FMath::Clamp(RelativeDir.Y, -1.0f, 0.0f));
@@ -517,9 +517,9 @@ FOrganicAnim_VelocityBlend UCharacterAnimInstance::CalculateVelocityBlend() cons
 	return Result;
 }
 
-FOrganicAnim_LeanAmount UCharacterAnimInstance::CalculateAirLeanAmount() const
+FCharacterAnim_LeanAmount UCharacterAnimInstance::CalculateAirLeanAmount() const
 {
-	FOrganicAnim_LeanAmount CalcLeanAmount;
+	FCharacterAnim_LeanAmount CalcLeanAmount;
 	const FVector& UnrotatedVel = Movement.ActorRotation.UnrotateVector(Movement.Velocity) / 350.0f;
 	FVector2D InversedVect(UnrotatedVel.Y, UnrotatedVel.X);
 	InversedVect *= AnimConfig->LeanAirborne->GetFloatValue(Airborne.FallSpeed);
@@ -528,11 +528,11 @@ FOrganicAnim_LeanAmount UCharacterAnimInstance::CalculateAirLeanAmount() const
 	return CalcLeanAmount;
 }
 
-EOrganicMovementDirection UCharacterAnimInstance::CalculateMovementDirection() const
+ECharacterMovementDirection UCharacterAnimInstance::CalculateMovementDirection() const
 {
 	if (Gait.Sprinting() || RotationMode.VelocityDirection())
 	{
-		return EOrganicMovementDirection::Forward;
+		return ECharacterMovementDirection::Forward;
 	}
 
 	FRotator Delta = Movement.Velocity.ToOrientationRotator() - Movement.ViewRotation;
@@ -628,15 +628,15 @@ void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Loc
 {
 	FRotator RotationDifference = FRotator::ZeroRotator;
 	
-	if (OrganicMovement->IsMovingOnGround())
+	if (CharacterMovement->IsMovingOnGround())
 	{
-		if (RotationMode == EOrganicRotationMode::ControlDirection)
+		if (RotationMode == ECharacterRotationMode::ControlDirection)
 		{
-			RotationDifference = OrganicMovement->GetRootCollisionRotation() - OrganicMovement->GetLastPawnRotation();
+			RotationDifference = CharacterMovement->GetRootCollisionRotation() - CharacterMovement->GetLastPawnRotation();
 		}
-		else if (RotationMode == EOrganicRotationMode::LookingDirection)
+		else if (RotationMode == ECharacterRotationMode::LookingDirection)
 		{
-			RotationDifference = OrganicMovement->GetRootCollisionRotation() - OrganicMovement->GetLastComponentRotation();
+			RotationDifference = CharacterMovement->GetRootCollisionRotation() - CharacterMovement->GetLastComponentRotation();
 		}
 		RotationDifference.Normalize();
 	}
@@ -729,7 +729,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	float Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
-		FOrganicDynamicMontage Params;
+		FCharacterAnim_DynamicMontage Params;
 		Params.Animation = AnimConfig->TransitionAnim_R;
 		Params.BlendInTime = 0.2f;
 		Params.BlendOutTime = 0.2f;
@@ -745,7 +745,7 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
 	{
-		FOrganicDynamicMontage Params;
+		FCharacterAnim_DynamicMontage Params;
 		Params.Animation = AnimConfig->TransitionAnim_L;
 		Params.BlendInTime = 0.2f;
 		Params.BlendOutTime = 0.2f;
@@ -756,14 +756,14 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 	}
 }
 
-void UCharacterAnimInstance::PlayTransition(const FOrganicDynamicMontage& Parameters)
+void UCharacterAnimInstance::PlayTransition(const FCharacterAnim_DynamicMontage& Parameters)
 {
 	PlaySlotAnimationAsDynamicMontage(Parameters.Animation, FCharacterCurveName::NAME_Grounded_Slot,
 									  Parameters.BlendInTime, Parameters.BlendOutTime, Parameters.PlayRate, 1,
 									  0.0f, Parameters.StartTime);
 }
 
-void UCharacterAnimInstance::PlayTransitionChecked(const FOrganicDynamicMontage& Parameters)
+void UCharacterAnimInstance::PlayTransitionChecked(const FCharacterAnim_DynamicMontage& Parameters)
 {
 	if (Stance.Standing() && !Grounded.bShouldMove)
 	{
@@ -771,7 +771,7 @@ void UCharacterAnimInstance::PlayTransitionChecked(const FOrganicDynamicMontage&
 	}
 }
 
-void UCharacterAnimInstance::PlayDynamicTransition(float ReTriggerDelay, FOrganicDynamicMontage Parameters)
+void UCharacterAnimInstance::PlayDynamicTransition(float ReTriggerDelay, FCharacterAnim_DynamicMontage Parameters)
 {
 	if (bCanPlayDynamicTransition)
 	{
@@ -797,22 +797,22 @@ bool UCharacterAnimInstance::CanDynamicTransition() const
 FCollisionShape UCharacterAnimInstance::MakeCollisionShape() const
 {
 	FCollisionShape NewShape;
-	switch (OrganicMovement->GetRootCollisionShape())
+	switch (CharacterMovement->GetRootCollisionShape())
 	{
 	case EGenCollisionShape::VerticalCapsule:
 	case EGenCollisionShape::HorizontalCapsule:
 		{
-			NewShape = FCollisionShape::MakeCapsule(OrganicMovement->GetRootCollisionExtent());
+			NewShape = FCollisionShape::MakeCapsule(CharacterMovement->GetRootCollisionExtent());
 			break;
 		}
 	case EGenCollisionShape::Sphere:
 		{
-			NewShape = FCollisionShape::MakeSphere(OrganicMovement->GetRootCollisionExtent().X);
+			NewShape = FCollisionShape::MakeSphere(CharacterMovement->GetRootCollisionExtent().X);
 			break;
 		}
 	case EGenCollisionShape::Box:
 		{
-			NewShape = FCollisionShape::MakeBox(OrganicMovement->GetRootCollisionExtent());
+			NewShape = FCollisionShape::MakeBox(CharacterMovement->GetRootCollisionExtent());
 			break;
 		}
 	default: break;

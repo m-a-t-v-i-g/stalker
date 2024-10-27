@@ -73,11 +73,6 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 										   this,
 										   &APlayerCharacter::IA_RightMouseButton);
 
-		/*
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputJumpName], ETriggerEvent::Triggered, this,
-		                                   &APlayerCharacter::IA_Jump);
-		                                   */
-		
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputCrouchName], ETriggerEvent::Triggered, this,
 		                                   &APlayerCharacter::IA_Crouch);
 		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputSprintName], ETriggerEvent::Triggered, this,
@@ -96,11 +91,6 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 	}
 }
 
-bool APlayerCharacter::CheckReloadAbility()
-{
-	return Super::CheckReloadAbility();
-}
-
 void APlayerCharacter::SetCharacterData()
 {
 	if (AbilitySet)
@@ -112,7 +102,10 @@ void APlayerCharacter::SetCharacterData()
 void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
 {
 	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-	if (!CharWeapon) return;
+	if (!CharWeapon)
+	{
+		return;
+	}
 
 	if (Value.Get<bool>())
 	{
@@ -127,7 +120,10 @@ void APlayerCharacter::IA_LeftMouseButton(const FInputActionValue& Value)
 void APlayerCharacter::IA_RightMouseButton(const FInputActionValue& Value)
 {
 	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-	if (!CharWeapon) return;
+	if (!CharWeapon)
+	{
+		return;
+	}
 
 	if (Value.Get<bool>())
 	{
@@ -153,6 +149,11 @@ void APlayerCharacter::IA_View(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Jump(const FInputActionValue& Value)
 {
+	if (!CheckJumpAbility())
+	{
+		return;
+	}
+	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction1();
@@ -165,6 +166,11 @@ void APlayerCharacter::IA_Jump(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Crouch(const FInputActionValue& Value)
 {
+	if (!CheckCrouchAbility())
+	{
+		return;
+	}
+	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction2();
@@ -177,6 +183,11 @@ void APlayerCharacter::IA_Crouch(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Sprint(const FInputActionValue& Value)
 {
+	if (!CheckSprintAbility())
+	{
+		return;
+	}
+	
 	if (Value.Get<bool>())
 	{
 		Super::StartAction3();
@@ -193,7 +204,10 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 		GetController<APlayerController>()->GetLocalPlayer()))
 	{
 		auto SlotAction = GeneralInputData->InputMap[InputSlotName];
-		if (!SlotAction) return;
+		if (!SlotAction)
+		{
+			return;
+		}
 
 		auto Keys = Subsystem->QueryKeysMappedToAction(SlotAction);
 		const auto PressedKey = Keys.FindByPredicate([&](const FKey& Key)
@@ -201,16 +215,26 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 			return GetController<APlayerController>()->IsInputKeyDown(Key);
 		});
 
-		if (!PressedKey) return;
+		if (!PressedKey)
+		{
+			return;
+		}
 
 		auto Mappings = InputMappingContext->GetMappings();
 		for (int8 i = 0, a = 0; i < Mappings.Num(); i++)
 		{
-			if (Mappings[i].Action != SlotAction) continue;
+			if (Mappings[i].Action != SlotAction)
+			{
+				continue;
+			}
+
 			if (Mappings[i].Key.ToString() == PressedKey->ToString())
 			{
 				auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-				if (!CharWeapon) return;
+				if (!CharWeapon)
+				{
+					return;
+				}
 
 				CharWeapon->ServerToggleSlot(a);
 				return;
@@ -222,8 +246,16 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Reload(const FInputActionValue& Value)
 {
+	if (!CheckReloadAbility())
+	{
+		return;
+	}
+
 	auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-	if (!CharWeapon) return;
+	if (!CharWeapon)
+	{
+		return;
+	}
 
 	CharWeapon->TryReloadWeapon();
 }
@@ -249,7 +281,10 @@ void APlayerCharacter::SetupCharacterLocally(AController* NewController)
 	Super::SetupCharacterLocally(NewController);
 	
 	auto StalkerController = GetController<AStalkerPlayerController>();
-	if (!StalkerController) return;
+	if (!StalkerController)
+	{
+		return;
+	}
 	
 	StalkerController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
 }

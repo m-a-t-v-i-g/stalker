@@ -8,7 +8,7 @@
 class UCurveVector;
 
 UENUM(BlueprintType)
-enum class EOrganicMovementState : uint8
+enum class ECharacterMovementState : uint8
 {
 	None		UMETA(DisplayName = "None"),
 	Ground		UMETA(DisplayName = "Ground"),
@@ -17,7 +17,7 @@ enum class EOrganicMovementState : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicRotationMode : uint8
+enum class ECharacterRotationMode : uint8
 {
 	VelocityDirection	 UMETA(DisplayName = "Velocity"),
 	LookingDirection	 UMETA(DisplayName = "Looking"),
@@ -25,7 +25,7 @@ enum class EOrganicRotationMode : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicStance : uint8
+enum class ECharacterStanceType : uint8
 {
 	Standing,
 	Crouching,
@@ -33,7 +33,7 @@ enum class EOrganicStance : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicGait : uint8
+enum class ECharacterGaitType : uint8
 {
 	Walk,
 	Run,
@@ -41,7 +41,7 @@ enum class EOrganicGait : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicFootstepType : uint8
+enum class EFootstepType : uint8
 {
 	Step,
 	Walk,
@@ -51,7 +51,7 @@ enum class EOrganicFootstepType : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicMovementDirection : uint8
+enum class ECharacterMovementDirection : uint8
 {
 	Forward,
 	Right,
@@ -60,14 +60,14 @@ enum class EOrganicMovementDirection : uint8
 };
 
 UENUM(BlueprintType)
-enum class EOrganicHipsDirection : uint8
+enum class ECharacterHipsDirection : uint8
 {
-	F,
-	B,
-	LF,
-	LB,
-	RF,
-	RB
+	F	UMETA(DisplayName = "Forward"),
+	B	UMETA(DisplayName = "Backward"),
+	LF	UMETA(DisplayName = "Left-Forward"),
+	LB	UMETA(DisplayName = "Left-Backward"),
+	RF	UMETA(DisplayName = "Right-Forward"),
+	RB	UMETA(DisplayName = "Right-Backward")
 };
 
 UENUM(BlueprintType)
@@ -78,325 +78,160 @@ enum class EOrganicFootstepSpawnType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicMovementState
+struct FCharacterMovementState
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
-	EOrganicMovementState State = EOrganicMovementState::None;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement State")
+	ECharacterMovementState State = ECharacterMovementState::None;
 
 private:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement State")
 	bool bNone = true;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement State")
 	bool bGrounded = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement State")
 	bool bAirborne = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Movement State")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Movement State")
 	bool bRagdoll = false;
 
 public:
-	FOrganicMovementState()
-	{
-	}
+	FCharacterMovementState() {}
 
-	FOrganicMovementState(const EOrganicMovementState InitialState) { *this = InitialState; }
+	FCharacterMovementState(const ECharacterMovementState InitialState) { *this = InitialState; }
 
 	const bool& None() const { return bNone; }
 	const bool& Grounded() const { return bGrounded; }
 	const bool& Airborne() const { return bAirborne; }
 	const bool& Ragdoll() const { return bRagdoll; }
 
-	operator EOrganicMovementState() const { return State; }
+	operator ECharacterMovementState() const { return State; }
 
-	void operator=(const EOrganicMovementState NewState)
+	void operator=(const ECharacterMovementState NewState)
 	{
 		State = NewState;
-		bNone = State == EOrganicMovementState::None;
-		bGrounded = State == EOrganicMovementState::Ground;
-		bAirborne = State == EOrganicMovementState::Airborne;
-		bRagdoll = State == EOrganicMovementState::Ragdoll;
+		bNone = State == ECharacterMovementState::None;
+		bGrounded = State == ECharacterMovementState::Ground;
+		bAirborne = State == ECharacterMovementState::Airborne;
+		bRagdoll = State == ECharacterMovementState::Ragdoll;
 	}
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicRotationMode
+struct FCharacterRotationMode
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
-	EOrganicRotationMode RotationMode = EOrganicRotationMode::VelocityDirection;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Rotation Mode")
+	ECharacterRotationMode RotationMode = ECharacterRotationMode::VelocityDirection;
 
 private:
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Rotation Mode")
 	bool bVelocityDirection = false;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Rotation Mode")
 	bool bLookingDirection = false;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Rotation System")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Rotation Mode")
 	bool bControlDirection = false;
 
 public:
-	FOrganicRotationMode()
-	{
-	}
+	FCharacterRotationMode() {}
 
-	FOrganicRotationMode(const EOrganicRotationMode InitialRotationMode) { *this = InitialRotationMode; }
+	FCharacterRotationMode(const ECharacterRotationMode InitialRotationMode) { *this = InitialRotationMode; }
 
 	const bool& VelocityDirection() const { return bVelocityDirection; }
 	const bool& LookingDirection() const { return bLookingDirection; }
 	const bool& ControlDirection() const { return bControlDirection; }
 
-	operator EOrganicRotationMode() const { return RotationMode; }
+	operator ECharacterRotationMode() const { return RotationMode; }
 
-	void operator=(const EOrganicRotationMode NewRotationMode)
+	void operator=(const ECharacterRotationMode NewRotationMode)
 	{
 		RotationMode = NewRotationMode;
-		bVelocityDirection = RotationMode == EOrganicRotationMode::VelocityDirection;
-		bLookingDirection = RotationMode == EOrganicRotationMode::LookingDirection;
-		bControlDirection = RotationMode == EOrganicRotationMode::ControlDirection;
+		bVelocityDirection = RotationMode == ECharacterRotationMode::VelocityDirection;
+		bLookingDirection = RotationMode == ECharacterRotationMode::LookingDirection;
+		bControlDirection = RotationMode == ECharacterRotationMode::ControlDirection;
 	}
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicStance
+struct FCharacterStanceType
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
-	EOrganicStance Stance = EOrganicStance::Standing;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Stance")
+	ECharacterStanceType Stance = ECharacterStanceType::Standing;
 
 private:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Stance")
 	bool bStanding = true;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Stance")
 	bool bCrouching = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Stance")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Stance")
 	bool bCrawling = false;
 
 public:
-	FOrganicStance()
-	{
-	}
+	FCharacterStanceType() {}
 
-	FOrganicStance(const EOrganicStance InitialStance) { *this = InitialStance; }
+	FCharacterStanceType(const ECharacterStanceType InitialStance) { *this = InitialStance; }
 
 	const bool& Standing() const { return bStanding; }
 	const bool& Crouching() const { return bCrouching; }
+	const bool& Crawling() const { return bCrawling; }
 
-	operator EOrganicStance() const { return Stance; }
+	operator ECharacterStanceType() const { return Stance; }
 
-	void operator=(const EOrganicStance NewStance)
+	void operator=(const ECharacterStanceType NewStance)
 	{
 		Stance = NewStance;
-		bStanding = Stance == EOrganicStance::Standing;
-		bCrouching = Stance == EOrganicStance::Crouching;
-		bCrawling = Stance == EOrganicStance::Crawling;
+		bStanding = Stance == ECharacterStanceType::Standing;
+		bCrouching = Stance == ECharacterStanceType::Crouching;
+		bCrawling = Stance == ECharacterStanceType::Crawling;
 	}
 };
 
 USTRUCT(BlueprintType)
-struct FOrganicGait
+struct FCharacterGaitType
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
-	EOrganicGait Gait = EOrganicGait::Walk;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Gait")
+	ECharacterGaitType Gait = ECharacterGaitType::Walk;
 
 private:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Gait")
 	bool bWalking = true;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Gait")
 	bool bRunning = false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Organic|Gait")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true), Category = "Character|Gait")
 	bool bSprinting = false;
 
 public:
-	FOrganicGait()
+	FCharacterGaitType()
 	{
 	}
 
-	FOrganicGait(const EOrganicGait InitialGait) { *this = InitialGait; }
+	FCharacterGaitType(const ECharacterGaitType InitialGait) { *this = InitialGait; }
 
 	const bool& Walking() const { return bWalking; }
 	const bool& Running() const { return bRunning; }
 	const bool& Sprinting() const { return bSprinting; }
 
-	operator EOrganicGait() const { return Gait; }
+	operator ECharacterGaitType() const { return Gait; }
 
-	void operator=(const EOrganicGait NewGait)
+	void operator=(const ECharacterGaitType NewGait)
 	{
 		Gait = NewGait;
-		bWalking = Gait == EOrganicGait::Walk;
-		bRunning = Gait == EOrganicGait::Run;
-		bSprinting = Gait == EOrganicGait::Sprint;
+		bWalking = Gait == ECharacterGaitType::Walk;
+		bRunning = Gait == ECharacterGaitType::Run;
+		bSprinting = Gait == ECharacterGaitType::Sprint;
 	}
 };
-
-#pragma region Animation
-
-USTRUCT(BlueprintType)
-struct FOrganicDynamicMontage
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Organic|Dynamic Transition")
-	TObjectPtr<UAnimSequenceBase> Animation = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Organic|Dynamic Transition")
-	float BlendInTime = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Organic|Dynamic Transition")
-	float BlendOutTime = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Organic|Dynamic Transition")
-	float PlayRate = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Organic|Dynamic Transition")
-	float StartTime = 0.0f;
-};
-
-USTRUCT(BlueprintType)
-struct FAnimOrganicLayerBlending
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	int32 OverlayOverrideState = 0;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float EnableAimOffset = 1.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float BasePose_N = 1.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float BasePose_CLF = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_L = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_L_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_L_LS = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_L_MS = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_R = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_R_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_R_LS = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Arm_R_MS = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Hand_L = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Hand_R = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Legs = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Legs_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Pelvis = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Pelvis_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Spine = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Spine_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Head = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float Head_Add = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float EnableHandIK_L = 1.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Layer Blending")
-	float EnableHandIK_R = 1.0f;
-};
-
-USTRUCT(BlueprintType)
-struct FAnimOrganicFootIK
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	float FootLock_L_Alpha = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	float FootLock_R_Alpha = 0.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	bool UseFootLockCurve_L;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	bool UseFootLockCurve_R;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector FootLock_L_Location;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector TargetFootLock_R_Location;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector FootLock_R_Location;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator TargetFootLock_L_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator FootLock_L_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator TargetFootLock_R_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator FootLock_R_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector FootOffset_L_Location;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector FootOffset_R_Location;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator FootOffset_L_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FRotator FootOffset_R_Rotation;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	FVector PelvisOffset;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Organic|Anim Graph|Foot IK")
-	float PelvisAlpha = 0.0f;
-};
-
-#pragma endregion Animation

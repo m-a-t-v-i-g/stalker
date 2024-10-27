@@ -4,36 +4,30 @@
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Armor/CharacterArmorComponent.h"
 #include "Inventory/CharacterInventoryComponent.h"
-#include "Movement/OrganicMovementComponent.h"
+#include "Movement/StalkerCharacterMovementComponent.h"
 #include "Weapons/CharacterWeaponComponent.h"
 
 FName AStalkerCharacter::ArmorComponentName {"CharArmorComp"};
 
 AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(
-	ObjectInitializer.Get()
-	.SetDefaultSubobjectClass<UCharacterInventoryComponent>(InventoryComponentName)
-	.SetDefaultSubobjectClass<UCharacterWeaponComponent>(WeaponComponentName))
+	ObjectInitializer.SetDefaultSubobjectClass<UCharacterInventoryComponent>(InventoryComponentName)
+	                 .SetDefaultSubobjectClass<UCharacterWeaponComponent>(WeaponComponentName))
 {
 	ArmorComponent = CreateDefaultSubobject<UCharacterArmorComponent>(ArmorComponentName);
-	
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AStalkerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (bIsStalkerInitialized) return;
+	if (bIsStalkerInitialized)
+	{
+		return;
+	}
 
 	if (auto AbilitySystemComp = GetAbilitySystemComponent<UStalkerAbilityComponent>())
 	{
 		AbilitySystemComp->InitAbilitySystem(NewController, this);
-		
-		for (auto& DefaultAbility : DefaultAbilities)
-		{
-			if (!DefaultAbility) continue;
-			AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
-		}
 	}
 	
 	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
@@ -58,12 +52,14 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 		
 		CharacterInventory->PostInitializeContainer();
 	}
+	
 	bIsStalkerInitialized = true;
 }
 
 void AStalkerCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
+	
 	if (IsLocallyControlled())
 	{
 		SetupCharacterLocally(GetController());
@@ -72,8 +68,11 @@ void AStalkerCharacter::OnRep_Controller()
 
 void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 {
-	if (bIsStalkerInitialized) return;
-		
+	if (bIsStalkerInitialized)
+	{
+		return;
+	}
+	
 	if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
 	{
 		CharacterWeapon->PreInitializeWeapon();
@@ -83,12 +82,13 @@ void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
 		CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
 		CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
 	}
+	
 	bIsStalkerInitialized = true;
 }
 
 void AStalkerCharacter::OnAimingStart()
 {
-	GetOrganicMovement()->SetRotationMode(EOrganicRotationMode::ControlDirection, true);
+	GetOrganicMovement()->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
 }
 
 void AStalkerCharacter::OnAimingStop()
@@ -101,7 +101,32 @@ void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)
 	SetOverlayState(NewOverlay);
 }
 
+bool AStalkerCharacter::CheckFireAbility()
+{
+	return true; //!GetWeaponComponent()->IsReloading();
+}
+
+bool AStalkerCharacter::CheckAimingAbility()
+{
+	return true; //!GetWeaponComponent()->IsReloading();
+}
+
 bool AStalkerCharacter::CheckReloadAbility()
 {
-	return !IsSprinting();
+	return true;
+}
+
+bool AStalkerCharacter::CheckSprintAbility()
+{
+	return GetOrganicMovement()->CanSprint();
+}
+
+bool AStalkerCharacter::CheckCrouchAbility()
+{
+	return GetOrganicMovement()->CanCrouch();
+}
+
+bool AStalkerCharacter::CheckJumpAbility()
+{
+	return GetOrganicMovement()->CanJump();
 }

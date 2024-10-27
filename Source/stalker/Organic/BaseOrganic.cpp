@@ -6,9 +6,8 @@
 #include "AbilitySystem/Components/StalkerAbilityComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/Inventory/InventoryComponent.h"
-#include "Components/Movement/OrganicMovementComponent.h"
+#include "Components/Movement/StalkerCharacterMovementComponent.h"
 #include "Components/Weapons/WeaponComponent.h"
-#include "Net/UnrealNetwork.h"
 
 FName ABaseOrganic::MeshName {"OrganicMesh0"};
 FName ABaseOrganic::OrganicMovementName {"OrganicMoveComp"};
@@ -16,9 +15,6 @@ FName ABaseOrganic::CapsuleName {"OrganicCollision"};
 FName ABaseOrganic::AbilitySystemComponentName {"AbilityComp"};
 FName ABaseOrganic::InventoryComponentName {"InventoryComp"};
 FName ABaseOrganic::WeaponComponentName {"WeaponComp"};
-
-const FName NAME_RotationAmount("RotationAmount");
-const FName NAME_YawOffset("YawOffset");
 
 ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -66,7 +62,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		Mesh->SetCanEverAffectNavigation(false);
 	}
 	
-	OrganicMovement = CreateDefaultSubobject<UOrganicMovementComponent>(OrganicMovementName);
+	OrganicMovement = CreateDefaultSubobject<UStalkerCharacterMovementComponent>(OrganicMovementName);
 	if (OrganicMovement)
 	{
 		OrganicMovement->UpdatedComponent = CapsuleComponent;
@@ -98,8 +94,6 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		ArrowComponent->SetSimulatePhysics(false);
 	}
 #endif
-	
-	PrimaryActorTick.bCanEverTick = true;
 	
 	bReplicates = true;
 	SetReplicatingMovement(false);
@@ -148,24 +142,4 @@ void ABaseOrganic::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent.Get();
-}
-
-void ABaseOrganic::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (IsLocallyControlled())
-	{
-		
-	}
-}
-
-bool ABaseOrganic::IsSprinting() const
-{
-	return false;
-}
-
-bool ABaseOrganic::IsAirborne() const
-{
-	return false;
 }

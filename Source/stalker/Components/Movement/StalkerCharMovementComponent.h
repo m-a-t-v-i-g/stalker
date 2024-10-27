@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/Movement/OrganicMovementComponent.h"
+#include "Components/Movement/StalkerCharacterMovementComponent.h"
 #include "StalkerCharMovementComponent.generated.h"
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class STALKER_API UStalkerCharMovementComponent : public UOrganicMovementComponent
+class STALKER_API UStalkerCharMovementComponent : public UStalkerCharacterMovementComponent
 {
 	GENERATED_BODY()
 

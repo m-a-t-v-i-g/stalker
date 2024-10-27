@@ -7,7 +7,7 @@
 #include "Organic/BaseOrganic.h"
 #include "BaseCharacter.generated.h"
 
-UCLASS()
+UCLASS(Abstract, NotBlueprintable, NotBlueprintType)
 class STALKER_API ABaseCharacter : public ABaseOrganic
 {
 	GENERATED_BODY()
@@ -17,14 +17,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-protected:
-	UPROPERTY(VisibleInstanceOnly, Category = "Character|Movement")
-	ECharacterMovementAction MovementAction = ECharacterMovementAction::None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "Character|State")
-	ECharacterOverlayState OverlayState = ECharacterOverlayState::Default;
-
-public:
 	void SetMovementAction(ECharacterMovementAction NewAction, bool bForce = false);
 	FORCEINLINE ECharacterMovementAction GetMovementAction() const { return MovementAction; }
 	
@@ -34,4 +26,14 @@ public:
 	FORCEINLINE ECharacterOverlayState GetOverlayState() const { return OverlayState; }
 
 	virtual void OnOverlayStateChanged(ECharacterOverlayState PreviousState);
+	
+protected:
+	UPROPERTY(VisibleInstanceOnly, Category = "Character|Movement")
+	ECharacterMovementAction MovementAction = ECharacterMovementAction::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "Character|State")
+	ECharacterOverlayState OverlayState = ECharacterOverlayState::Default;
+
+private:
+	
 };

@@ -10,7 +10,7 @@
 class UCurveVector;
 
 USTRUCT(BlueprintType)
-struct FMovementModel_Settings
+struct FCharacterMovementModel
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -29,15 +29,15 @@ struct FMovementModel_Settings
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
 	TObjectPtr<UCurveFloat> RotationCurve;
 
-	float GetSpeedForGait(const EOrganicGait Gait) const
+	float GetSpeedForGait(const ECharacterGaitType Gait) const
 	{
 		switch (Gait)
 		{
-		case EOrganicGait::Walk:
+		case ECharacterGaitType::Walk:
 			return WalkSpeed;
-		case EOrganicGait::Run:
+		case ECharacterGaitType::Run:
 			return RunSpeed;
-		case EOrganicGait::Sprint:
+		case ECharacterGaitType::Sprint:
 			return SprintSpeed;
 		default:
 			return RunSpeed;
@@ -46,15 +46,15 @@ struct FMovementModel_Settings
 };
 
 USTRUCT(BlueprintType)
-struct FMovementModel_Stance
+struct FCharacterMovementSettings
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FMovementModel_Settings Standing;
+	FCharacterMovementModel Standing;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Settings")
-	FMovementModel_Settings Crouching;
+	FCharacterMovementModel Crouching;
 };
 
 UCLASS()
@@ -64,11 +64,14 @@ class STALKER_API UMovementModelConfig : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
-	FMovementModel_Stance VelocityDirection;
+	FCharacterMovementSettings VelocityDirection;
 
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
-	FMovementModel_Stance LookingDirection;
+	FCharacterMovementSettings LookingDirection;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement Model")
-	FMovementModel_Stance ControlDirection;
+	FCharacterMovementSettings ControlDirection;
+
+	FCharacterMovementModel GetMovementSettings(const ECharacterRotationMode RotationMode,
+	                                            const ECharacterStanceType Stance) const;
 };
