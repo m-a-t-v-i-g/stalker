@@ -3,7 +3,7 @@
 #include "OrganicAbilityComponent.h"
 
 #include "AbilitySystem/Abilities/StalkerGameplayAbility.h"
-#include "AbilitySystem/Attributes/OrganicAttributeSet.h"
+#include "AbilitySystem/Attributes/HealthAttributeSet.h"
 
 UOrganicAbilityComponent::UOrganicAbilityComponent()
 {

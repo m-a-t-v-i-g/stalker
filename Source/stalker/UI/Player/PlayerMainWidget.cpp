@@ -3,8 +3,8 @@
 #include "PlayerMainWidget.h"
 #include "PlayerManagerWidget.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
+#include "Character/CharacterInventoryComponent.h"
 #include "Components/WidgetSwitcher.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
 #include "HUD/HUDWidget.h"
 
 void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp)

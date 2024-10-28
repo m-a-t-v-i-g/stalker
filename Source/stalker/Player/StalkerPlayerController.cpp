@@ -3,11 +3,11 @@
 #include "Player/StalkerPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "PlayerCharacter.h"
 #include "PlayerHUD.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
-#include "DataAssets/InputDataAsset.h"
+#include "Character/CharacterInventoryComponent.h"
+#include "Character/PlayerCharacter.h"
+#include "Data/InputDataAsset.h"
 
 AStalkerPlayerController::AStalkerPlayerController()
 {

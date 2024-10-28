@@ -2,14 +2,13 @@
 
 #include "Organic/BaseOrganic.h"
 #include "GenCapsuleComponent.h"
-#include "AbilitySystem/Attributes/OrganicAttributeSet.h"
-#include "AbilitySystem/Components/OrganicAbilityComponent.h"
+#include "Attributes/HealthAttributeSet.h"
+#include "Components/OrganicAbilityComponent.h"
 #include "Components/ArrowComponent.h"
-#include "Components/Movement/StalkerCharacterMovementComponent.h"
 
-FName ABaseOrganic::MeshName {"OrganicMesh0"};
-FName ABaseOrganic::CapsuleName {"OrganicCollision"};
-FName ABaseOrganic::AbilitySystemComponentName {"AbilityComp"};
+FName ABaseOrganic::MeshName {"Mesh0"};
+FName ABaseOrganic::CapsuleName {"Capsule Collision"};
+FName ABaseOrganic::AbilitySystemComponentName {"Ability Component"};
 
 ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -63,8 +62,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		AbilitySystemComponent->SetIsReplicated(true);
 		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-		/* DEPRECATED */
-		OrganicAttributeSet = CreateDefaultSubobject<UOrganicAttributeSet>("OrganicAttributeSet");
+		HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>("Health Attribute Set");
 	}
 	
 #if WITH_EDITORONLY_DATA

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
+#include "Character/CharacterInventoryComponent.h"
 #include "CharacterEquipmentWidget.generated.h"
 
 UCLASS()

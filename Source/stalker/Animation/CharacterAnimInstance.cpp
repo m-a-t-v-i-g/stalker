@@ -3,10 +3,10 @@
 #include "Animation/CharacterAnimInstance.h"
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
+#include "Character/BaseCharacter.h"
+#include "Character/StalkerCharacterMovementComponent.h"
 #include "Components/ShapeComponent.h"
-#include "Components/Movement/StalkerCharacterMovementComponent.h"
 #include "Curves/CurveVector.h"
-#include "Organic/Characters/BaseCharacter.h"
 
 bool UCharacterAnimInstance::AngleInRange(float Angle, float MinAngle, float MaxAngle, float Buffer, bool IncreaseBuffer)
 {

@@ -2,7 +2,7 @@
 
 #include "WeaponObject.h"
 #include "WeaponActor.h"
-#include "Inventory/CharacterInventoryComponent.h"
+#include "Character/CharacterInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
 void UWeaponObject::Use_Implementation(UObject* Source)

@@ -46,9 +46,8 @@ public:
 	}
 	
 protected:
-	/* DEPRECATED */
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
-	TObjectPtr<class UOrganicAttributeSet> OrganicAttributeSet;
+	TObjectPtr<class UHealthAttributeSet> HealthAttributeSet;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic", meta = (AllowPrivateAccess = "true"))

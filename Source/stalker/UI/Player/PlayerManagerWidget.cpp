@@ -2,8 +2,8 @@
 
 #include "PlayerManagerWidget.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
+#include "Character/CharacterInventoryComponent.h"
 #include "Components/WidgetSwitcher.h"
-#include "Components/Inventory/CharacterInventoryComponent.h"
 #include "UI/Inventory/CharacterEquipmentWidget.h"
 #include "UI/Inventory/EquipmentSlotWidget.h"
 #include "UI/Inventory/InventoryWidget.h"

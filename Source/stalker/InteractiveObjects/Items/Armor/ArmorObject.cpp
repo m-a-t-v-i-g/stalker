@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArmorObject.h"
-#include "Inventory/CharacterInventoryComponent.h"
+#include "Character/CharacterInventoryComponent.h"
 
 void UArmorObject::Use_Implementation(UObject* Source)
 {

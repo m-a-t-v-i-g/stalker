@@ -8,7 +8,7 @@
 
 struct FOnAttributeChangeData;
 
-class UOrganicAttributeSet;
+class UHealthAttributeSet;
 class UOrganicAbilityComponent;
 
 UCLASS()
@@ -27,7 +27,7 @@ private:
 	FDelegateHandle MaxHealthDelHandle;
 	FDelegateHandle HealthDelHandle;
 
-	TWeakObjectPtr<const UOrganicAttributeSet> Attributes;
+	TWeakObjectPtr<const UHealthAttributeSet> Attributes;
 
 public:
 	void SetupStatsWidget(UOrganicAbilityComponent* AbilityComp);

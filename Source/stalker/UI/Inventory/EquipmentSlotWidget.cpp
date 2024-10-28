@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "EquipmentSlotWidget.h"
+#include "Character/CharacterInventoryComponent.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/Inventory/EquipmentSlot.h"
+#include "Components/EquipmentSlot.h"
 #include "InteractiveObjects/Items/ItemObject.h"
+#include "Inventory/ItemDragDropOperation.h"
+#include "Inventory/ItemWidget.h"
 #include "Player/PlayerHUD.h"
-#include "UI/Inventory/ItemWidget.h"
-#include "UI/Inventory/ItemDragDropOperation.h"
 
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)

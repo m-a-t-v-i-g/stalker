@@ -22,7 +22,7 @@ public class stalker : ModuleRules
 		PublicIncludePaths.AddRange(new[]
 		{
 			"stalker/",
-			"stalker/Components",
+			"stalker/AbilitySystem",
 			"stalker/InteractiveObjects",
 			"stalker/InteractiveObjects/Items",
 			"stalker/Interfaces",

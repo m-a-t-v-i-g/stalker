@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDStatsWidget.h"
-#include "AbilitySystem/Attributes/OrganicAttributeSet.h"
+#include "AbilitySystem/Attributes/HealthAttributeSet.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Components/ProgressBar.h"
 
 void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp)
 {
-	Attributes = Cast<UOrganicAttributeSet>(AbilityComp->GetAttributeSet(UOrganicAttributeSet::StaticClass()));
+	Attributes = Cast<UHealthAttributeSet>(AbilityComp->GetAttributeSet(UHealthAttributeSet::StaticClass()));
 	if (!Attributes.IsValid()) return;
 	
 	auto& MaxHealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(Attributes->GetHealthAttribute());
