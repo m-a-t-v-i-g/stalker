@@ -4,6 +4,23 @@
 #include "ItemActor.h"
 #include "Net/UnrealNetwork.h"
 
+void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+                                    const UItemPredictedData* PredictedData)
+{
+	ItemId = NewItemId;
+
+	if (Definition)
+	{
+		ItemDefinition = Definition;
+		
+		if (PredictedData)
+		{
+			Amount = PredictedData->Amount;
+			Endurance = PredictedData->Endurance;
+		}
+	}
+}
+
 void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -37,6 +54,25 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	ItemDataTable = ItemObject->GetItemDataTable();
 	ItemRowName = ItemObject->GetItemRowName();
 	SetupItemProperties();
+}
+
+void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData)
+{
+	ItemDefinition = Definition;
+	
+	if (!ItemDefinition)
+	{
+		return;
+	}
+
+	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, ItemDefinition->ItemInstanceClass);
+	if (!NewItemInstance)
+	{
+		return;
+	}
+
+	ItemInstance = NewItemInstance;
+	ItemInstance->SetupProperties(ItemId, ItemDefinition, PredictedData);
 }
 
 void UItemObject::SetupItemProperties()
@@ -122,7 +158,7 @@ bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 
 uint32 UItemObject::GetItemId() const
 {
-	return ItemParams.ItemId;
+	return ItemInstance->ItemId;
 }
 
 FItemParams UItemObject::GetItemParams() const
@@ -142,102 +178,52 @@ FName UItemObject::GetItemRowName() const
 
 FGameplayTag UItemObject::GetItemTag() const
 {
-	FGameplayTag ItemTag;
-	if (GetRow<FTableRowItems>())
-	{
-		ItemTag = GetRow<FTableRowItems>()->Tag;
-	}
-	return ItemTag;
+	return ItemDefinition->Tag;
 }
 
 UClass* UItemObject::GetActorClass() const
 {
-	UClass* ActorClass = nullptr;
-	if (GetRow<FTableRowItems>())
-	{
-		ActorClass = GetRow<FTableRowItems>()->ActorClass;
-	}
-	return ActorClass;
+	return ItemDefinition->ActorClass;
 }
 
 UClass* UItemObject::GetObjectClass() const
 {
-	UClass* ObjectClass = nullptr;
-	if (GetRow<FTableRowItems>())
-	{
-		ObjectClass = GetRow<FTableRowItems>()->ObjectClass;
-	}
-	return ObjectClass;
+	return ItemDefinition->ObjectClass;
 }
 
 FText UItemObject::GetItemName() const
 {
-	FText Name;
-	if (GetRow<FTableRowItems>())
-	{
-		Name = GetRow<FTableRowItems>()->Name;
-	}
-	return Name;
+	return ItemDefinition->Name;
 }
 
 FText UItemObject::GetItemDesc() const
 {
-	FText Description;
-	if (GetRow<FTableRowItems>())
-	{
-		Description = GetRow<FTableRowItems>()->Description;
-	}
-	return Description;
+	return ItemDefinition->Description;
 }
 
 UTexture2D* UItemObject::GetThumbnail() const
 {
-	UTexture2D* Thumbnail = nullptr;
-	if (GetRow<FTableRowItems>())
-	{
-		Thumbnail = GetRow<FTableRowItems>()->Thumbnail.LoadSynchronous();
-	}
-	return Thumbnail;
+	return ItemDefinition->Thumbnail.LoadSynchronous();
 }
 
 FIntPoint UItemObject::GetItemSize() const
 {
-	FIntPoint Size = {1, 1};
-	if (GetRow<FTableRowItems>())
-	{
-		Size = GetRow<FTableRowItems>()->Size;
-	}
-	return Size;
+	return ItemDefinition->Size;
 }
 
 bool UItemObject::IsUsable() const
 {
-	bool bIsUsable = true;
-	if (GetRow<FTableRowItems>())
-	{
-		bIsUsable = GetRow<FTableRowItems>()->bUsable;
-	}
-	return bIsUsable;
+	return ItemDefinition->bUsable;
 }
 
 bool UItemObject::IsDroppable() const
 {
-	bool bIsDroppable = true;
-	if (GetRow<FTableRowItems>())
-	{
-		bIsDroppable = GetRow<FTableRowItems>()->bDroppable;
-	}
-	return bIsDroppable;
+	return ItemDefinition->bDroppable;
 }
 
 bool UItemObject::IsStackable() const
 {
-	bool bIsStackable = true;
-	if (GetRow<FTableRowItems>())
-	{
-		bIsStackable = GetRow<FTableRowItems>()->bStackable;
-	}
-	return bStackable & bIsStackable;
+	return bStackable & ItemDefinition->bStackable;
 }
 
 uint32 UItemObject::GetStackAmount() const

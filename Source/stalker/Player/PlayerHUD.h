@@ -7,6 +7,7 @@
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
+class UItemsContainer;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UItemsContainerComponent;
@@ -35,7 +36,8 @@ public:
 	static UClass* StaticInteractiveItemWidgetClass;
 	static float TileSize;
 	
-	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp,
+	                         UItemsContainer* ItemsContainer);
 
 	void ToggleTab(EHUDTab& Tab, bool bForce = false);
 	

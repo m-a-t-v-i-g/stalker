@@ -44,6 +44,7 @@ private:
 	FIntPoint DraggedTile;
 
 	bool bHighlightItem = false;
+	
 	TWeakObjectPtr<UItemObject> HoveredItem;
 	
 public:

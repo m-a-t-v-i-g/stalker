@@ -2,7 +2,7 @@
 
 #include "EquipmentSlot.h"
 #include "Character/CharacterInventoryComponent.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Net/UnrealNetwork.h"
 
 void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

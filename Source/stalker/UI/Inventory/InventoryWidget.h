@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryWidget.generated.h"
 
+class UContainerGridWidget;
+class UItemsContainerGridWidget;
+
 UCLASS()
 class STALKER_API UInventoryWidget : public UUserWidget
 {
@@ -13,10 +16,8 @@ class STALKER_API UInventoryWidget : public UUserWidget
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UItemsContainerGridWidget> ItemsGrid;
+	TObjectPtr<UContainerGridWidget> ItemsGrid;
 	
 public:
-	void InitializeInventory(class UItemsContainerComponent* ItemsContainerComponent);
-
-	FORCEINLINE UItemsContainerGridWidget* GetItemsGrid() const { return ItemsGrid; }
+	void InitializeInventory(class UItemsContainer* ItemsContainerComponent);
 };

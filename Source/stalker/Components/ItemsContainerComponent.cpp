@@ -1,8 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemsContainerComponent.h"
+
+#include "ItemsContainer.h"
 #include "Engine/ActorChannel.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Library/Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -30,6 +32,24 @@ bool UItemsContainerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutB
 		ReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
 	}
 	return ReplicateSomething;
+}
+
+void UItemsContainerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		if (ItemsContainerRef)
+		{
+			ItemsContainerRef->AddStartingData();
+		}
+	}
+}
+
+bool UItemsContainerComponent::HasAuthority() const
+{
+	return GetOwner()->HasAuthority();
 }
 
 void UItemsContainerComponent::PreInitializeContainer()
@@ -254,6 +274,8 @@ void UItemsContainerComponent::MoveItemToOtherContainer(UItemObject* ItemObject,
 void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 	UItemObject* ItemObject, UItemsContainerComponent* OtherContainer)
 {
+	
+	/*
 	if (ItemObject->GetItemParams().Amount > ItemObject->GetStackAmount())
 	{
 		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
@@ -269,6 +291,8 @@ void UItemsContainerComponent::Server_MoveItemToOtherContainer_Implementation(
 		OtherContainer->FindAvailablePlace(ItemObject);
 		RemoveItem(ItemObject);
 	}
+	*/
+	
 }
 
 void UItemsContainerComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)

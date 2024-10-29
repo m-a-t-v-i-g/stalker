@@ -3,7 +3,7 @@
 #include "CharacterInventoryComponent.h"
 #include "Components/EquipmentSlot.h"
 #include "Engine/ActorChannel.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Library/Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"

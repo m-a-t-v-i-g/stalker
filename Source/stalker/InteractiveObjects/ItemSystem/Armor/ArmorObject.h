@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "ArmorObject.generated.h"
 
 UCLASS()

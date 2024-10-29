@@ -7,7 +7,7 @@
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Player/PlayerHUD.h"
 
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -58,10 +58,16 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	DragDropOperation->ItemWidgetRef = this;
 	DragDropOperation->Payload = BoundObject.Get();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
-	DragDropOperation->DefaultDragVisual = this;
+	auto DragVisual = CreateWidget<UItemWidget>(this, APlayerHUD::StaticInteractiveItemWidgetClass);
+	if (DragVisual)
+	{
+		DragVisual->InitItemWidget(BoundObject.Get(), {1, 1});
+	}
+	DragDropOperation->DefaultDragVisual = DragVisual;
 	OutOperation = DragDropOperation;
 
-	RemoveFromParent();
+	//RemoveFromParent();
+	SetVisibility(ESlateVisibility::Collapsed);
 	BeginDragOperation();
 }
 

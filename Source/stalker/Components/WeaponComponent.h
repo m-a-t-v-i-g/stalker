@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Items/ItemsLibrary.h"
 #include "WeaponComponent.generated.h"
 
 class AItemActor;

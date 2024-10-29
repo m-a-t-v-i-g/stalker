@@ -8,6 +8,10 @@
 #include "Library/Items/ItemsLibrary.h"
 #include "ItemsContainerComponent.generated.h"
 
+class UItemsContainer;
+class UItemDefinition;
+class UItemInstance;
+class UItemPredictedData;
 class UItemObject;
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -37,9 +41,15 @@ class STALKER_API UItemsContainerComponent : public UActorComponent
 public:
 	UItemsContainerComponent();
 
+	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
+	virtual void BeginPlay() override;
+
+	bool HasAuthority() const;
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	FGameplayTagContainer CategoryTags;
@@ -63,8 +73,10 @@ protected:
 	TArray<FItemsContainerStartingData> StartingData;
 
 public:
-	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
+	UPROPERTY(EditAnywhere, Instanced, Category = "Items Container")
+	TObjectPtr<UItemsContainer> ItemsContainerRef;
 
+public:
 	virtual void PreInitializeContainer();
 	virtual void PostInitializeContainer();
 	

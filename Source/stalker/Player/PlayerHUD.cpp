@@ -26,11 +26,12 @@ void APlayerHUD::PostInitializeComponents()
 	}
 }
 
-void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
+void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp,
+                                     UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer)
 {
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp);
+		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp, ItemsContainer);
 	}
 }
 

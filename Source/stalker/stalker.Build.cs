@@ -24,7 +24,7 @@ public class stalker : ModuleRules
 			"stalker/",
 			"stalker/AbilitySystem",
 			"stalker/InteractiveObjects",
-			"stalker/InteractiveObjects/Items",
+			"stalker/InteractiveObjects/ItemSystem",
 			"stalker/Interfaces",
 			"stalker/Library",
 			"stalker/Organic",

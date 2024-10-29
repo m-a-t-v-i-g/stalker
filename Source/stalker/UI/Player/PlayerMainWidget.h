@@ -7,6 +7,8 @@
 #include "Player/PlayerHUD.h"
 #include "PlayerMainWidget.generated.h"
 
+class UItemsContainer;
+
 UCLASS()
 class STALKER_API UPlayerMainWidget : public UUserWidget
 {
@@ -30,7 +32,8 @@ private:
 	TWeakObjectPtr<class UCharacterInventoryComponent> OwnInventoryComponent;
 	
 public:
-	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp,
+							 UItemsContainer* ItemsContainer);
 	
 	void ToggleTab(EHUDTab ActivateTab);
 

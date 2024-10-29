@@ -7,7 +7,8 @@
 #include "Components/WidgetSwitcher.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp)
+void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp,
+							 UItemsContainer* ItemsContainer)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = InventoryComp;
@@ -15,7 +16,7 @@ void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityCo
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 
 	HUD->InitializeHUD(OwnAbilityComponent.Get());
-	Manager->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
+	Manager->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get(), ItemsContainer);
 }
 
 void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)

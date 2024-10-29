@@ -8,7 +8,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/ItemsContainerComponent.h"
 #include "Components/SizeBox.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Player/PlayerHUD.h"
 
 int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -19,20 +19,20 @@ int32 UItemsContainerGridWidget::NativePaint(const FPaintArgs& Args, const FGeom
 	if (ItemsContainerRef.IsValid())
 	{
 		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, 100, InWidgetStyle, bParentEnabled};
+		
 		if (bHighlightItem && HoveredItem.IsValid())
 		{
 			auto ItemsMap = ItemsContainerRef->GetItemsMap();
 			if (auto Tile = ItemsMap.Find(HoveredItem.Get()->GetItemId()))
 			{
-				UWidgetBlueprintLibrary::DrawBox(Context, *Tile * APlayerHUD::TileSize,
-												 FVector2D(HoveredItem->GetItemSize().X * APlayerHUD::TileSize,
-														   HoveredItem->GetItemSize().Y * APlayerHUD::TileSize),
-												 GridFillingBrush, GridHighlightColor);
+				UWidgetBlueprintLibrary::DrawBox(Context, *Tile * APlayerHUD::TileSize, {
+					                                 HoveredItem->GetItemSize().X * APlayerHUD::TileSize,
+					                                 HoveredItem->GetItemSize().Y * APlayerHUD::TileSize
+				                                 }, GridFillingBrush, GridHighlightColor);
 			}
 		}
 	}
-	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle,
-	                          bParentEnabled);
+	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 }
 
 bool UItemsContainerGridWidget::NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,

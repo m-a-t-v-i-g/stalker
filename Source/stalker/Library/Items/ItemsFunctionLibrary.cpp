@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemsFunctionLibrary.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 
 uint32 UItemsFunctionLibrary::LastItemId {0};
 
@@ -33,4 +33,19 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(const UItemObject* ItemOb
 		NewItemObject->InitItem(LastItemId, ItemObject);
 	}
 	return NewItemObject;
+}
+
+UItemObject* UItemsFunctionLibrary::GenerateItemObject(const UItemDefinition* Definition, const UItemPredictedData* PredictedData)
+{
+	UItemObject* ItemObject = nullptr;
+	if (Definition)
+	{
+		ItemObject = NewObject<UItemObject>(GetTransientPackage(), Definition->ObjectClass);
+		if (ItemObject)
+		{
+			LastItemId++;
+			ItemObject->InitItem(LastItemId, Definition, PredictedData);
+		}
+	}
+	return ItemObject;
 }

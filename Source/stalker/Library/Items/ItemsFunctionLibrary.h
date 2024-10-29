@@ -7,6 +7,9 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ItemsFunctionLibrary.generated.h"
 
+class UItemDefinition;
+class UItemPredictedData;
+
 UCLASS()
 class STALKER_API UItemsFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -15,6 +18,8 @@ class STALKER_API UItemsFunctionLibrary : public UBlueprintFunctionLibrary
 public:
 	static UItemObject* GenerateItemObject(const FDataTableRowHandle& RowHandle);
 	static UItemObject* GenerateItemObject(const UItemObject* ItemObject);
+
+	static UItemObject* GenerateItemObject(const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 
 private:
 	static uint32 LastItemId;

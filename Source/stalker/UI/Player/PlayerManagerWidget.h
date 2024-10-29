@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerManagerWidget.generated.h"
 
+class UItemsContainer;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UItemsContainerComponent;
@@ -54,7 +55,7 @@ private:
 	EPlayerManagerTab ActiveTab;
 	
 public:
-	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer);
 
 	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 	void StartUpgrading();

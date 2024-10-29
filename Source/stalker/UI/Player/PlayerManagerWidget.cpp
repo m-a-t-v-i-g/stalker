@@ -30,15 +30,15 @@ bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 }
 
 void UPlayerManagerWidget::InitializeManager(UOrganicAbilityComponent* AbilityComp,
-                                             UCharacterInventoryComponent* CharInventoryComp)
+                                             UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = CharInventoryComp;
 
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 	
-	Inventory->InitializeInventory(OwnInventoryComponent.Get());
-	Inventory->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnOwnInventoryItemDoubleClick);
+	Inventory->InitializeInventory(ItemsContainer);
+	//Inventory->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnOwnInventoryItemDoubleClick);
 	
 	Equipment->InitializeCharacterEquipment(OwnInventoryComponent.Get());
 	for (auto EachSlotWidget : Equipment->GetAllSlotWidgets())
@@ -54,8 +54,8 @@ void UPlayerManagerWidget::StartLooting(UItemsContainerComponent* LootItemsConta
 	LootingItemsContainer = LootItemsContainer;
 	check(LootingItemsContainer.IsValid());
 	
-	Looting->InitializeInventory(LootingItemsContainer.Get());
-	Looting->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnLootingItemDoubleClick);
+	//Looting->InitializeInventory(LootingItemsContainer.Get());
+	//Looting->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnLootingItemDoubleClick);
 	
 	ActivateTab(EPlayerManagerTab::Looting);
 }

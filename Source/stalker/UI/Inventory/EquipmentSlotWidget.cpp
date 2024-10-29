@@ -5,7 +5,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/EquipmentSlot.h"
-#include "InteractiveObjects/Items/ItemObject.h"
+#include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "Inventory/ItemDragDropOperation.h"
 #include "Inventory/ItemWidget.h"
 #include "Player/PlayerHUD.h"

@@ -5,6 +5,26 @@
 #include "Character/CharacterInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
+void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+                                      const UItemPredictedData* PredictedData)
+{
+	if (auto WeaponDefinition = Cast<UWeaponDefinition>(Definition))
+	{
+		Super::SetupProperties(NewItemId, Definition, PredictedData);
+
+		AmmoClasses = WeaponDefinition->AmmoClasses;
+		Rounds = WeaponDefinition->MagSize;
+		FireRate = WeaponDefinition->FireRate;
+		ReloadTime = WeaponDefinition->ReloadTime;
+		bAutomatic = WeaponDefinition->bAutomatic;
+
+		if (auto WeaponPredictedData = Cast<UWeaponPredictedData>(PredictedData))
+		{
+			Rounds = FMath::Clamp(Rounds, 0, WeaponPredictedData->Rounds);
+		}
+	}
+}
+
 void UWeaponObject::Use_Implementation(UObject* Source)
 {
 	Super::Use_Implementation(Source);

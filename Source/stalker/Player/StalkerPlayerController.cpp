@@ -25,7 +25,9 @@ void AStalkerPlayerController::OnPossess(APawn* InPawn)
 		if (!bIsControllerInitialized)
 		{
 			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-											Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
+											Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+											Stalker->GetInventoryComponent<UCharacterInventoryComponent>()->
+											         ItemsContainerRef);
 			bIsControllerInitialized = true;
 		}
 	}
@@ -43,7 +45,9 @@ void AStalkerPlayerController::OnRep_Pawn()
 		if (!bIsControllerInitialized)
 		{
 			StalkerHUD->InitializePlayerHUD(Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-										   Stalker->GetInventoryComponent<UCharacterInventoryComponent>());
+			Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+			 Stalker->GetInventoryComponent<UCharacterInventoryComponent>()->
+					  ItemsContainerRef);
 			bIsControllerInitialized = true;
 		}
 	}
