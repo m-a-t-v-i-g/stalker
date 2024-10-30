@@ -9,6 +9,8 @@
 
 class UItemObject;
 
+DECLARE_DELEGATE_ThreeParams(FMouseEnterSignature,const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UItemObject*);
+
 DECLARE_DELEGATE_OneParam(FDragDropOperationSignature, UItemObject*);
 DECLARE_DELEGATE_TwoParams(FDragDropOperationResultSignature, UItemObject*, EDragDropOperationResult);
 
@@ -43,10 +45,10 @@ private:
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 public:
-	FDragDropOperationSignature OnMouseEnter;
+	FMouseEnterSignature OnMouseEnter;
 	FDragDropOperationSignature OnMouseLeave;
-	FDragDropOperationSignature OnDoubleClick
-	;
+	FDragDropOperationSignature OnDoubleClick;
+	
 	FDragDropOperationSignature OnBeginDragDropOperation;
 	FDragDropOperationSignature OnReverseDragDropOperation;
 	FDragDropOperationResultSignature OnCompleteDragDropOperation;
@@ -63,7 +65,7 @@ public:
 	void RotateItem();
 	void UnRotateItem();
 
-	void MouseEnter();
+	void MouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 	void MouseLeave();
 	void DoubleClick();
 

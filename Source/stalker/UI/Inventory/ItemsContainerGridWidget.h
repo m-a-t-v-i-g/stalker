@@ -58,7 +58,7 @@ public:
 protected:
 	void SetupSize();
 
-	void OnItemMouseEnter(UItemObject* HoverItem);
+	void OnItemMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem);
 	void OnItemMouseLeave(UItemObject* HoverItem);
 	void OnDoubleClick(UItemObject* ClickedItem);
 

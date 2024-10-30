@@ -154,7 +154,7 @@ void UItemsContainerGridWidget::SetupSize()
 	GridSizeBox->SetWidthOverride(Width);
 }
 
-void UItemsContainerGridWidget::OnItemMouseEnter(UItemObject* HoverItem)
+void UItemsContainerGridWidget::OnItemMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem)
 {
 	bHighlightItem = true;
 	HoveredItem = HoverItem;
@@ -163,7 +163,7 @@ void UItemsContainerGridWidget::OnItemMouseEnter(UItemObject* HoverItem)
 void UItemsContainerGridWidget::OnItemMouseLeave(UItemObject* HoverItem)
 {
 	bHighlightItem = false;
-	HoveredItem = HoverItem;
+	HoveredItem.Reset();
 }
 
 void UItemsContainerGridWidget::OnDoubleClick(UItemObject* ClickedItem)

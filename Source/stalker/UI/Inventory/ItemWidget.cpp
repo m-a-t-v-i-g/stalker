@@ -13,7 +13,7 @@
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-	MouseEnter();
+	MouseEnter(InGeometry, InMouseEvent);
 }
 
 void UItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
@@ -49,7 +49,6 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
-	ItemImage->SetOpacity(DragOpacity);
 	UnRotateItem();
 	
 	UItemDragDropOperation* DragDropOperation = NewObject<UItemDragDropOperation>();
@@ -66,8 +65,6 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	DragDropOperation->DefaultDragVisual = DragVisual;
 	OutOperation = DragDropOperation;
 
-	//RemoveFromParent();
-	SetVisibility(ESlateVisibility::Collapsed);
 	BeginDragOperation();
 }
 
@@ -130,9 +127,9 @@ void UItemWidget::UnRotateItem()
 	ItemImage->SetRenderTransformAngle(0.0f);
 }
 
-void UItemWidget::MouseEnter()
+void UItemWidget::MouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnMouseEnter.ExecuteIfBound(BoundObject.Get());
+	OnMouseEnter.ExecuteIfBound(InGeometry, InMouseEvent, BoundObject.Get());
 }
 
 void UItemWidget::MouseLeave()
@@ -147,6 +144,7 @@ void UItemWidget::DoubleClick()
 
 void UItemWidget::BeginDragOperation()
 {
+	RemoveFromParent();
 	OnBeginDragDropOperation.ExecuteIfBound(BoundObject.Get());
 }
 

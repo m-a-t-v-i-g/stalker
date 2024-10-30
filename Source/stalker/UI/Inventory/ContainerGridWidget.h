@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/CanvasPanelSlot.h"
 #include "ContainerGridWidget.generated.h"
 
+enum class EDragDropOperationResult : uint8;
 class UItemObject;
 class UItemsContainer;
 class UItemWidget;
@@ -16,14 +16,63 @@ struct FItemWidgetData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UItemWidget* ItemWidget = nullptr;
+	TObjectPtr<UItemWidget> ItemWidget = nullptr;
 	
-	UCanvasPanelSlot* ItemSlot = nullptr;
+	FIntPoint Tile = FIntPoint::NoneValue;
 
 	FItemWidgetData() {}
 
-	FItemWidgetData(UItemWidget* Visual, UCanvasPanelSlot* CanvasSlot) : ItemWidget(Visual), ItemSlot(CanvasSlot)
+	FItemWidgetData(UItemWidget* Visual, FIntPoint Placement) : ItemWidget(Visual), Tile(Placement)
 	{
+	}
+};
+
+USTRUCT()
+struct FHoveredItemData
+{
+	GENERATED_USTRUCT_BODY()
+
+	TWeakObjectPtr<UItemObject> HoveredItemRef = nullptr;
+
+	bool bHighlightItem = false;
+	
+	FIntPoint Tile = FIntPoint::NoneValue;
+
+	bool HasValidData() const
+	{
+		return HoveredItemRef.IsValid() && bHighlightItem;
+	}
+	
+	void Clear()
+	{
+		HoveredItemRef.Reset();
+		bHighlightItem = false;
+		Tile = FIntPoint::NoneValue;
+	}
+};
+
+USTRUCT()
+struct FDraggedItemData
+{
+	GENERATED_USTRUCT_BODY()
+
+	TWeakObjectPtr<UItemObject> ItemObject = nullptr;
+
+	TObjectPtr<UItemWidget> ItemWidget = nullptr;
+
+	FIntPoint Tile = FIntPoint::NoneValue;
+
+	uint32 Index = 0;
+
+	FIntPoint ItemSize = FIntPoint::NoneValue;
+
+	void Clear()
+	{
+		ItemObject.Reset();
+		ItemWidget = nullptr;
+		Tile = FIntPoint::NoneValue;
+		Index = 0;
+		ItemSize = FIntPoint::NoneValue;
 	}
 };
 
@@ -34,7 +83,7 @@ class STALKER_API UContainerGridWidget : public UUserWidget
 
 public:
 	void SetupContainerGrid(UItemsContainer* OwnContainer);
-	void ClearContainerGrid() const;
+	void ClearContainerGrid();
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -58,10 +107,17 @@ protected:
 	                              UDragDropOperation* InOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	                          UDragDropOperation* InOperation) override;
-	
+
 	void OnItemAdded(UItemObject* ItemObject);
 	void OnItemRemoved(UItemObject* ItemObject);
 
+	void OnItemMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem);
+	void OnItemMouseLeave(UItemObject* HoverItem);
+	
+	void OnBeginDragOperation(UItemObject* DraggedItem);
+	void OnReverseDragOperation(UItemObject* DraggedItem);
+	void OnCompleteDragOperation(UItemObject* DraggedItem, EDragDropOperationResult OperationResult);
+	
 	uint32 FindAvailableRoom(const UItemObject* ItemObject, bool& bFound);
 	
 	void FillRoom(uint32 ItemId, const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Width);
@@ -71,18 +127,26 @@ protected:
 	bool IsRoomValid(const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Width);
 	bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Width);
 	bool IsTileFilled(uint32 Index);
+
+	void EmplaceItemOnGrid(const UItemObject* ItemObject);
 	
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, uint8 Width);
 
 	static bool IsMouseOnTile(float MousePosition);
+
+	static FIntPoint GetTileFromMousePosition(const FGeometry& InGeometry, const FVector2D& ScreenSpacePosition);
 	
 private:
 	const uint8 Columns = 8;
 	
-	FIntPoint DraggedTile;
+	FHoveredItemData HoveredData;
+	
+	FDraggedItemData DraggedData;
 
 	TMap<UItemObject*, FItemWidgetData> ItemsMap;
 	
 	TArray<uint32> Tiles;
+	
+	//TMap<uint32, FIntPoint> ItemsMap;
 };

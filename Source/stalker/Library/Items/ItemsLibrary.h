@@ -17,6 +17,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemOperationSignature, const FSt
 UENUM(BlueprintType)
 enum class EDragDropOperationResult : uint8
 {
+	Inventory,
+	Equipment,
 	Remove,
 	Subtract
 };

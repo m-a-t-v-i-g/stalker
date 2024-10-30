@@ -6,11 +6,9 @@
 void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult) const
 {
 	ItemWidgetRef->CompleteDragOperation(OperationResult);
-	ItemWidgetRef->MarkAsGarbage();
 }
 
 void UItemDragDropOperation::ReverseDragDropOperation() const
 {
 	ItemWidgetRef->ReverseDragOperation();
-	ItemWidgetRef->MarkAsGarbage();
 }
