@@ -85,7 +85,7 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 
 		if (OtherWeaponObject)
 		{
-			bResult &= WeaponParams == OtherWeaponObject->GetWeaponParams();
+			
 		}
 	}
 	return bResult;

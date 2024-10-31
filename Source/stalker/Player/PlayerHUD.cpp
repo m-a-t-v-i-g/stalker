@@ -1,21 +1,35 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/PlayerHUD.h"
-#include "UI/Inventory/ItemWidget.h"
-#include "UI/Player/PlayerMainWidget.h"
+#include "Inventory/ItemWidget.h"
+#include "Player/PlayerMainWidget.h"
+#include "Player/PlayerManagerWidget.h"
 
-UClass* APlayerHUD::StaticInteractiveItemWidgetClass {nullptr};
+UClass* APlayerHUD::StaticInventoryWidgetClass {nullptr};
+UClass* APlayerHUD::StaticItemWidgetClass {nullptr};
 float APlayerHUD::TileSize {50.0f};
+
+void APlayerHUD::OpenInventory()
+{
+	MainWidget->OpenInventory();
+}
+
+void APlayerHUD::CloseInventory()
+{
+	MainWidget->CloseInventory();
+}
 
 void APlayerHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	StaticInteractiveItemWidgetClass = InteractiveItemWidgetClass;
+	StaticInventoryWidgetClass = InventoryWidgetClass;
+	StaticItemWidgetClass = ItemWidgetClass;
 	
 	if (MainWidgetClass)
 	{
 		MainWidget = CreateWidget<UPlayerMainWidget>(GetOwningPlayerController(), MainWidgetClass);
+		
 		if (MainWidget && !MainWidget->IsInViewport())
 		{
 			MainWidget->AddToViewport();
@@ -26,12 +40,11 @@ void APlayerHUD::PostInitializeComponents()
 	}
 }
 
-void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp,
-                                     UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer)
+void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp, ItemsContainer);
+		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp);
 	}
 }
 
@@ -40,20 +53,19 @@ void APlayerHUD::ToggleTab(EHUDTab& Tab, bool bForce)
 	if (!MainWidget) return;
 	
 	Tab = ActiveTab != Tab || bForce ? Tab : EHUDTab::HUD;
-
-	MainWidget->ToggleTab(Tab);
 	ActiveTab = Tab;
 	
 	switch (ActiveTab)
 	{
 	case EHUDTab::Inventory:
-	case EHUDTab::PDA:
 		GetOwningPlayerController()->SetInputMode(FInputModeGameAndUI());
 		GetOwningPlayerController()->SetShowMouseCursor(true);
+		OpenInventory();
 		break;
 	default:
 		GetOwningPlayerController()->SetInputMode(FInputModeGameOnly());
 		GetOwningPlayerController()->SetShowMouseCursor(false);
+		CloseInventory();
 		break;
 	}
 }

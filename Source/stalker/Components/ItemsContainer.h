@@ -49,6 +49,18 @@ public:
 	bool StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
 	
 	bool AddItem(UItemObject* ItemObject);
+
+	bool RemoveItem(UItemObject* ItemObject);
+
+	bool SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
+
+	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
+
+	bool Contains(const UItemObject* ItemObject) const;
+
+	UItemObject* FindItemById(uint32 ItemId) const;
+
+	TArray<UItemObject*> GetItems() const { return ItemsContainer; }
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")

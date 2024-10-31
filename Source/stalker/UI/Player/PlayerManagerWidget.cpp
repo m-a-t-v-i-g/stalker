@@ -8,7 +8,6 @@
 #include "UI/Inventory/EquipmentSlotWidget.h"
 #include "UI/Inventory/InventoryWidget.h"
 #include "UI/Inventory/ItemDragDropOperation.h"
-#include "UI/Inventory/ItemsContainerGridWidget.h"
 
 FReply UPlayerManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -23,22 +22,20 @@ bool UPlayerManagerWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	{
 		if (!DragDropOperation->bWasSuccessful)
 		{
-			DragDropOperation->ReverseDragDropOperation();
+			DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Failed);
 		}
 	}
 	return bResult;
 }
 
-void UPlayerManagerWidget::InitializeManager(UOrganicAbilityComponent* AbilityComp,
-                                             UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer)
+void UPlayerManagerWidget::InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = CharInventoryComp;
 
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
-	
-	Inventory->InitializeInventory(ItemsContainer);
-	//Inventory->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnOwnInventoryItemDoubleClick);
+
+	Inventory->InitializeInventory(OwnInventoryComponent->ItemsContainerRef);
 	
 	Equipment->InitializeCharacterEquipment(OwnInventoryComponent.Get());
 	for (auto EachSlotWidget : Equipment->GetAllSlotWidgets())
@@ -53,9 +50,6 @@ void UPlayerManagerWidget::StartLooting(UItemsContainerComponent* LootItemsConta
 {
 	LootingItemsContainer = LootItemsContainer;
 	check(LootingItemsContainer.IsValid());
-	
-	//Looting->InitializeInventory(LootingItemsContainer.Get());
-	//Looting->GetItemsGrid()->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnLootingItemDoubleClick);
 	
 	ActivateTab(EPlayerManagerTab::Looting);
 }

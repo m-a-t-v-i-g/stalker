@@ -3,12 +3,8 @@
 #include "ItemDragDropOperation.h"
 #include "ItemWidget.h"
 
-void UItemDragDropOperation::CompleteDragDropOperation(EDragDropOperationResult OperationResult) const
+void UItemDragDropOperation::NotifySourceAboutDropOperation(EDragDropOperationResult OperationResult) const
 {
-	ItemWidgetRef->CompleteDragOperation(OperationResult);
-}
-
-void UItemDragDropOperation::ReverseDragDropOperation() const
-{
-	ItemWidgetRef->ReverseDragOperation();
+	ItemWidgetRef->NotifyAboutDragOperation(OperationResult);
+	ItemWidgetRef->MarkAsGarbage();
 }

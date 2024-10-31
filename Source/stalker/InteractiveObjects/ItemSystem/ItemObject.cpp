@@ -21,6 +21,22 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	}
 }
 
+void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
+{
+	ItemId = NewItemId;
+
+	if (Definition)
+	{
+		ItemDefinition = Definition;
+		
+		if (Instance)
+		{
+			Amount = Instance->Amount;
+			Endurance = Instance->Endurance;
+		}
+	}
+}
+
 void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -48,12 +64,21 @@ void UItemObject::InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHa
 
 void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 {
-	ItemParams = ItemObject->GetItemParams();
-	ItemParams.ItemId = ItemId;
+	ItemDefinition = ItemObject->ItemDefinition;
 
-	ItemDataTable = ItemObject->GetItemDataTable();
-	ItemRowName = ItemObject->GetItemRowName();
-	SetupItemProperties();
+	if (!ItemDefinition)
+	{
+		return;
+	}
+	
+	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, ItemDefinition->ItemInstanceClass);
+	if (!NewItemInstance)
+	{
+		return;
+	}
+	
+	ItemInstance = NewItemInstance;
+	ItemInstance->SetupProperties(ItemId, ItemDefinition, ItemObject->ItemInstance);
 }
 
 void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData)
@@ -123,19 +148,28 @@ void UItemObject::SetEquippedMode()
 	bStackable = false;
 }
 
-void UItemObject::SetAmount(uint32 Amount)
+void UItemObject::SetAmount(uint32 Amount) const
 {
-	ItemParams.Amount = Amount;
+	if (ItemInstance)
+	{
+		ItemInstance->Amount = Amount;
+	}
 }
 
-void UItemObject::AddAmount(uint32 Amount)
+void UItemObject::AddAmount(uint32 Amount) const
 {
-	ItemParams.Amount += Amount;
+	if (ItemInstance)
+	{
+		ItemInstance->Amount += Amount;
+	}
 }
 
-void UItemObject::RemoveAmount(uint32 Amount)
+void UItemObject::RemoveAmount(uint32 Amount) const
 {
-	ItemParams.Amount -= Amount;
+	if (ItemInstance)
+	{
+		ItemInstance->Amount -= Amount;
+	}
 }
 
 void UItemObject::OnRep_BoundItem()
@@ -148,10 +182,10 @@ void UItemObject::OnRep_BoundItem()
 
 bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 {
-	bool bResult = ItemRowName == OtherItemObject->GetItemRowName();
+	bool bResult = ItemDefinition == OtherItemObject->ItemDefinition;
 	if (bResult)
 	{
-		bResult &= ItemParams == OtherItemObject->GetItemParams();
+		
 	}
 	return bResult;
 }
@@ -223,17 +257,17 @@ bool UItemObject::IsDroppable() const
 
 bool UItemObject::IsStackable() const
 {
-	return bStackable & ItemDefinition->bStackable;
+	return ItemDefinition->bStackable;
 }
 
 uint32 UItemObject::GetStackAmount() const
 {
-	uint32 StackAmount = 1;
-	if (GetRow<FTableRowItems>())
-	{
-		StackAmount = GetRow<FTableRowItems>()->StackAmount;
-	}
-	return StackAmount;
+	return ItemDefinition->StackAmount;
+}
+
+bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
+{
+	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
 }
 
 UStaticMesh* UItemObject::GetPreviewMesh() const

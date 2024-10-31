@@ -2,7 +2,6 @@
 
 #include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
-#include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
@@ -57,15 +56,16 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	DragDropOperation->ItemWidgetRef = this;
 	DragDropOperation->Payload = BoundObject.Get();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
-	auto DragVisual = CreateWidget<UItemWidget>(this, APlayerHUD::StaticInteractiveItemWidgetClass);
+	auto DragVisual = CreateWidget<UItemWidget>(this, APlayerHUD::StaticItemWidgetClass);
 	if (DragVisual)
 	{
-		DragVisual->InitItemWidget(BoundObject.Get(), {1, 1});
+		DragVisual->InitItemWidget(BoundObject.Get(), {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
 	}
 	DragDropOperation->DefaultDragVisual = DragVisual;
 	OutOperation = DragDropOperation;
 
-	BeginDragOperation();
+	RemoveFromParent();
+	OnBeginDragOperation.ExecuteIfBound(InGeometry, InMouseEvent, BoundObject.Get());
 }
 
 void UItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
@@ -144,8 +144,7 @@ void UItemWidget::DoubleClick()
 
 void UItemWidget::BeginDragOperation()
 {
-	RemoveFromParent();
-	OnBeginDragDropOperation.ExecuteIfBound(BoundObject.Get());
+
 }
 
 void UItemWidget::ReverseDragOperation()
@@ -153,9 +152,9 @@ void UItemWidget::ReverseDragOperation()
 	OnReverseDragDropOperation.ExecuteIfBound(BoundObject.Get());
 }
 
-void UItemWidget::CompleteDragOperation(EDragDropOperationResult OperationResult)
+void UItemWidget::NotifyAboutDragOperation(EDragDropOperationResult OperationResult)
 {
-	OnCompleteDragDropOperation.ExecuteIfBound(BoundObject.Get(), OperationResult);
+	OnNotifyDropOperation.ExecuteIfBound(BoundObject.Get(), OperationResult);
 }
 
 ESlateVisibility UItemWidget::GetAmountVisibility()
@@ -178,7 +177,7 @@ FText UItemWidget::GetAmountText()
 	FText AmountText;
 	if (auto ItemObject = GetBoundObject<UItemObject>())
 	{
-		AmountText = FText::FromString(FString::Printf(TEXT("x%d"), ItemObject->GetItemParams().Amount));
+		AmountText = FText::FromString(FString::Printf(TEXT("x%d"), ItemObject->GetItemInstance()->Amount));
 	}
 	return AmountText;
 }

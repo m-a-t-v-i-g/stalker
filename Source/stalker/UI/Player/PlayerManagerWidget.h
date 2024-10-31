@@ -49,13 +49,12 @@ protected:
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
-	
 	TWeakObjectPtr<UItemsContainerComponent> LootingItemsContainer;
 
 	EPlayerManagerTab ActiveTab;
 	
 public:
-	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp, UItemsContainer* ItemsContainer);
+	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 	void StartUpgrading();

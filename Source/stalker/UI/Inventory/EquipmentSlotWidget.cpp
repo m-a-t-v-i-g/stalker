@@ -21,9 +21,17 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			{
 				if (OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false))
 				{
-					DragDropOperation->bWasSuccessful = true;
-					DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Subtract);
+					// UpdateSlot
+
+					if (DragDropOperation->SourceWidget != this)
+					{
+						DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Remove);
+					}
 				}
+			}
+			else
+			{
+				DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Failed);
 			}
 		}
 	}
@@ -55,12 +63,12 @@ void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModifie
 	if (auto ItemObject = Cast<UItemObject>(BoundObject))
 	{
 		if (UItemWidget* ItemWidget = CreateWidget<UItemWidget>(
-			this, APlayerHUD::StaticInteractiveItemWidgetClass))
+			this, APlayerHUD::StaticItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 			ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnReverseDragOperation);
-			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
+			ItemWidget->OnNotifyDropOperation.BindUObject(this, &UEquipmentSlotWidget::OnCompleteDragOperation);
 			
 			if (bVerticalSlot)
 			{

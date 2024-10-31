@@ -4,11 +4,44 @@
 #include "PlayerManagerWidget.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Character/CharacterInventoryComponent.h"
+#include "Components/NamedSlot.h"
 #include "Components/WidgetSwitcher.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp,
-							 UItemsContainer* ItemsContainer)
+void UPlayerMainWidget::OpenInventory()
+{
+	if (!InventoryWidget)
+	{
+		InventoryWidget = CreateWidget<UPlayerManagerWidget>(GetOwningPlayer(), APlayerHUD::StaticInventoryWidgetClass);
+		
+		if (InventoryWidget)
+		{
+			InventoryWidget->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
+			SlotManager->AddChild(InventoryWidget);
+		}
+		
+		ToggleTab(EHUDTab::Inventory);
+	}
+}
+
+void UPlayerMainWidget::CloseInventory()
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->RemoveFromParent();
+		InventoryWidget = nullptr;
+	}
+
+	ToggleTab(EHUDTab::HUD);
+}
+
+void UPlayerMainWidget::StartLooting(UItemsContainerComponent* LootItemsContainer)
+{
+	
+}
+
+void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp,
+                                             UCharacterInventoryComponent* InventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;
 	OwnInventoryComponent = InventoryComp;
@@ -16,7 +49,6 @@ void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityCo
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 
 	HUD->InitializeHUD(OwnAbilityComponent.Get());
-	Manager->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get(), ItemsContainer);
 }
 
 void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)
@@ -24,18 +56,10 @@ void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)
 	switch (ActivateTab)
 	{
 	case EHUDTab::Inventory:
-		TabSwitcher->SetActiveWidget(Manager);
-		break;
-	case EHUDTab::PDA:
-		TabSwitcher->SetActiveWidget(PDA);
+		TabSwitcher->SetActiveWidget(SlotManager);
 		break;
 	default:
 		TabSwitcher->SetActiveWidget(HUD);
 		break;
 	}
-}
-
-void UPlayerMainWidget::StartLooting(UItemsContainerComponent* LootItemsContainer)
-{
-	Manager->StartLooting(LootItemsContainer);
 }

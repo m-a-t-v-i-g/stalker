@@ -9,7 +9,7 @@
 
 class UItemObject;
 
-DECLARE_DELEGATE_ThreeParams(FMouseEnterSignature,const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UItemObject*);
+DECLARE_DELEGATE_ThreeParams(FMouseEnterSignature, const FGeometry&, const FPointerEvent&, UItemObject*);
 
 DECLARE_DELEGATE_OneParam(FDragDropOperationSignature, UItemObject*);
 DECLARE_DELEGATE_TwoParams(FDragDropOperationResultSignature, UItemObject*, EDragDropOperationResult);
@@ -49,9 +49,9 @@ public:
 	FDragDropOperationSignature OnMouseLeave;
 	FDragDropOperationSignature OnDoubleClick;
 	
-	FDragDropOperationSignature OnBeginDragDropOperation;
+	FMouseEnterSignature OnBeginDragOperation;
 	FDragDropOperationSignature OnReverseDragDropOperation;
-	FDragDropOperationResultSignature OnCompleteDragDropOperation;
+	FDragDropOperationResultSignature OnNotifyDropOperation;
 
 	virtual void InitItemWidget(UItemObject* BindObject, FIntPoint Size);
 
@@ -71,7 +71,7 @@ public:
 
 	void BeginDragOperation();
 	void ReverseDragOperation();
-	void CompleteDragOperation(EDragDropOperationResult OperationResult);
+	void NotifyAboutDragOperation(EDragDropOperationResult OperationResult);
 	
 	const UItemObject* GetBoundObject() const { return BoundObject.Get(); }
 

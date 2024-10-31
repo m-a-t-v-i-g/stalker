@@ -17,14 +17,21 @@ class STALKER_API APlayerHUD : public AHUD
 {
 	GENERATED_BODY()
 
+public:
+	void OpenInventory();
+	void CloseInventory();
+	
 protected:
 	virtual void PostInitializeComponents() override;
 	
-	UPROPERTY(EditDefaultsOnly, DisplayName = "HUD Widget Class", Category = "HUD")
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UPlayerMainWidget> MainWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
-	TSubclassOf<class UItemWidget> InteractiveItemWidgetClass; 
+	TSubclassOf<class UPlayerManagerWidget> InventoryWidgetClass; 
+
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	TSubclassOf<class UItemWidget> ItemWidgetClass; 
 
 	UPROPERTY(EditInstanceOnly, Category = "HUD")
 	TObjectPtr<UPlayerMainWidget> MainWidget;
@@ -33,11 +40,12 @@ private:
 	EHUDTab ActiveTab = EHUDTab::HUD;
 	
 public:
-	static UClass* StaticInteractiveItemWidgetClass;
+	static UClass* StaticInventoryWidgetClass;
+	static UClass* StaticItemWidgetClass;
+	
 	static float TileSize;
 	
-	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp,
-	                         UItemsContainer* ItemsContainer);
+	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 
 	void ToggleTab(EHUDTab& Tab, bool bForce = false);
 	

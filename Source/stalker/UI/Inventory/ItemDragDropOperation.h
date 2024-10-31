@@ -7,19 +7,21 @@
 #include "Library/Items/ItemsLibrary.h"
 #include "ItemDragDropOperation.generated.h"
 
+class UItemWidget;
+
 UCLASS()
 class STALKER_API UItemDragDropOperation : public UDragDropOperation
 {
 	GENERATED_BODY()
 
 public:
-	TObjectPtr<class UItemWidget> ItemWidgetRef;
+	UItemWidget* ItemWidgetRef;
 
+	UUserWidget* SourceWidget = nullptr;
+	
 	bool bWasSuccessful = false;
 	
-	void ReverseDragDropOperation() const;
-	
-	void CompleteDragDropOperation(EDragDropOperationResult OperationResult) const;
+	void NotifySourceAboutDropOperation(EDragDropOperationResult OperationResult) const;
 	
 	template <class T>
 	T* GetPayload() const

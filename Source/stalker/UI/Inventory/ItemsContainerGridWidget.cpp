@@ -83,7 +83,7 @@ bool UItemsContainerGridWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 			if (ItemsContainerRef->CheckRoom(Payload, RoomIndex))
 			{
 				DragDropOperation->bWasSuccessful = true;
-				DragDropOperation->CompleteDragDropOperation(EDragDropOperationResult::Remove);
+				DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Remove);
 				
 				ItemsContainerRef->AddItemAt(Payload, RoomIndex);
 			}
@@ -127,16 +127,16 @@ void UItemsContainerGridWidget::OnItemsContainerUpdated()
 		if (!IsValid(ItemObject)) return;
 
 		if (UItemWidget* ItemWidget = CreateWidget<UItemWidget>(
-			this, APlayerHUD::StaticInteractiveItemWidgetClass))
+			this, APlayerHUD::StaticItemWidgetClass))
 		{
 			ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
 			ItemWidget->OnMouseEnter.BindUObject(this, &UItemsContainerGridWidget::OnItemMouseEnter);
 			ItemWidget->OnMouseLeave.BindUObject(this, &UItemsContainerGridWidget::OnItemMouseLeave);
 			ItemWidget->OnDoubleClick.BindUObject(this, &UItemsContainerGridWidget::OnDoubleClick);
 
-			ItemWidget->OnBeginDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
+			//ItemWidget->OnBeginDragOperation.BindUObject(this, &UItemsContainerGridWidget::OnBeginDragOperation);
 			ItemWidget->OnReverseDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnReverseDragOperation);
-			ItemWidget->OnCompleteDragDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
+			ItemWidget->OnNotifyDropOperation.BindUObject(this, &UItemsContainerGridWidget::OnCompleteDragOperation);
 
 			FVector2D WidgetPosition = {Tile.X * APlayerHUD::TileSize, Tile.Y * APlayerHUD::TileSize};
 			if (UCanvasPanelSlot* CanvasPanelSlot = GridCanvas->AddChildToCanvas(ItemWidget))

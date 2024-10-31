@@ -15,13 +15,12 @@ void UItemsContainer::AddStartingData()
 		
 		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData.Definition, ItemData.PredictedData))
 		{
-			if (!FindAvailablePlace(ItemObject))
+			if (!AddItem(ItemObject))
 			{
 				ItemObject->MarkAsGarbage();
 			}
 		}
 	}
-
 	StartingData.Empty();
 }
 
@@ -48,9 +47,9 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem
 {
 	if (SourceItem && TargetItem)
 	{
-		if (TargetItem->IsStackable() && TargetItem->IsSimilar(SourceItem))
+		if (TargetItem->CanStackItem(SourceItem))
 		{
-			TargetItem->AddAmount(SourceItem->GetItemParams().Amount);
+			TargetItem->AddAmount(1);
 		
 			if (ItemsContainer.Contains(SourceItem))
 			{
@@ -61,20 +60,90 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem
 			return true;
 		}
 	}
-	
 	return false;
 }
 
 bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
-	if (!ItemsContainer.Contains(ItemObject))
+	if (ItemObject && !ItemsContainer.Contains(ItemObject))
 	{
 		ItemsContainer.Add(ItemObject);
 		OnItemAdded.Broadcast(ItemObject);
 		return true;
 	}
-	
 	return false;
+}
+
+bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
+{
+	if (ItemObject && ItemsContainer.Contains(ItemObject))
+	{
+		ItemsContainer.Remove(ItemObject);
+		OnItemRemoved.Broadcast(ItemObject);
+		return true;
+	}
+	return false;
+}
+
+bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)
+{
+	if (ItemObject && Amount > 0)
+	{
+		uint16 ItemAmount = ItemObject->GetItemParams().Amount;
+		if (ItemAmount - Amount > 0)
+		{
+			ItemObject->RemoveAmount(Amount);
+		}
+		else
+		{
+			RemoveItem(ItemObject);
+			ItemObject->MarkAsGarbage();
+		}
+	}
+	return false;
+}
+
+void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer)
+{
+	if (!ItemObject || !OtherContainer)
+	{
+		return;
+	}
+	
+	if (ItemObject->GetItemParams().Amount > ItemObject->GetStackAmount())
+	{
+		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
+		
+		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemObject))
+		{
+			NewItemObject->SetAmount(NewItemObject->GetStackAmount());
+			OtherContainer->FindAvailablePlace(NewItemObject);
+		}
+	}
+	else
+	{
+		OtherContainer->FindAvailablePlace(ItemObject);
+		RemoveItem(ItemObject);
+	}
+}
+
+bool UItemsContainer::Contains(const UItemObject* ItemObject) const
+{
+	return ItemsContainer.Contains(ItemObject);
+}
+
+UItemObject* UItemsContainer::FindItemById(uint32 ItemId) const
+{
+	UItemObject* FoundItem = nullptr;
+	for (auto EachItem : ItemsContainer)
+	{
+		if (EachItem->GetItemId() == ItemId)
+		{
+			FoundItem = EachItem;
+			break;
+		}
+	}
+	return FoundItem;
 }
 
 UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) const
@@ -87,7 +156,7 @@ UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) 
 			continue;
 		}
 		
-		if (FoundItem != ItemObject && FoundItem->IsStackable() && FoundItem->IsSimilar(ItemObject))
+		if (FoundItem->CanStackItem(ItemObject))
 		{
 			return FoundItem;
 		}

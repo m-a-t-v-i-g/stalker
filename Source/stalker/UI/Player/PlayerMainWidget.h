@@ -14,6 +14,12 @@ class STALKER_API UPlayerMainWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void OpenInventory();
+	void CloseInventory();
+	
+	void StartLooting(UItemsContainerComponent* LootItemsContainer);
+	
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UWidgetSwitcher> TabSwitcher;
@@ -22,20 +28,17 @@ protected:
 	TObjectPtr<class UHUDWidget> HUD;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UPlayerManagerWidget> Manager;
-	
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UUserWidget> PDA;
+	TObjectPtr<UNamedSlot> SlotManager;
 	
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<class UCharacterInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
+
+	TObjectPtr<class UPlayerManagerWidget> InventoryWidget;
 	
 public:
-	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp,
-							 UItemsContainer* ItemsContainer);
+	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	
 	void ToggleTab(EHUDTab ActivateTab);
 
-	void StartLooting(UItemsContainerComponent* LootItemsContainer);
 };

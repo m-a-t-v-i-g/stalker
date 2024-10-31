@@ -50,6 +50,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "0.0", ForceUnits = "kg"))
 	float Weight = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
+	int StackAmount = 1;
 };
 
 UCLASS(EditInlineNew, DefaultToInstanced)
@@ -74,6 +77,8 @@ public:
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData);
 	
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
+	
 	UPROPERTY(EditInstanceOnly, Category = "Item")
 	uint32 ItemId = 1;
 	
@@ -94,6 +99,9 @@ class STALKER_API UItemObject : public UObject, public IUsableInterface
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(VisibleAnywhere, Category = "Definition")
+	TObjectPtr<const UItemDefinition> ItemDefinition;
+	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -113,9 +121,9 @@ public:
 	virtual void SetInventoriedMode();
 	virtual void SetEquippedMode();
 
-	void SetAmount(uint32 Amount);
-	void AddAmount(uint32 Amount);
-	void RemoveAmount(uint32 Amount);
+	void SetAmount(uint32 Amount) const;
+	void AddAmount(uint32 Amount) const;
+	void RemoveAmount(uint32 Amount) const;
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
 
@@ -134,7 +142,8 @@ public:
 	FORCEINLINE bool IsUsable() const;
 	FORCEINLINE bool IsDroppable() const;
 	FORCEINLINE bool IsStackable() const;
-
+	FORCEINLINE uint32 GetStackAmount() const;
+	
 	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItem.Get(); }
 
 	template <class T>
@@ -142,9 +151,18 @@ public:
 	{
 		return Cast<T>(GetBoundItem());
 	}
+
+	FORCEINLINE UItemInstance* GetItemInstance() const { return ItemInstance.Get(); }
+
+	template <class T>
+	T* GetItemInstance() const
+	{
+		return Cast<T>(GetItemInstance());
+	}
+
+	bool CanStackItem(const UItemObject* OtherItem) const;
 	
 	/* DEPRECATED */
-	FORCEINLINE uint32 GetStackAmount() const;
 	FORCEINLINE UStaticMesh* GetPreviewMesh() const;
 	
 	template <typename Struct>
@@ -163,9 +181,6 @@ public:
 	FORCEINLINE FName GetItemRowName() const;
 
 protected:
-	UPROPERTY(VisibleAnywhere, Category = "Definition")
-	TObjectPtr<const UItemDefinition> ItemDefinition;
-	
 	UPROPERTY(EditAnywhere, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;
 

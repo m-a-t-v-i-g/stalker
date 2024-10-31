@@ -11,8 +11,7 @@ UENUM()
 enum class EHUDTab : uint8
 {
 	HUD,
-	Inventory,
-	PDA
+	Inventory
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDTabChanged, EHUDTab);
