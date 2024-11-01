@@ -49,7 +49,7 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem
 	{
 		if (TargetItem->CanStackItem(SourceItem))
 		{
-			TargetItem->AddAmount(1);
+			TargetItem->AddAmount(SourceItem->GetItemInstance()->Amount);
 		
 			if (ItemsContainer.Contains(SourceItem))
 			{

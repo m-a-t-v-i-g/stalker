@@ -119,6 +119,8 @@ protected:
 	bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Width);
 	bool IsTileFilled(uint32 Index);
 
+	UItemWidget* CreateItemWidget(UItemObject* ItemObject, const FVector2D& PositionOnGrid);
+
 	static FIntPoint TileFromIndex(uint32 Index, uint8 Width);
 	static uint32 IndexFromTile(const FIntPoint& Tile, uint8 Width);
 

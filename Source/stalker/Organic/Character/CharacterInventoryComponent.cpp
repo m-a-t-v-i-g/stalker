@@ -177,10 +177,15 @@ UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& S
 	UEquipmentSlot* FoundSlot = nullptr;
 	if (EquipmentSlots.Num() > 0)
 	{
-		FoundSlot = *EquipmentSlots.FindByPredicate([&, SlotName] (const UEquipmentSlot* Slot)
+		auto Predicate = EquipmentSlots.FindByPredicate([&, SlotName] (const UEquipmentSlot* Slot)
 		{
 			return Slot->GetSlotName() == SlotName;
 		});
+
+		if (Predicate)
+		{
+			FoundSlot = *Predicate;
+		}
 	}
 	return FoundSlot;
 }

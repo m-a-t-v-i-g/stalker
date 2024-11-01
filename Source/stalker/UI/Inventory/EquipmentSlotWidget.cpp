@@ -21,17 +21,8 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			{
 				if (OwnEquipment->EquipSlot(OwnSlot->GetSlotName(), Payload, false))
 				{
-					// UpdateSlot
-
-					if (DragDropOperation->SourceWidget != this)
-					{
-						DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Remove);
-					}
+					DragDropOperation->bWasSuccessful = true;
 				}
-			}
-			else
-			{
-				DragDropOperation->NotifySourceAboutDropOperation(EDragDropOperationResult::Failed);
 			}
 		}
 	}

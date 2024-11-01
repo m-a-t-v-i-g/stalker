@@ -36,8 +36,8 @@ void UPlayerManagerWidget::InitializeManager(UOrganicAbilityComponent* AbilityCo
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 
 	Inventory->InitializeInventory(OwnInventoryComponent->ItemsContainerRef);
-	
 	Equipment->InitializeCharacterEquipment(OwnInventoryComponent.Get());
+	
 	for (auto EachSlotWidget : Equipment->GetAllSlotWidgets())
 	{
 		EachSlotWidget->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerManagerWidget::OnOwnEquippedItemDoubleClick);
