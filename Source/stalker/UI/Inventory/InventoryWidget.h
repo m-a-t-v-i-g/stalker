@@ -6,18 +6,19 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryWidget.generated.h"
 
-class UContainerGridWidget;
-class UItemsContainerGridWidget;
+class UInventoryComponent;
+class UInventoryGridWidget;
 
 UCLASS()
 class STALKER_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
-protected:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UContainerGridWidget> ItemsGrid;
 	
 public:
-	void InitializeInventory(class UItemsContainer* ItemsContainerComponent);
+	void SetupInventory(UInventoryComponent* InventoryComp);
+	void ClearInventory();
+	
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInventoryGridWidget> ItemsGrid;
 };

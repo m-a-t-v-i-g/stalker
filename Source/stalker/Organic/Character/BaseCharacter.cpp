@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/BaseCharacter.h"
+#include "StalkerCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InventoryComponent.h"
-#include "StalkerCharacterMovementComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "Components/WeaponComponent.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY(LogCharacter);
 

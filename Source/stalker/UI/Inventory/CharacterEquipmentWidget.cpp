@@ -3,7 +3,7 @@
 #include "CharacterEquipmentWidget.h"
 #include "EquipmentSlotWidget.h"
 
-void UCharacterEquipmentWidget::InitializeCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const
+void UCharacterEquipmentWidget::SetupCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const
 {
 	ArmorSlot->SetupEquipmentSlot(CharInventoryComp);
 	PrimarySlot->SetupEquipmentSlot(CharInventoryComp);
@@ -11,7 +11,15 @@ void UCharacterEquipmentWidget::InitializeCharacterEquipment(UCharacterInventory
 	DetectorSlot->SetupEquipmentSlot(CharInventoryComp);
 }
 
-TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlotWidgets() const
+void UCharacterEquipmentWidget::ClearCharacterEquipment()
+{
+	ArmorSlot->ClearEquipmentSlot();
+	PrimarySlot->ClearEquipmentSlot();
+	SecondarySlot->ClearEquipmentSlot();
+	DetectorSlot->ClearEquipmentSlot();
+}
+
+TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlots() const
 {
 	TArray<UEquipmentSlotWidget*> Array;
 	Array.Add(ArmorSlot);

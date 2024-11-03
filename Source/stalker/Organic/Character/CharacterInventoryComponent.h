@@ -3,40 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SlotContainerInterface.h"
 #include "Components/InventoryComponent.h"
 #include "CharacterInventoryComponent.generated.h"
 
-USTRUCT(Blueprintable)
-struct FEquipmentSlotStartingData
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Starting Data")
-	FDataTableRowHandle ItemRow;
-
-	bool IsValid() const
-	{
-		return !ItemRow.IsNull();
-	}
-};
-
-USTRUCT(Blueprintable)
-struct FEquipmentSlotSpec
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
-	FGameplayTagContainer CategoryTags;
-	
-	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
-	FString SlotName = "Default";
-	
-	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
-	FEquipmentSlotStartingData StartingData;
-};
+class UEquipmentSlot;
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class STALKER_API UCharacterInventoryComponent : public UInventoryComponent
+class STALKER_API UCharacterInventoryComponent : public UInventoryComponent, public ISlotContainerInterface
 {
 	GENERATED_BODY()
 
@@ -46,34 +20,28 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
-	virtual void PreInitializeContainer() override;
-	virtual void PostInitializeContainer() override;
+	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
 
-	virtual void AddStartingData() override;
+	virtual void UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
+
+	virtual void UnequipSlot(const FString& SlotName) override;
+	
+	virtual bool CanEquipItemAtSlot(const FString& SlotName, UItemObject* ItemObject) override;
+	
+	virtual UEquipmentSlot* FindEquipmentSlot(const FString& SlotName) const override;
+	
+	UFUNCTION(Server, Reliable)
+	void ServerEquipSlot(const FString& SlotName, UItemObject* ItemObject);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerUnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerUnequipSlot(const FString& SlotName);
+	
+	void TryEquipItem(UItemObject* BoundObject);
 
 protected:
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
-	TArray<class UEquipmentSlot*> EquipmentSlots;
-
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment")
-	TArray<UItemObject*> EquippedItems;
-
-private:
-	UPROPERTY(EditDefaultsOnly, DisplayName = "Equipment Slots", Category = "Equipment")
-	TArray<FEquipmentSlotSpec> EquipmentSlotSpecs;
-
-public:
-	void TryEquipItem(UItemObject* BoundObject);
-	
-	bool EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
-
-	UFUNCTION(Server, Reliable)
-	void Server_EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem);
-	
-	void UnEquipSlot(const FString& SlotName, bool bTryAddItem);
-
-	UFUNCTION(Server, Reliable)
-	void Server_UnEquipSlot(const FString& SlotName, bool bTryAddItem);
-	
-	UEquipmentSlot* FindEquipmentSlot(const FString& SlotName) const;
+	UPROPERTY(EditAnywhere, Instanced, Category = "Equipment")
+	TArray<UEquipmentSlot*> EquipmentSlots;
 };

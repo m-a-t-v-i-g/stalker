@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Input PDA Name", Category = "Input")
 	FString InputPDAName;
 
-	TObjectPtr<class APlayerHUD> StalkerHUD;
+	TObjectPtr<class AStalkerHUD> StalkerHUD;
 	
 	TObjectPtr<class APlayerCharacter> Stalker;
 

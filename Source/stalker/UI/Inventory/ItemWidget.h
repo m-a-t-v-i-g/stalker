@@ -10,9 +10,9 @@
 class UItemObject;
 
 DECLARE_DELEGATE_ThreeParams(FMouseEnterSignature, const FGeometry&, const FPointerEvent&, UItemObject*);
-
-DECLARE_DELEGATE_OneParam(FDragDropOperationSignature, UItemObject*);
-DECLARE_DELEGATE_TwoParams(FDragDropOperationResultSignature, UItemObject*, EDragDropOperationResult);
+DECLARE_DELEGATE(FMouseLeaveSignature);
+DECLARE_DELEGATE_OneParam(FDoubleClickSignature, UItemObject*);
+DECLARE_DELEGATE_ThreeParams(FDragDropOperationSignature, const FGeometry&, const FPointerEvent&, UDragDropOperation*);
 
 UCLASS()
 class STALKER_API UItemWidget : public UUserWidget
@@ -46,12 +46,9 @@ private:
 
 public:
 	FMouseEnterSignature OnMouseEnter;
-	FDragDropOperationSignature OnMouseLeave;
-	FDragDropOperationSignature OnDoubleClick;
-	
-	FMouseEnterSignature OnBeginDragOperation;
-	FDragDropOperationSignature OnReverseDragDropOperation;
-	FDragDropOperationResultSignature OnNotifyDropOperation;
+	FMouseLeaveSignature OnMouseLeave;
+	FDoubleClickSignature OnDoubleClick;
+	FDragDropOperationSignature OnDragItem;
 
 	virtual void InitItemWidget(UItemObject* BindObject, FIntPoint Size);
 
@@ -65,14 +62,12 @@ public:
 	void RotateItem();
 	void UnRotateItem();
 
-	void MouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	void MouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent);
 	void MouseLeave();
 	void DoubleClick();
 
-	void BeginDragOperation();
-	void ReverseDragOperation();
-	void NotifyAboutDragOperation(EDragDropOperationResult OperationResult);
-	
+	void BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation);
+
 	const UItemObject* GetBoundObject() const { return BoundObject.Get(); }
 
 	template <class T>

@@ -26,7 +26,8 @@ protected:
 	TObjectPtr<UEquipmentSlotWidget> DetectorSlot;
 	
 public:
-	void InitializeCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const;
+	void SetupCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const;
+	void ClearCharacterEquipment();
 
-	TArray<UEquipmentSlotWidget*> GetAllSlotWidgets() const;
+	TArray<UEquipmentSlotWidget*> GetAllSlots() const;
 };

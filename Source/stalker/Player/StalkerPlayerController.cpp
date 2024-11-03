@@ -3,7 +3,7 @@
 #include "Player/StalkerPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "PlayerHUD.h"
+#include "StalkerHUD.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Character/PlayerCharacter.h"
@@ -75,7 +75,7 @@ void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> New
 {
 	Super::ClientSetHUD_Implementation(NewHUDClass);
 
-	StalkerHUD = GetHUD<APlayerHUD>();
+	StalkerHUD = GetHUD<AStalkerHUD>();
 }
 
 void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)

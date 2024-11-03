@@ -4,10 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
-#include "Library/Items/ItemsLibrary.h"
 #include "ItemDragDropOperation.generated.h"
 
 class UItemWidget;
+
+UENUM(BlueprintType)
+enum class EDragDropOperationResult : uint8
+{
+	None,
+	Failed,
+	Completed
+};
 
 UCLASS()
 class STALKER_API UItemDragDropOperation : public UDragDropOperation
@@ -15,14 +22,8 @@ class STALKER_API UItemDragDropOperation : public UDragDropOperation
 	GENERATED_BODY()
 
 public:
-	UItemWidget* ItemWidgetRef;
+	EDragDropOperationResult DragDropOperationResult = EDragDropOperationResult::Failed;
 
-	UUserWidget* SourceWidget = nullptr;
-	
-	bool bWasSuccessful = false;
-	
-	void NotifySourceAboutDropOperation(EDragDropOperationResult OperationResult) const;
-	
 	template <class T>
 	T* GetPayload() const
 	{

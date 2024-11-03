@@ -93,6 +93,33 @@ protected:
 	TWeakObjectPtr<const UItemDefinition> ItemDefinition;
 };
 
+USTRUCT(BlueprintType, Blueprintable)
+struct FItemStartingData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Starting Data")
+	TObjectPtr<const UItemDefinition> Definition;
+	
+	UPROPERTY(EditAnywhere, Category = "Starting Data")
+	bool bUsePredictedData = false;
+	
+	UPROPERTY(EditAnywhere, Instanced, Category = "Starting Data", meta = (EditCondition = "bUsePredictedData"))
+	TObjectPtr<UItemPredictedData> PredictedData;
+	
+	bool IsValid() const
+	{
+		return Definition != nullptr;
+	}
+
+	void Clear()
+	{
+		Definition = nullptr;
+		bUsePredictedData = false;
+		PredictedData = nullptr;
+	}
+};
+
 UCLASS(BlueprintType, Blueprintable)
 class STALKER_API UItemObject : public UObject, public IUsableInterface
 {

@@ -4,43 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "ItemObject.h"
 #include "EquipmentSlot.generated.h"
 
-struct FEquipmentSlotSpec;
 class UItemObject;
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotChangedSignature, UItemObject*, bool, bool);
 
-UCLASS()
+UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UEquipmentSlot : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	FOnSlotChangedSignature OnSlotChanged;
+	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-protected:
-	UPROPERTY(EditAnywhere, Replicated, Category = "Equipment Slot")
-	FGameplayTagContainer CategoryTags;
+	void AddStartingData();
 	
-	UPROPERTY(EditAnywhere, Replicated, Category = "Equipment Slot")
-	FString SlotName = "Default";
-	
-	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_EquipmentSlot", Category = "Equipment Slot")
-	UItemObject* BoundObject = nullptr;
-
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
-	bool bAvailable = true;
-
-public:
-	FOnSlotChangedSignature OnSlotChanged;
-	
-	void SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec);
-
 	bool EquipSlot(UItemObject* BindObject);
+	
 	void UnEquipSlot();
+
+	void UpdateSlot(bool bModified) const;
 
 	bool CanEquipItem(const UItemObject* ItemObject) const;
 	
@@ -50,9 +39,22 @@ public:
 
 	UItemObject* GetBoundObject() const { return BoundObject; }
 
-	void UpdateSlot(bool bModified) const;
-
 protected:
+	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
+	FString SlotName = "Default";
+	
+	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
+	FGameplayTagContainer CategoryTags;
+	
+	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
+	FItemStartingData StartingData;
+
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_EquipmentSlot", Category = "Equipment Slot")
+	TObjectPtr<UItemObject> BoundObject;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
+	bool bAvailable = true;
+
 	UFUNCTION()
 	void OnRep_EquipmentSlot(UItemObject* PrevItemObject);
 };

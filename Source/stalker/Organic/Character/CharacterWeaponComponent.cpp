@@ -428,8 +428,11 @@ UAmmoObject* UCharacterWeaponComponent::GetAmmoForReload() const
 		auto Params = RightItem->GetWeaponParams();
 		for (auto AmmoClass : Params.AmmoClasses)
 		{
-			ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByClass(AmmoClass.Get()));
-			if (ResultAmmo) break;
+			// TODO: ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByClass(AmmoClass.Get()));
+			if (ResultAmmo)
+			{
+				break;
+			}
 		}
 	}
 	return ResultAmmo;

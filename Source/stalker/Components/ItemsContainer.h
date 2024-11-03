@@ -4,32 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "ItemObject.h"
 #include "UObject/Object.h"
 #include "ItemsContainer.generated.h"
 
 class UItemDefinition;
 class UItemPredictedData;
-class UItemObject;
-
-USTRUCT(BlueprintType, Blueprintable)
-struct FItemStartingData
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Starting Data")
-	TObjectPtr<const UItemDefinition> Definition;
-	
-	UPROPERTY(EditAnywhere, Category = "Starting Data")
-	bool bUsePredictedData = false;
-	
-	UPROPERTY(EditAnywhere, Instanced, Category = "Starting Data", meta = (EditCondition = "bUsePredictedData"))
-	TObjectPtr<UItemPredictedData> PredictedData;
-	
-	bool IsValid() const
-	{
-		return Definition != nullptr;
-	}
-};
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FContainerUpdateDelegate, UItemObject*);
 
@@ -42,6 +22,10 @@ public:
 	FContainerUpdateDelegate OnItemAdded;
 	FContainerUpdateDelegate OnItemRemoved;
 	
+	virtual bool IsSupportedForNetworking() const override { return true; }
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	void AddStartingData();
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);
@@ -50,6 +34,8 @@ public:
 	
 	bool AddItem(UItemObject* ItemObject);
 
+	void SplitItem(UItemObject* ItemObject);
+	
 	bool RemoveItem(UItemObject* ItemObject);
 
 	bool SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
@@ -69,8 +55,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	TArray<FItemStartingData> StartingData;
 
-	UPROPERTY(EditInstanceOnly, Category = "Items Container")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemsContainer", Category = "Items Container")
 	TArray<UItemObject*> ItemsContainer;
 
 	UItemObject* FindAvailableStack(const UItemObject* ItemObject) const;
+
+	UFUNCTION()
+	void OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer);
 };

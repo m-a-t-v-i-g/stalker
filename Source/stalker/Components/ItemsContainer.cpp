@@ -3,6 +3,14 @@
 #include "ItemsContainer.h"
 #include "ItemObject.h"
 #include "Items/ItemsFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
+
+void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UItemsContainer, ItemsContainer, COND_OwnerOnly);
+}
 
 void UItemsContainer::AddStartingData()
 {
@@ -13,7 +21,8 @@ void UItemsContainer::AddStartingData()
 			continue;
 		}
 		
-		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemData.Definition, ItemData.PredictedData))
+		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemData.Definition,
+		                                                                ItemData.PredictedData))
 		{
 			if (!AddItem(ItemObject))
 			{
@@ -67,11 +76,19 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
 	if (ItemObject && !ItemsContainer.Contains(ItemObject))
 	{
-		ItemsContainer.Add(ItemObject);
-		OnItemAdded.Broadcast(ItemObject);
-		return true;
+		if (ItemObject->GetItemTag().MatchesAny(CategoryTags))
+		{
+			ItemsContainer.Add(ItemObject);
+			OnItemAdded.Broadcast(ItemObject);
+			return true;
+		}
 	}
 	return false;
+}
+
+void UItemsContainer::SplitItem(UItemObject* ItemObject)
+{
+	
 }
 
 bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
@@ -89,7 +106,7 @@ bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amoun
 {
 	if (ItemObject && Amount > 0)
 	{
-		uint16 ItemAmount = ItemObject->GetItemParams().Amount;
+		uint16 ItemAmount = ItemObject->GetItemInstance()->Amount;
 		if (ItemAmount - Amount > 0)
 		{
 			ItemObject->RemoveAmount(Amount);
@@ -97,7 +114,6 @@ bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amoun
 		else
 		{
 			RemoveItem(ItemObject);
-			ItemObject->MarkAsGarbage();
 		}
 	}
 	return false;
@@ -110,11 +126,11 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 		return;
 	}
 	
-	if (ItemObject->GetItemParams().Amount > ItemObject->GetStackAmount())
+	if (ItemObject->GetItemInstance()->Amount > ItemObject->GetStackAmount())
 	{
 		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
 		
-		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(ItemObject))
+		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject))
 		{
 			NewItemObject->SetAmount(NewItemObject->GetStackAmount());
 			OtherContainer->FindAvailablePlace(NewItemObject);
@@ -162,4 +178,35 @@ UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) 
 		}
 	}
 	return nullptr;
+}
+
+void UItemsContainer::OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer)
+{
+	UItemObject* AddedItem = nullptr;
+	UItemObject* RemovedItem = nullptr;
+	
+	for (UItemObject* Item : ItemsContainer)
+	{
+		if (PrevContainer.Contains(Item))
+		{
+			continue;
+		}
+		
+		AddedItem = Item;
+		break;
+	}
+	
+	for (UItemObject* Item : PrevContainer)
+	{
+		if (ItemsContainer.Contains(Item))
+		{
+			continue;
+		}
+		
+		RemovedItem = Item;
+		break;
+	}
+
+	OnItemAdded.Broadcast(AddedItem);
+	OnItemRemoved.Broadcast(RemovedItem);
 }

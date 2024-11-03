@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StalkerHUD.h"
 #include "Blueprint/UserWidget.h"
-#include "Player/PlayerHUD.h"
 #include "PlayerMainWidget.generated.h"
 
 class UItemsContainer;
@@ -18,7 +18,7 @@ public:
 	void OpenInventory();
 	void CloseInventory();
 	
-	void StartLooting(UItemsContainerComponent* LootItemsContainer);
+	void StartLooting(UInventoryComponent* LootItemsContainer);
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -34,7 +34,7 @@ private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 
-	TObjectPtr<class UPlayerManagerWidget> InventoryWidget;
+	TObjectPtr<class UPlayerInventoryWidget> InventoryWidget;
 	
 public:
 	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);

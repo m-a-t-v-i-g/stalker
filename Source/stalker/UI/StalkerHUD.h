@@ -3,24 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "StalkerPlayerController.h"
+#include "Player/StalkerPlayerController.h"
 #include "GameFramework/HUD.h"
-#include "PlayerHUD.generated.h"
+#include "StalkerHUD.generated.h"
 
 class UItemsContainer;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
-class UItemsContainerComponent;
+class UInventoryComponent;
 
 UCLASS()
-class STALKER_API APlayerHUD : public AHUD
+class STALKER_API AStalkerHUD : public AHUD
 {
 	GENERATED_BODY()
 
 public:
 	void OpenInventory();
 	void CloseInventory();
-	
+
 protected:
 	virtual void PostInitializeComponents() override;
 	
@@ -28,7 +28,7 @@ protected:
 	TSubclassOf<class UPlayerMainWidget> MainWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
-	TSubclassOf<class UPlayerManagerWidget> InventoryWidgetClass; 
+	TSubclassOf<class UPlayerInventoryWidget> InventoryWidgetClass; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UItemWidget> ItemWidgetClass; 
@@ -49,5 +49,5 @@ public:
 
 	void ToggleTab(EHUDTab& Tab, bool bForce = false);
 	
-	void StartLooting(UItemsContainerComponent* LootItemsContainer);
+	void StartLooting(UInventoryComponent* LootItemsContainer);
 };

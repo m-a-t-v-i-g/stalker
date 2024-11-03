@@ -1,17 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterInventoryComponent.h"
+#include "ItemObject.h"
 #include "Components/EquipmentSlot.h"
 #include "Engine/ActorChannel.h"
-#include "InteractiveObjects/ItemSystem/ItemObject.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Library/Items/ItemsFunctionLibrary.h"
+#include "Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 UCharacterInventoryComponent::UCharacterInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicatedByDefault(true);
 }
 
 void UCharacterInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -19,7 +17,6 @@ void UCharacterInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UCharacterInventoryComponent, EquipmentSlots, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UCharacterInventoryComponent, EquippedItems, COND_None);
 }
 
 bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch,
@@ -30,151 +27,35 @@ bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, F
 	{
 		ReplicateSomething |= Channel->ReplicateSubobject(EachSlot, *Bunch, *RepFlags);
 	}
-	for (UItemObject* EachItem : EquippedItems)
-	{
-		ReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
-	}
 	return ReplicateSomething;
 }
 
-void UCharacterInventoryComponent::PreInitializeContainer()
+void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (!GetOwner()->HasAuthority()) return;
-	
-	if (EquipmentSlotSpecs.Num() > 0)
-	{
-		for (int i = 0; i < EquipmentSlotSpecs.Num(); i++)
-		{
-			auto NewEquipmentSlot = NewObject<UEquipmentSlot>(this);
-			NewEquipmentSlot->SetupSlot(&EquipmentSlotSpecs[i]);
-			
-			EquipmentSlots.Add(NewEquipmentSlot);
-		}
-	}
-	Super::PreInitializeContainer();
+	ServerEquipSlot(SlotName, ItemObject);
 }
 
-void UCharacterInventoryComponent::PostInitializeContainer()
+void UCharacterInventoryComponent::UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (!GetOwner()->HasAuthority()) return;
-	Super::PostInitializeContainer();
+	ServerUnequipAndEquipSlot(SlotName, ItemObject);
 }
 
-void UCharacterInventoryComponent::AddStartingData()
+void UCharacterInventoryComponent::UnequipSlot(const FString& SlotName)
 {
-	for (auto EachSlotSpec : EquipmentSlotSpecs)
-	{
-		if (EachSlotSpec.StartingData.IsValid())
-		{
-			auto Slot = FindEquipmentSlot(EachSlotSpec.SlotName);
-			if (!Slot) continue;
-
-			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(EachSlotSpec.StartingData.ItemRow))
-			{
-				EquipSlot(EachSlotSpec.SlotName, ItemObject, false);
-			}
-		}
-	}
-	Super::AddStartingData();
+	ServerUnequipSlot(SlotName);
 }
 
-void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
-{
-	for (auto EquipmentSlot : EquipmentSlots)
-	{
-		if (!IsValid(EquipmentSlot)) continue;
-
-		if (EquipmentSlot->CanEquipItem(BoundObject))
-		{
-			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject, true);
-			break;
-		}
-	}
-}
-
-bool UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObject* BoundObject, bool bSubtractItem)
-{
-	check(BoundObject);
-	
-	if (auto Slot = FindEquipmentSlot(SlotName))
-	{
-		if (auto SlotObject = Slot->GetBoundObject())
-		{
-			if (SlotObject->IsSimilar(BoundObject))
-			{
-				UKismetSystemLibrary::PrintString(
-					this, FString("Equipped item is identical to the item you are trying to put on!"), true, false,
-					FLinearColor::Red, 5.0f);
-				return false;
-			}
-		}
-	}
-	Server_EquipSlot(SlotName, BoundObject, bSubtractItem);
-	return true;
-}
-
-void UCharacterInventoryComponent::Server_EquipSlot_Implementation(const FString& SlotName, UItemObject* BoundObject,
-                                                                   bool bSubtractItem)
-{
-	check(BoundObject);
-	
-	if (auto Slot = FindEquipmentSlot(SlotName))
-	{
-		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(BoundObject))
-		{
-			if (bSubtractItem)
-			{
-				SubtractOrRemoveItem(BoundObject, 1);
-			}
-			
-			if (Slot->IsEquipped())
-			{
-				UnEquipSlot(SlotName, true);
-			}
-			
-			ItemObject->SetEquippedMode();
-			Slot->EquipSlot(ItemObject);
-
-			if (!EquippedItems.Contains(ItemObject))
-			{
-				EquippedItems.Add(ItemObject);
-			}
-		}
-	}
-}
-
-void UCharacterInventoryComponent::UnEquipSlot(const FString& SlotName, bool bTryAddItem)
-{
-	Server_UnEquipSlot(SlotName, bTryAddItem);
-}
-
-void UCharacterInventoryComponent::Server_UnEquipSlot_Implementation(const FString& SlotName, bool bTryAddItem)
+bool UCharacterInventoryComponent::CanEquipItemAtSlot(const FString& SlotName, UItemObject* ItemObject)
 {
 	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
-		if (Slot->IsEquipped())
-		{
-			auto OldBoundObject = Slot->GetBoundObject();
-			check(OldBoundObject);
-
-			Slot->UnEquipSlot();
-			
-			if (bTryAddItem)
-			{
-				FindAvailablePlace(OldBoundObject);
-			}
-
-			if (EquippedItems.Contains(OldBoundObject))
-			{
-				EquippedItems.Remove(OldBoundObject);
-			}
-		}
+		return Slot->CanEquipItem(ItemObject);
 	}
+	return false;
 }
 
 UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& SlotName) const
 {
-	UEquipmentSlot* FoundSlot = nullptr;
 	if (EquipmentSlots.Num() > 0)
 	{
 		auto Predicate = EquipmentSlots.FindByPredicate([&, SlotName] (const UEquipmentSlot* Slot)
@@ -184,8 +65,78 @@ UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& S
 
 		if (Predicate)
 		{
-			FoundSlot = *Predicate;
+			return *Predicate;
 		}
 	}
-	return FoundSlot;
+	return nullptr;
+}
+
+void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString& SlotName, UItemObject* ItemObject)
+{
+	if (auto Slot = FindEquipmentSlot(SlotName))
+	{
+		if (Slot->IsEquipped())
+		{
+			UnequipSlot(SlotName);
+		}
+		
+		UItemObject* OtherItem = ItemObject;
+		uint16 ItemAmount = OtherItem->GetItemInstance()->Amount;
+		
+		if (ItemAmount > 1)
+		{
+			OtherItem = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject);
+			OtherItem->SetAmount(1);
+		}
+
+		SubtractOrRemoveItem(ItemObject, 1);
+		Slot->EquipSlot(OtherItem);
+	}
+}
+
+void UCharacterInventoryComponent::ServerUnequipAndEquipSlot_Implementation(const FString& SlotName, UItemObject* ItemObject)
+{
+	if (auto Slot = FindEquipmentSlot(SlotName))
+	{
+		if (Slot->IsEquipped())
+		{
+			auto OldBoundObject = Slot->GetBoundObject();
+			check(OldBoundObject);
+
+			UnequipSlot(SlotName);
+			ServerAddItem(OldBoundObject->GetItemId());
+			EquipSlot(SlotName, ItemObject);
+		}
+	}
+}
+
+void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FString& SlotName)
+{
+	if (auto Slot = FindEquipmentSlot(SlotName))
+	{
+		if (Slot->IsEquipped())
+		{
+			auto OldBoundObject = Slot->GetBoundObject();
+			check(OldBoundObject);
+
+			Slot->UnEquipSlot();
+		}
+	}
+}
+
+void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
+{
+	for (auto EquipmentSlot : EquipmentSlots)
+	{
+		if (!IsValid(EquipmentSlot))
+		{
+			continue;
+		}
+
+		if (EquipmentSlot->CanEquipItem(BoundObject))
+		{
+			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject);
+			break;
+		}
+	}
 }

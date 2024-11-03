@@ -2,9 +2,3 @@
 
 #include "ItemDragDropOperation.h"
 #include "ItemWidget.h"
-
-void UItemDragDropOperation::NotifySourceAboutDropOperation(EDragDropOperationResult OperationResult) const
-{
-	ItemWidgetRef->NotifyAboutDragOperation(OperationResult);
-	ItemWidgetRef->MarkAsGarbage();
-}

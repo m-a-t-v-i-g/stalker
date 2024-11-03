@@ -1,24 +1,29 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "EquipmentSlot.h"
-#include "Character/CharacterInventoryComponent.h"
-#include "InteractiveObjects/ItemSystem/ItemObject.h"
+#include "ItemObject.h"
+#include "Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UEquipmentSlot, CategoryTags,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UEquipmentSlot, SlotName,		COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, BoundObject,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, bAvailable,		COND_OwnerOnly);
 }
 
-void UEquipmentSlot::SetupSlot(const FEquipmentSlotSpec* EquipmentSlotSpec)
+void UEquipmentSlot::AddStartingData()
 {
-	CategoryTags = EquipmentSlotSpec->CategoryTags;
-	SlotName = EquipmentSlotSpec->SlotName;
+	if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), StartingData.Definition,
+	                                                                StartingData.PredictedData))
+	{
+		if (!EquipSlot(ItemObject))
+		{
+			ItemObject->MarkAsGarbage();
+		}
+	}
+	StartingData.Clear();
 }
 
 bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
@@ -45,7 +50,11 @@ void UEquipmentSlot::UnEquipSlot()
 
 bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
 {
-	return ItemObject->GetItemTag().MatchesAny(CategoryTags);
+	if (ItemObject)
+	{
+		return ItemObject->GetItemTag().MatchesAny(CategoryTags);
+	}
+	return false;
 }
 
 void UEquipmentSlot::UpdateSlot(bool bModified) const

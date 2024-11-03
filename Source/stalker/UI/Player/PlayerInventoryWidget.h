@@ -4,16 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "PlayerManagerWidget.generated.h"
+#include "PlayerInventoryWidget.generated.h"
 
-class UItemsContainer;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
-class UItemsContainerComponent;
+class UInventoryComponent;
 class UItemObject;
 
 UENUM()
-enum class EPlayerManagerTab : uint8
+enum class EPlayerInventoryTab : uint8
 {
 	Inventory,
 	Looting,
@@ -21,7 +20,7 @@ enum class EPlayerManagerTab : uint8
 };
 
 UCLASS()
-class STALKER_API UPlayerManagerWidget : public UUserWidget
+class STALKER_API UPlayerInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -35,33 +34,35 @@ protected:
 	TObjectPtr<class UWidgetSwitcher> TabSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UInventoryWidget> Looting;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UUserWidget> Upgrading;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UInventoryWidget> Inventory;
+	TObjectPtr<class UInventoryWidget> Inventory;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCharacterEquipmentWidget> Equipment;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInventoryWidget> Looting;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UUserWidget> Upgrading;
+
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
-	TWeakObjectPtr<UItemsContainerComponent> LootingItemsContainer;
+	
+	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
-	EPlayerManagerTab ActiveTab;
+	EPlayerInventoryTab ActiveTab;
 	
 public:
-	void InitializeManager(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void CloseInventory();
 
-	void StartLooting(UItemsContainerComponent* LootItemsContainer);
+	void StartLooting(UInventoryComponent* LootItemsContainer);
 	void StartUpgrading();
 
 	void ClearTabs();
 
-	void ActivateTab(EPlayerManagerTab TabToActivate);
+	void ActivateTab(EPlayerInventoryTab TabToActivate);
 	
 protected:
 	void OnOwnInventoryItemDoubleClick(UItemObject* ItemObject);

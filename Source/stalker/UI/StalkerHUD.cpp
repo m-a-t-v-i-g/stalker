@@ -1,25 +1,25 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Player/PlayerHUD.h"
+#include "StalkerHUD.h"
 #include "Inventory/ItemWidget.h"
 #include "Player/PlayerMainWidget.h"
-#include "Player/PlayerManagerWidget.h"
+#include "Player/PlayerInventoryWidget.h"
 
-UClass* APlayerHUD::StaticInventoryWidgetClass {nullptr};
-UClass* APlayerHUD::StaticItemWidgetClass {nullptr};
-float APlayerHUD::TileSize {50.0f};
+UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
+UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
+float AStalkerHUD::TileSize {50.0f};
 
-void APlayerHUD::OpenInventory()
+void AStalkerHUD::OpenInventory()
 {
 	MainWidget->OpenInventory();
 }
 
-void APlayerHUD::CloseInventory()
+void AStalkerHUD::CloseInventory()
 {
 	MainWidget->CloseInventory();
 }
 
-void APlayerHUD::PostInitializeComponents()
+void AStalkerHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -40,7 +40,7 @@ void APlayerHUD::PostInitializeComponents()
 	}
 }
 
-void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
+void AStalkerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	if (MainWidget)
 	{
@@ -48,7 +48,7 @@ void APlayerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCha
 	}
 }
 
-void APlayerHUD::ToggleTab(EHUDTab& Tab, bool bForce)
+void AStalkerHUD::ToggleTab(EHUDTab& Tab, bool bForce)
 {
 	if (!MainWidget) return;
 	
@@ -70,7 +70,7 @@ void APlayerHUD::ToggleTab(EHUDTab& Tab, bool bForce)
 	}
 }
 
-void APlayerHUD::StartLooting(UItemsContainerComponent* LootItemsContainer)
+void AStalkerHUD::StartLooting(UInventoryComponent* LootItemsContainer)
 {
 	EHUDTab DesiredTab = EHUDTab::Inventory;
 	ToggleTab(DesiredTab, true);

@@ -7,7 +7,7 @@
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "InteractiveObjects/ItemSystem/ItemObject.h"
-#include "Player/PlayerHUD.h"
+#include "StalkerHUD.h"
 
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -44,7 +44,7 @@ FReply UItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, 
 }
 
 void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-                                                  UDragDropOperation*& OutOperation)
+                                       UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
@@ -53,26 +53,25 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	UItemDragDropOperation* DragDropOperation = NewObject<UItemDragDropOperation>();
 	check(DragDropOperation);
 
-	DragDropOperation->ItemWidgetRef = this;
 	DragDropOperation->Payload = BoundObject.Get();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
-	auto DragVisual = CreateWidget<UItemWidget>(this, APlayerHUD::StaticItemWidgetClass);
-	if (DragVisual)
+
+	if (auto DragVisual = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass))
 	{
 		DragVisual->InitItemWidget(BoundObject.Get(), {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
+		DragDropOperation->DefaultDragVisual = DragVisual;
 	}
-	DragDropOperation->DefaultDragVisual = DragVisual;
+	
 	OutOperation = DragDropOperation;
 
-	RemoveFromParent();
-	OnBeginDragOperation.ExecuteIfBound(InGeometry, InMouseEvent, BoundObject.Get());
+	BeginDragOperation(InGeometry, InMouseEvent, OutOperation);
 }
 
 void UItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
 {
 	BoundObject = BindObject;
 
-	FVector2D GridSize = {Size.X * APlayerHUD::TileSize, Size.Y * APlayerHUD::TileSize};
+	FVector2D GridSize = {Size.X * AStalkerHUD::TileSize, Size.Y * AStalkerHUD::TileSize};
 
 	SizeBox->SetWidthOverride(GridSize.X);
 	SizeBox->SetHeightOverride(GridSize.Y);
@@ -127,14 +126,14 @@ void UItemWidget::UnRotateItem()
 	ItemImage->SetRenderTransformAngle(0.0f);
 }
 
-void UItemWidget::MouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+void UItemWidget::MouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnMouseEnter.ExecuteIfBound(InGeometry, InMouseEvent, BoundObject.Get());
+	OnMouseEnter.ExecuteIfBound(InLocalGeometry, InMouseEvent, BoundObject.Get());
 }
 
 void UItemWidget::MouseLeave()
 {
-	OnMouseLeave.ExecuteIfBound(BoundObject.Get());
+	OnMouseLeave.ExecuteIfBound();
 }
 
 void UItemWidget::DoubleClick()
@@ -142,19 +141,10 @@ void UItemWidget::DoubleClick()
 	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
 }
 
-void UItemWidget::BeginDragOperation()
+void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation)
 {
-
-}
-
-void UItemWidget::ReverseDragOperation()
-{
-	OnReverseDragDropOperation.ExecuteIfBound(BoundObject.Get());
-}
-
-void UItemWidget::NotifyAboutDragOperation(EDragDropOperationResult OperationResult)
-{
-	OnNotifyDropOperation.ExecuteIfBound(BoundObject.Get(), OperationResult);
+	RemoveFromParent();
+	OnDragItem.ExecuteIfBound(InGeometry, InMouseEvent, InOperation);
 }
 
 ESlateVisibility UItemWidget::GetAmountVisibility()

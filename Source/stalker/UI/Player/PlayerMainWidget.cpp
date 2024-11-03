@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerMainWidget.h"
-#include "PlayerManagerWidget.h"
+#include "PlayerInventoryWidget.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Components/NamedSlot.h"
@@ -12,11 +12,11 @@ void UPlayerMainWidget::OpenInventory()
 {
 	if (!InventoryWidget)
 	{
-		InventoryWidget = CreateWidget<UPlayerManagerWidget>(GetOwningPlayer(), APlayerHUD::StaticInventoryWidgetClass);
+		InventoryWidget = CreateWidget<UPlayerInventoryWidget>(GetOwningPlayer(), AStalkerHUD::StaticInventoryWidgetClass);
 		
 		if (InventoryWidget)
 		{
-			InventoryWidget->InitializeManager(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
+			InventoryWidget->OpenInventory(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
 			SlotManager->AddChild(InventoryWidget);
 		}
 		
@@ -29,13 +29,14 @@ void UPlayerMainWidget::CloseInventory()
 	if (InventoryWidget)
 	{
 		InventoryWidget->RemoveFromParent();
+		InventoryWidget->CloseInventory();
 		InventoryWidget = nullptr;
 	}
 
 	ToggleTab(EHUDTab::HUD);
 }
 
-void UPlayerMainWidget::StartLooting(UItemsContainerComponent* LootItemsContainer)
+void UPlayerMainWidget::StartLooting(UInventoryComponent* LootItemsContainer)
 {
 	
 }
