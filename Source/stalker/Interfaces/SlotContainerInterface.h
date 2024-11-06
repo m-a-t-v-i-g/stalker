@@ -22,8 +22,6 @@ class STALKER_API ISlotContainerInterface
 public:
 	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject);
 	
-	virtual void UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject);
-
 	virtual void UnequipSlot(const FString& SlotName);
 
 	virtual bool CanEquipItemAtSlot(const FString& SlotName, UItemObject* ItemObject);

@@ -26,9 +26,6 @@ public:
 	bool IsSlotEmpty() const;
 
 protected:
-	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	                          UDragDropOperation* InOperation) override;
-	
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
 	FString SlotName = "Default";
 	
@@ -38,6 +35,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCanvasPanel> SlotCanvas;
 
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+							  UDragDropOperation* InOperation) override;
+	
 	void OnSlotChanged(UItemObject* BoundObject, bool bModified, bool bEquipped);
 
 	void UpdateCanvas();

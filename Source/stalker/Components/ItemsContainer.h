@@ -11,7 +11,25 @@
 class UItemDefinition;
 class UItemPredictedData;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FContainerUpdateDelegate, UItemObject*);
+USTRUCT()
+struct FUpdatedContainerData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UItemObject* AddedItem = nullptr;
+	
+	UItemObject* RemovedItem = nullptr;
+
+	FUpdatedContainerData() {}
+	
+	FUpdatedContainerData(UItemObject* NewItem, UItemObject* OldItem)
+	{
+		AddedItem = NewItem;
+		RemovedItem = OldItem;
+	}
+};
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerUpdatedDelegate, const FUpdatedContainerData&);
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UItemsContainer : public UObject
@@ -19,8 +37,7 @@ class STALKER_API UItemsContainer : public UObject
 	GENERATED_BODY()
 
 public:
-	FContainerUpdateDelegate OnItemAdded;
-	FContainerUpdateDelegate OnItemRemoved;
+	FOnContainerUpdatedDelegate OnContainerUpdated;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 
@@ -30,7 +47,7 @@ public:
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);
 
-	bool StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
+	bool StackItem(UItemObject* SourceItem, const UItemObject* TargetItem);
 	
 	bool AddItem(UItemObject* ItemObject);
 
@@ -42,6 +59,8 @@ public:
 
 	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
 
+	bool CanAddItem(const FGameplayTag& ItemTag) const;
+	
 	bool Contains(const UItemObject* ItemObject) const;
 
 	UItemObject* FindItemById(uint32 ItemId) const;

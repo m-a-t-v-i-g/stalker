@@ -28,8 +28,9 @@ public:
 
 	virtual void PreInitializeContainer();
 	virtual void PostInitializeContainer();
-	
-	void StackItem(UItemObject* SourceObject, UItemObject* TargetItem);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStackItem(uint32 SourceItemId, uint32 TargetItemId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(uint32 ItemId);
@@ -39,7 +40,10 @@ public:
 	void RemoveItem(UItemObject* ItemObject);
 	
 	void SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
-	
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerMoveItemToOtherContainer(uint32 ItemId, UItemsContainer* OtherContainer);
+
 	void DropItem(UItemObject* ItemObject);
 	
 	void UseItem(UItemObject* ItemObject);
@@ -54,5 +58,5 @@ protected:
 
 	UItemObject* GetItemObjectById(uint32 ItemId) const;
 	
-	bool IsItemObjectExist(uint32 ItemId) const;
+	bool IsItemObjectValid(uint32 ItemId) const;
 };

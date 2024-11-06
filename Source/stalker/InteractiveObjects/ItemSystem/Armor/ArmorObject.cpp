@@ -15,10 +15,5 @@ void UArmorObject::Use_Implementation(UObject* Source)
 
 USkeletalMesh* UArmorObject::GetVisual() const
 {
-	USkeletalMesh* SkeletalMesh = nullptr;
-	if (GetRow<FTableRowArmor>())
-	{
-		SkeletalMesh = GetRow<FTableRowArmor>()->Visual.LoadSynchronous();
-	}
-	return SkeletalMesh;
+	return nullptr; // TODO;
 }

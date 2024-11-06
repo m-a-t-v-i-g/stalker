@@ -13,12 +13,6 @@ FReply UPlayerInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
 	return FReply::Handled();
 }
 
-bool UPlayerInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-                                          UDragDropOperation* InOperation)
-{
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
-}
-
 void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
 {
 	OwnAbilityComponent = AbilityComp;

@@ -342,7 +342,7 @@ void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 	UAmmoObject* Ammo = GetAmmoForReload();
 	if (!Ammo) return;
 	
-	int AmmoCount = Ammo->GetItemParams().Amount;
+	int AmmoCount = Ammo->GetItemInstance()->Amount;
 	if (AmmoCount > 0)
 	{
 		int RequiredCount = RightWeapon->CalculateRequiredAmmoCount();
@@ -414,7 +414,7 @@ bool UCharacterWeaponComponent::HasAmmoForReload() const
 {
 	if (UAmmoObject* Ammo = GetAmmoForReload())
 	{
-		int AmmoCount = Ammo->GetItemParams().Amount;
+		int AmmoCount = Ammo->GetItemInstance()->Amount;
 		return AmmoCount > 0;
 	}
 	return false;

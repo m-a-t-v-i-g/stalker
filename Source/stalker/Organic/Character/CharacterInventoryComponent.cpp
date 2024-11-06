@@ -35,11 +35,6 @@ void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObjec
 	ServerEquipSlot(SlotName, ItemObject);
 }
 
-void UCharacterInventoryComponent::UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject)
-{
-	ServerUnequipAndEquipSlot(SlotName, ItemObject);
-}
-
 void UCharacterInventoryComponent::UnequipSlot(const FString& SlotName)
 {
 	ServerUnequipSlot(SlotName);
@@ -77,13 +72,16 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 	{
 		if (Slot->IsEquipped())
 		{
-			UnequipSlot(SlotName);
+			if (UItemObject* OldBoundObject = Slot->GetBoundObject())
+			{
+				Slot->UnEquipSlot();
+				ServerAddItem(OldBoundObject->GetItemId());
+			}
 		}
-		
+
 		UItemObject* OtherItem = ItemObject;
-		uint16 ItemAmount = OtherItem->GetItemInstance()->Amount;
-		
-		if (ItemAmount > 1)
+
+		if (ItemObject->GetItemInstance()->Amount > 1)
 		{
 			OtherItem = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject);
 			OtherItem->SetAmount(1);
@@ -94,31 +92,12 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 	}
 }
 
-void UCharacterInventoryComponent::ServerUnequipAndEquipSlot_Implementation(const FString& SlotName, UItemObject* ItemObject)
-{
-	if (auto Slot = FindEquipmentSlot(SlotName))
-	{
-		if (Slot->IsEquipped())
-		{
-			auto OldBoundObject = Slot->GetBoundObject();
-			check(OldBoundObject);
-
-			UnequipSlot(SlotName);
-			ServerAddItem(OldBoundObject->GetItemId());
-			EquipSlot(SlotName, ItemObject);
-		}
-	}
-}
-
 void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FString& SlotName)
 {
 	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (Slot->IsEquipped())
 		{
-			auto OldBoundObject = Slot->GetBoundObject();
-			check(OldBoundObject);
-
 			Slot->UnEquipSlot();
 		}
 	}

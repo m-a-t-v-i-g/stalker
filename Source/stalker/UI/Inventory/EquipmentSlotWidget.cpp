@@ -19,21 +19,13 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (EquipmentSlotRef.IsValid() && SlotContainerRef.IsValid())
 			{
-				if (IsSlotOccupied())
+				if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
 				{
-					if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
+					if (SlotContainer->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 					{
-						SlotContainer->UnequipAndEquipSlot(EquipmentSlotRef->GetSlotName(), Payload);
-					}
-				}
-				else if (IsSlotEmpty())
-				{
-					if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
-					{
-						if (SlotContainer->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
-						{
-							SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload);
-						}
+						SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload);
+						DragDropOperation->bWasSuccessful = true;
+						DragDropOperation->bTryRecoveryItem = true;
 					}
 				}
 			}
@@ -89,14 +81,26 @@ bool UEquipmentSlotWidget::IsSlotEmpty() const
 
 void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModified, bool bEquipped)
 {
-	UpdateCanvas();
+	SlotCanvas->ClearChildren();
+	
+	if (!bEquipped)
+	{
+		return;
+	}
+
+	if (!EquipmentSlotRef.IsValid() || !EquipmentSlotRef->IsEquipped())
+	{
+		return;
+	}
+
+	CreateItemWidget(EquipmentSlotRef->GetBoundObject());
 }
 
 void UEquipmentSlotWidget::UpdateCanvas()
 {
 	SlotCanvas->ClearChildren();
 	
-	if (!EquipmentSlotRef.IsValid() || !EquipmentSlotRef->IsEquipped())
+	if (!EquipmentSlotRef->IsEquipped())
 	{
 		return;
 	}
@@ -131,10 +135,7 @@ void UEquipmentSlotWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 		return;
 	}
 
-	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
-	{
-		OnDropItem(InOperation);
-	}
+	OnDropItem(InOperation);
 }
 
 void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
@@ -149,20 +150,16 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
 
-		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
+		if (DragDropOperation->bWasSuccessful)
 		{
-			switch (DragDropOperation->DragDropOperationResult)
+			if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
 			{
-			case EDragDropOperationResult::Failed:
-				{
-				}
-				break;
-			case EDragDropOperationResult::Completed:
-				{
-				}
-				break;
-			default: break;
+				SlotContainer->UnequipSlot(EquipmentSlotRef->GetSlotName());
 			}
+		}
+		else
+		{
+			UpdateCanvas();
 		}
 	}
 }
@@ -173,24 +170,21 @@ UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
 	if (ItemWidget)
 	{
 		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
-		ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
-		ItemWidget->OnDragItem.BindUObject(this, &UEquipmentSlotWidget::OnDragItem);
-			
-		if (bVerticalSlot)
-		{
-			ItemWidget->RotateItem();
-		}
-			
+		
 		if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 		{
+			ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
+			ItemWidget->OnDragItem.BindUObject(this, &UEquipmentSlotWidget::OnDragItem);
+			
+			if (bVerticalSlot)
+			{
+				ItemWidget->RotateItem();
+			}
+			
 			FVector2D ItemSize = ItemObject->GetItemSize() * AStalkerHUD::TileSize;
 			CanvasPanelSlot->SetSize(ItemSize);
 			CanvasPanelSlot->SetAnchors(FAnchors(0.5f));
 			CanvasPanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-		}
-		else
-		{
-			ItemWidget->MarkAsGarbage();
 		}
 	}
 	return ItemWidget;

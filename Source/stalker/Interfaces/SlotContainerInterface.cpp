@@ -6,10 +6,6 @@ void ISlotContainerInterface::EquipSlot(const FString& SlotName, UItemObject* It
 {
 }
 
-void ISlotContainerInterface::UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject)
-{
-}
-
 void ISlotContainerInterface::UnequipSlot(const FString& SlotName)
 {
 }

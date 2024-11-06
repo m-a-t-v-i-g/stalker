@@ -13,7 +13,7 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, UItemObjec
 	if (NewItemObject)
 	{
 		LastItemId++;
-		AddItemObjectToGameState(ItemObject);
+		AddItemObjectToGameState(NewItemObject);
 		NewItemObject->InitItem(LastItemId, ItemObject);
 	}
 	return NewItemObject;
@@ -36,11 +36,45 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, const UIte
 	return ItemObject;
 }
 
+void UItemsFunctionLibrary::DestroyItemObject(const UItemObject* ItemObject)
+{
+	if (ItemObject)
+	{
+		RemoveItemObjectFromGameState(ItemObject);
+	}
+}
+
+UItemObject* UItemsFunctionLibrary::GetItemObjectById(const UWorld* World, uint32 ItemId)
+{
+	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+	{
+		return GameState->GetItemObjectById(ItemId);
+	}
+	return nullptr;
+}
+
+bool UItemsFunctionLibrary::IsItemObjectExist(const UWorld* World, uint32 ItemId)
+{
+	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+	{
+		return GameState->IsItemObjectExist(ItemId);
+	}
+	return false;
+}
+
 void UItemsFunctionLibrary::AddItemObjectToGameState(UItemObject* ItemObject)
 {
 	if (auto GameState = Cast<AStalkerGameState>(UGameplayStatics::GetGameState(ItemObject)))
 	{
 		GameState->AddItemObject(LastItemId, ItemObject);
+	}
+}
+
+void UItemsFunctionLibrary::RemoveItemObjectFromGameState(const UItemObject* ItemObject)
+{
+	if (auto GameState = Cast<AStalkerGameState>(UGameplayStatics::GetGameState(ItemObject)))
+	{
+		GameState->RemoveItemObject(ItemObject->GetItemId());
 	}
 }
 

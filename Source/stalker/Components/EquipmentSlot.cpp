@@ -28,15 +28,13 @@ void UEquipmentSlot::AddStartingData()
 
 bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 {
-	bool bWasEquipped = false;
 	if (BindObject)
 	{
 		BoundObject = BindObject;
-		bWasEquipped = true;
-		
 		OnSlotChanged.Broadcast(BindObject, true, true);
+		return true;
 	}
-	return bWasEquipped;
+	return false;
 }
 
 void UEquipmentSlot::UnEquipSlot()

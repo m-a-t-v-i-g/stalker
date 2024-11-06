@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryGridWidget.generated.h"
 
+struct FUpdatedContainerData;
 enum class EDragDropOperationResult : uint8;
 class UItemsContainer;
 class UInventoryComponent;
@@ -93,8 +94,7 @@ protected:
 	void UpdateItemsMap();
 	void UpdateGrid();
 
-	void OnItemAdded(UItemObject* ItemObject);
-	void OnItemRemoved(UItemObject* ItemObject);
+	void OnContainerUpdated(const FUpdatedContainerData& UpdatedData);
 
 	void OnItemMouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem);
 	void OnItemMouseLeave();

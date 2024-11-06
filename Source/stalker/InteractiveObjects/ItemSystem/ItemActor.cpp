@@ -115,5 +115,5 @@ void AItemActor::OnRep_Handed()
 
 void AItemActor::UpdateItem() const
 {
-	PreviewMesh->SetStaticMesh(ItemObject->GetPreviewMesh());
+
 }

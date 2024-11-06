@@ -20,13 +20,12 @@ void UItemsContainer::AddStartingData()
 		{
 			continue;
 		}
-		
-		if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemData.Definition,
-		                                                                ItemData.PredictedData))
+
+		if (CanAddItem(ItemData.Definition->Tag))
 		{
-			if (!AddItem(ItemObject))
+			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemData.Definition, ItemData.PredictedData))
 			{
-				ItemObject->MarkAsGarbage();
+				AddItem(ItemObject);
 			}
 		}
 	}
@@ -52,7 +51,7 @@ bool UItemsContainer::FindAvailablePlace(UItemObject* ItemObject)
 	return false;
 }
 
-bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem)
+bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* TargetItem)
 {
 	if (SourceItem && TargetItem)
 	{
@@ -65,7 +64,7 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem
 				ItemsContainer.Remove(SourceItem);
 			}
 		
-			SourceItem->MarkAsGarbage();
+			UItemsFunctionLibrary::DestroyItemObject(SourceItem);
 			return true;
 		}
 	}
@@ -76,10 +75,11 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
 	if (ItemObject && !ItemsContainer.Contains(ItemObject))
 	{
-		if (ItemObject->GetItemTag().MatchesAny(CategoryTags))
+		if (CanAddItem(ItemObject->ItemDefinition->Tag))
 		{
+			ItemObject->SetCollected();
 			ItemsContainer.Add(ItemObject);
-			OnItemAdded.Broadcast(ItemObject);
+			OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
 			return true;
 		}
 	}
@@ -96,7 +96,7 @@ bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
 	if (ItemObject && ItemsContainer.Contains(ItemObject))
 	{
 		ItemsContainer.Remove(ItemObject);
-		OnItemRemoved.Broadcast(ItemObject);
+		OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
 		return true;
 	}
 	return false;
@@ -128,19 +128,31 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 	
 	if (ItemObject->GetItemInstance()->Amount > ItemObject->GetStackAmount())
 	{
-		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
-		
-		if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject))
+		if (auto StackableItem = OtherContainer->FindAvailableStack(ItemObject))
 		{
-			NewItemObject->SetAmount(NewItemObject->GetStackAmount());
-			OtherContainer->FindAvailablePlace(NewItemObject);
+			StackableItem->AddAmount(ItemObject->GetItemInstance()->Amount);
 		}
+		else if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject))
+		{
+			if (OtherContainer->AddItem(NewItemObject))
+			{
+				NewItemObject->SetAmount(NewItemObject->GetStackAmount());
+			}
+		}
+		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
 	}
 	else
 	{
-		OtherContainer->FindAvailablePlace(ItemObject);
-		RemoveItem(ItemObject);
+		if (OtherContainer->FindAvailablePlace(ItemObject))
+		{
+			RemoveItem(ItemObject);
+		}
 	}
+}
+
+bool UItemsContainer::CanAddItem(const FGameplayTag& ItemTag) const
+{
+	return ItemTag.MatchesAny(CategoryTags);
 }
 
 bool UItemsContainer::Contains(const UItemObject* ItemObject) const
@@ -207,6 +219,5 @@ void UItemsContainer::OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer)
 		break;
 	}
 
-	OnItemAdded.Broadcast(AddedItem);
-	OnItemRemoved.Broadcast(RemovedItem);
+	OnContainerUpdated.Broadcast(FUpdatedContainerData(AddedItem, RemovedItem));
 }

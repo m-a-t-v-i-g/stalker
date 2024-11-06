@@ -27,9 +27,6 @@ class STALKER_API UPlayerInventoryWidget : public UUserWidget
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
-	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	                          UDragDropOperation* InOperation) override;
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UWidgetSwitcher> TabSwitcher;
 

@@ -22,8 +22,6 @@ public:
 	
 	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
 
-	virtual void UnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
-
 	virtual void UnequipSlot(const FString& SlotName) override;
 	
 	virtual bool CanEquipItemAtSlot(const FString& SlotName, UItemObject* ItemObject) override;
@@ -32,9 +30,6 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerEquipSlot(const FString& SlotName, UItemObject* ItemObject);
-	
-	UFUNCTION(Server, Reliable)
-	void ServerUnequipAndEquipSlot(const FString& SlotName, UItemObject* ItemObject);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerUnequipSlot(const FString& SlotName);

@@ -79,7 +79,6 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle) override;
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject) override;
 	
 	virtual void OnBindItem() override;

@@ -4,7 +4,7 @@
 #include "ItemObject.h"
 #include "ItemsContainer.h"
 #include "Engine/ActorChannel.h"
-#include "Game/StalkerGameState.h"
+#include "Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 UInventoryComponent::UInventoryComponent()
@@ -54,18 +54,21 @@ void UInventoryComponent::PostInitializeContainer()
 	
 }
 
-void UInventoryComponent::StackItem(UItemObject* SourceObject, UItemObject* TargetItem)
+void UInventoryComponent::ServerStackItem_Implementation(uint32 SourceItemId, uint32 TargetItemId)
 {
-	
+	if (ItemsContainerRef)
+	{
+		ItemsContainerRef->StackItem(GetItemObjectById(SourceItemId), GetItemObjectById(TargetItemId));
+	}
+}
+
+bool UInventoryComponent::ServerStackItem_Validate(uint32 SourceItemId, uint32 TargetItemId)
+{
+	return IsItemObjectValid(SourceItemId) && IsItemObjectValid(TargetItemId);
 }
 
 void UInventoryComponent::ServerAddItem_Implementation(uint32 ItemId)
 {
-	if (!IsItemObjectExist(ItemId))
-	{
-		return;
-	}
-	
 	if (ItemsContainerRef)
 	{
 		ItemsContainerRef->AddItem(GetItemObjectById(ItemId));
@@ -74,7 +77,7 @@ void UInventoryComponent::ServerAddItem_Implementation(uint32 ItemId)
 
 bool UInventoryComponent::ServerAddItem_Validate(uint32 ItemId)
 {
-	return IsItemObjectExist(ItemId);
+	return IsItemObjectValid(ItemId);
 }
 
 void UInventoryComponent::SplitItem(UItemObject* ItemObject)
@@ -95,6 +98,19 @@ void UInventoryComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 A
 	}
 }
 
+void UInventoryComponent::ServerMoveItemToOtherContainer_Implementation(uint32 ItemId, UItemsContainer* OtherContainer)
+{
+	if (ItemsContainerRef)
+	{
+		ItemsContainerRef->MoveItemToOtherContainer(GetItemObjectById(ItemId), OtherContainer);
+	}
+}
+
+bool UInventoryComponent::ServerMoveItemToOtherContainer_Validate(uint32 ItemId, UItemsContainer* OtherContainer)
+{
+	return IsItemObjectValid(ItemId) && IsValid(OtherContainer);
+}
+
 void UInventoryComponent::DropItem(UItemObject* ItemObject)
 {
 }
@@ -110,18 +126,10 @@ bool UInventoryComponent::HasAuthority() const
 
 UItemObject* UInventoryComponent::GetItemObjectById(uint32 ItemId) const
 {
-	if (auto GameState = Cast<AStalkerGameState>(GetWorld()->GetGameState()))
-	{
-		return GameState->GetItemObjectById(ItemId);
-	}
-	return nullptr;
+	return UItemsFunctionLibrary::GetItemObjectById(GetWorld(), ItemId);
 }
 
-bool UInventoryComponent::IsItemObjectExist(uint32 ItemId) const
+bool UInventoryComponent::IsItemObjectValid(uint32 ItemId) const
 {
-	if (auto GameState = Cast<AStalkerGameState>(GetWorld()->GetGameState()))
-	{
-		return GameState->IsItemObjectExist(ItemId);
-	}
-	return false;
+	return UItemsFunctionLibrary::IsItemObjectExist(GetWorld(), ItemId);
 }

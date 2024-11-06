@@ -41,25 +41,12 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UItemObject, ItemParams,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UItemObject, ItemDataTable, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UItemObject, ItemRowName,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UItemObject, bStackable,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UItemObject, BoundItem,		COND_OwnerOnly);
 }
 
 void UItemObject::Use_Implementation(UObject* Source)
 {
 	IUsableInterface::Use_Implementation(Source);
-}
-
-void UItemObject::InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle)
-{
-	ItemParams.ItemId = ItemId;
-	
-	ItemDataTable = RowHandle.DataTable;
-	ItemRowName = RowHandle.RowName;
-	SetupItemProperties();
 }
 
 void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
@@ -100,16 +87,6 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 	ItemInstance->SetupProperties(ItemId, ItemDefinition, PredictedData);
 }
 
-void UItemObject::SetupItemProperties()
-{
-	bStackable = GetRow<FTableRowItems>()->bStackable;
-	
-	if (!IsStackable())
-	{
-		ItemParams.Amount = 1;
-	}
-}
-
 void UItemObject::BindItem(AItemActor* BindItem)
 {
 	if (!IsValid(BindItem)) return;
@@ -134,18 +111,19 @@ void UItemObject::OnUnbindItem()
 {
 }
 
-void UItemObject::SetInventoriedMode()
+void UItemObject::SetGrounded()
 {
-	if (GetRow<FTableRowItems>())
-	{
-		bStackable = GetRow<FTableRowItems>()->bStackable;
-	}
+	ItemInstance->Mode = EItemMode::Grounded;
 }
 
-void UItemObject::SetEquippedMode()
+void UItemObject::SetCollected()
 {
-	SetAmount(1);
-	bStackable = false;
+	ItemInstance->Mode = EItemMode::Collected;
+}
+
+void UItemObject::SetEquipped()
+{
+	ItemInstance->Mode = EItemMode::Equipped;
 }
 
 void UItemObject::SetAmount(uint32 Amount) const
@@ -193,21 +171,6 @@ bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 uint32 UItemObject::GetItemId() const
 {
 	return ItemInstance->ItemId;
-}
-
-FItemParams UItemObject::GetItemParams() const
-{
-	return ItemParams;
-}
-
-const UDataTable* UItemObject::GetItemDataTable() const
-{
-	return ItemDataTable;
-}
-
-FName UItemObject::GetItemRowName() const
-{
-	return ItemRowName;
 }
 
 FGameplayTag UItemObject::GetItemTag() const
@@ -268,14 +231,4 @@ uint32 UItemObject::GetStackAmount() const
 bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
 {
 	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
-}
-
-UStaticMesh* UItemObject::GetPreviewMesh() const
-{
-	UStaticMesh* StaticMesh = nullptr;
-	if (GetRow<FTableRowItems>())
-	{
-		StaticMesh = GetRow<FTableRowItems>()->PreviewMesh.LoadSynchronous();
-	}
-	return StaticMesh;
 }

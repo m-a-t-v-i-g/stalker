@@ -6,23 +6,14 @@
 #include "Blueprint/DragDropOperation.h"
 #include "ItemDragDropOperation.generated.h"
 
-class UItemWidget;
-
-UENUM(BlueprintType)
-enum class EDragDropOperationResult : uint8
-{
-	None,
-	Failed,
-	Completed
-};
-
 UCLASS()
 class STALKER_API UItemDragDropOperation : public UDragDropOperation
 {
 	GENERATED_BODY()
 
 public:
-	EDragDropOperationResult DragDropOperationResult = EDragDropOperationResult::Failed;
+	bool bWasSuccessful = false;
+	bool bTryRecoveryItem = false;
 
 	template <class T>
 	T* GetPayload() const

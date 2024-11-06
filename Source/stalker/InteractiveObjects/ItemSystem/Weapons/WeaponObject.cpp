@@ -42,19 +42,6 @@ void UWeaponObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME_CONDITION(UWeaponObject, WeaponParams, COND_OwnerOnly);
 }
 
-void UWeaponObject::InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle)
-{
-	Super::InitItem(ItemId, RowHandle);
-	if (auto Row = GetRow<FTableRowWeapon>())
-	{
-		WeaponParams.AmmoClasses = Row->AmmoClasses;
-		WeaponParams.Rounds = Row->MagSize;
-		WeaponParams.FireRate = Row->FireRate;
-		WeaponParams.ReloadTime = Row->ReloadTime;
-		WeaponParams.bAutomatic = Row->bAutomatic;
-	}
-}
-
 void UWeaponObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 {
 	Super::InitItem(ItemId, ItemObject);
@@ -143,12 +130,7 @@ bool UWeaponObject::CanAttack() const
 
 int UWeaponObject::GetMagSize() const
 {
-	int MagSize = 0;
-	if (GetRow<FTableRowWeapon>())
-	{
-		MagSize = GetRow<FTableRowWeapon>()->MagSize;
-	}
-	return MagSize;
+	return 0; // TODO;
 }
 
 const FWeaponParams& UWeaponObject::GetWeaponParams() const

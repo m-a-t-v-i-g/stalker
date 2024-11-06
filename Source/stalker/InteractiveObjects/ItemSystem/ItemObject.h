@@ -68,6 +68,14 @@ public:
 	float Endurance = 100.0f;
 };
 
+UENUM()
+enum class EItemMode : uint8
+{
+	Grounded,
+	Collected,
+	Equipped
+};
+
 UCLASS()
 class STALKER_API UItemInstance : public UObject
 {
@@ -88,6 +96,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ForceUnits = "%"))
 	float Endurance = 100.0f;
 
+	UPROPERTY(EditInstanceOnly, Category = "Item")
+	EItemMode Mode = EItemMode::Grounded;
+	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Item")
 	TWeakObjectPtr<const UItemDefinition> ItemDefinition;
@@ -134,7 +145,6 @@ public:
 
 	virtual void Use_Implementation(UObject* Source) override;
 	
-	virtual void InitItem(const uint32 ItemId, const FDataTableRowHandle& RowHandle);
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
@@ -145,8 +155,9 @@ public:
 	void UnbindItem();
 	virtual void OnUnbindItem();
 
-	virtual void SetInventoriedMode();
-	virtual void SetEquippedMode();
+	virtual void SetGrounded();
+	virtual void SetCollected();
+	virtual void SetEquipped();
 
 	void SetAmount(uint32 Amount) const;
 	void AddAmount(uint32 Amount) const;
@@ -188,47 +199,13 @@ public:
 	}
 
 	bool CanStackItem(const UItemObject* OtherItem) const;
-	
-	/* DEPRECATED */
-	FORCEINLINE UStaticMesh* GetPreviewMesh() const;
-	
-	template <typename Struct>
-	Struct* GetRow() const
-	{
-		Struct* Row = nullptr;
-		if (auto DataTable = ItemDataTable)
-		{
-			Row = DataTable->FindRow<Struct>(ItemRowName, "");
-		}
-		return Row;
-	}
-	
-	FORCEINLINE FItemParams GetItemParams() const;
-	FORCEINLINE const UDataTable* GetItemDataTable() const;
-	FORCEINLINE FName GetItemRowName() const;
 
+	FName GetItemRowName() const { return "ddddd"; }
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;
 
-	/* DEPRECATED. */
-	UPROPERTY(Replicated)
-	FItemParams ItemParams;
-
-	/* DEPRECATED. */
-	UPROPERTY(Replicated)
-	const UDataTable* ItemDataTable;
-
-	/* DEPRECATED. */
-	UPROPERTY(Replicated)
-	FName ItemRowName;
-
-	/* DEPRECATED. */
-	UPROPERTY(Replicated)
-	bool bStackable = false;
-
-	virtual void SetupItemProperties();
-	
 	UFUNCTION()
 	void OnRep_BoundItem();
 
