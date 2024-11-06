@@ -13,13 +13,16 @@ class STALKER_API UInteractionComponent : public UActorComponent
 
 public:
 	UInteractionComponent();
+
+	void SetupInteractionComponent();
 	
 protected:
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void Interact();
 
-	UFUNCTION(Server, Reliable)
-	void ServerInteract();
-	
 private:
+	TObjectPtr<APawn> PawnRef;
+	TObjectPtr<AController> ControllerRef;
+	
 	bool bActive = false;
 };

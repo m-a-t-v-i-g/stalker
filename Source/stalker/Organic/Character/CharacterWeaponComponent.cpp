@@ -373,7 +373,7 @@ void UCharacterWeaponComponent::CompleteReloadWeapon()
 			return;
 		}
 
-		GetCharacterInventory()->SubtractOrRemoveItem(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
+		GetCharacterInventory()->ServerSubtractOrRemoveItem(ReloadingData.AmmoObject->GetItemId(), ReloadingData.AmmoCount);
 		ReloadingData.WeaponObject->IncreaseAmmo(ReloadingData.AmmoCount);
 	}
 	
@@ -467,7 +467,7 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 	
 	switch (WeaponConfig->OccupiedHand)
 	{
-	case ECharacterSlotHand::Left:
+	case EOccupiedHand::Left:
 		{
 			if (LeftItem != IncomingItem)
 			{
@@ -480,10 +480,10 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 					
 					switch (RightItemBeh->OccupiedHand)
 					{
-					case ECharacterSlotHand::Right:
+					case EOccupiedHand::Right:
 						TargetOverlay = RightItemBeh->SecondaryOverlay;
 						break;
-					case ECharacterSlotHand::Both:
+					case EOccupiedHand::Both:
 						TargetOverlay = ECharacterOverlayState::Pistol_1H;
 						DisarmRightHand();
 						break;
@@ -504,7 +504,7 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 					
 					switch (RightItemBeh->OccupiedHand)
 					{
-					case ECharacterSlotHand::Right:
+					case EOccupiedHand::Right:
 						TargetOverlay = RightItemBeh->PrimaryOverlay;
 						break;
 					default: break;
@@ -519,7 +519,7 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 			}
 			break;
 		}
-	case ECharacterSlotHand::Right:
+	case EOccupiedHand::Right:
 		{
 			TargetOverlay = LeftItem ? WeaponConfig->SecondaryOverlay : WeaponConfig->PrimaryOverlay;
 			
@@ -538,7 +538,7 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 			}
 			break;
 		}
-	case ECharacterSlotHand::Both:
+	case EOccupiedHand::Both:
 		{
 			TargetOverlay = WeaponConfig->PrimaryOverlay;
 			

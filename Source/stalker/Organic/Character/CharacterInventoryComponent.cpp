@@ -2,9 +2,9 @@
 
 #include "CharacterInventoryComponent.h"
 #include "ItemObject.h"
+#include "ItemSystemCore.h"
 #include "Components/EquipmentSlot.h"
 #include "Engine/ActorChannel.h"
-#include "Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 UCharacterInventoryComponent::UCharacterInventoryComponent()
@@ -96,11 +96,11 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 
 		if (ItemObject->GetItemInstance()->Amount > 1)
 		{
-			OtherItem = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject);
+			OtherItem = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject);
 			OtherItem->SetAmount(1);
 		}
 
-		SubtractOrRemoveItem(ItemObject, 1);
+		ServerSubtractOrRemoveItem(ItemObject->GetItemId(), 1);
 		Slot->EquipSlot(OtherItem);
 	}
 }

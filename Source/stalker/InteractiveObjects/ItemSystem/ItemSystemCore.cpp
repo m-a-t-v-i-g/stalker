@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ItemsFunctionLibrary.h"
+#include "ItemSystemCore.h"
 #include "ItemObject.h"
 #include "Game/StalkerGameState.h"
 #include "Kismet/GameplayStatics.h"
 
-uint32 UItemsFunctionLibrary::LastItemId {0};
+uint32 UItemSystemCore::LastItemId {0};
 
-UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, UItemObject* ItemObject)
+UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemObject* ItemObject)
 {
 	UItemObject* NewItemObject = NewObject<UItemObject>(World, ItemObject->GetObjectClass());
 	if (NewItemObject)
@@ -19,8 +19,8 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, UItemObjec
 	return NewItemObject;
 }
 
-UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
-                                                       const UItemPredictedData* PredictedData)
+UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
+                                                 const UItemPredictedData* PredictedData)
 {
 	UItemObject* ItemObject = nullptr;
 	if (Definition)
@@ -36,7 +36,7 @@ UItemObject* UItemsFunctionLibrary::GenerateItemObject(UWorld* World, const UIte
 	return ItemObject;
 }
 
-void UItemsFunctionLibrary::DestroyItemObject(const UItemObject* ItemObject)
+void UItemSystemCore::DestroyItemObject(const UItemObject* ItemObject)
 {
 	if (ItemObject)
 	{
@@ -44,7 +44,7 @@ void UItemsFunctionLibrary::DestroyItemObject(const UItemObject* ItemObject)
 	}
 }
 
-UItemObject* UItemsFunctionLibrary::GetItemObjectById(const UWorld* World, uint32 ItemId)
+UItemObject* UItemSystemCore::GetItemObjectById(const UWorld* World, uint32 ItemId)
 {
 	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
 	{
@@ -53,7 +53,7 @@ UItemObject* UItemsFunctionLibrary::GetItemObjectById(const UWorld* World, uint3
 	return nullptr;
 }
 
-bool UItemsFunctionLibrary::IsItemObjectExist(const UWorld* World, uint32 ItemId)
+bool UItemSystemCore::IsItemObjectExist(const UWorld* World, uint32 ItemId)
 {
 	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
 	{
@@ -62,7 +62,7 @@ bool UItemsFunctionLibrary::IsItemObjectExist(const UWorld* World, uint32 ItemId
 	return false;
 }
 
-void UItemsFunctionLibrary::AddItemObjectToGameState(UItemObject* ItemObject)
+void UItemSystemCore::AddItemObjectToGameState(UItemObject* ItemObject)
 {
 	if (auto GameState = Cast<AStalkerGameState>(UGameplayStatics::GetGameState(ItemObject)))
 	{
@@ -70,7 +70,7 @@ void UItemsFunctionLibrary::AddItemObjectToGameState(UItemObject* ItemObject)
 	}
 }
 
-void UItemsFunctionLibrary::RemoveItemObjectFromGameState(const UItemObject* ItemObject)
+void UItemSystemCore::RemoveItemObjectFromGameState(const UItemObject* ItemObject)
 {
 	if (auto GameState = Cast<AStalkerGameState>(UGameplayStatics::GetGameState(ItemObject)))
 	{

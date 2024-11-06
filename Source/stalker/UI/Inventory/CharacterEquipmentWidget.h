@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/CharacterInventoryComponent.h"
 #include "CharacterEquipmentWidget.generated.h"
+
+class UCharacterInventoryComponent;
 
 UCLASS()
 class STALKER_API UCharacterEquipmentWidget : public UUserWidget
@@ -27,7 +28,7 @@ protected:
 	
 public:
 	void SetupCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const;
-	void ClearCharacterEquipment();
+	void ClearCharacterEquipment() const;
 
 	TArray<UEquipmentSlotWidget*> GetAllSlots() const;
 };

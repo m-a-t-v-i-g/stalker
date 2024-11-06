@@ -11,6 +11,7 @@
 
 class UAbilitySet;
 class UPlayerInputConfig;
+class UInteractionComponent;
 
 UCLASS()
 class STALKER_API APlayerCharacter : public AStalkerCharacter
@@ -20,6 +21,21 @@ class STALKER_API APlayerCharacter : public AStalkerCharacter
 public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
+	static FName InteractionComponentName;
+	
+	virtual void SetupCharacterLocally(AController* NewController) override;
+
+	void OnHUDTabChanged(EHUDTab Tab);
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FORCEINLINE UInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+
+	template <class T>
+	T* GetInteractionComponent() const
+	{
+		return Cast<T>(GetInteractionComponent());
+	}
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -27,6 +43,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
+	virtual void PostInitializeComponents() override;
+	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
@@ -42,8 +60,7 @@ protected:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 
-public:
-	virtual void SetupCharacterLocally(AController* NewController) override;
-
-	void OnHUDTabChanged(EHUDTab Tab);
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInteractionComponent> InteractionComponent;
 };

@@ -84,7 +84,6 @@ void UPlayerInventoryWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObje
 	switch (ActiveTab)
 	{
 	case EPlayerInventoryTab::Inventory:
-		OwnInventoryComponent->UseItem(ItemObject);
 		break;
 	case EPlayerInventoryTab::Looting:
 		break;

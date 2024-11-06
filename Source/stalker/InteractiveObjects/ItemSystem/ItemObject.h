@@ -165,6 +165,10 @@ public:
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
 
+	virtual bool IsGrounded() const;
+	virtual bool IsCollected() const;
+	virtual bool IsEquipped() const;
+
 	FORCEINLINE uint32 GetItemId() const;
 	
 	FORCEINLINE FGameplayTag GetItemTag() const;

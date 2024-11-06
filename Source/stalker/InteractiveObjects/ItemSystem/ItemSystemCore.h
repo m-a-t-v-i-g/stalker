@@ -3,21 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ItemsLibrary.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "ItemsFunctionLibrary.generated.h"
+#include "ItemSystemCore.generated.h"
 
-class UItemWidget;
 class UItemDefinition;
 class UItemPredictedData;
+class UItemObject;
 
 UCLASS()
-class STALKER_API UItemsFunctionLibrary : public UBlueprintFunctionLibrary
+class STALKER_API UItemSystemCore : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:
-	static UItemObject* GenerateItemObject(UWorld* World, UItemObject* ItemObject);
+	static UItemObject* GenerateItemObject(UWorld* World, const UItemObject* ItemObject);
 	static UItemObject* GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
 	                                       const UItemPredictedData* PredictedData);
 	static void DestroyItemObject(const UItemObject* ItemObject);

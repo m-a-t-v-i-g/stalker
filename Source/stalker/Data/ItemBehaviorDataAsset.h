@@ -17,7 +17,7 @@ enum class EMouseButtonReaction : uint8
 };
 
 UENUM(BlueprintType)
-enum class ECharacterSlotHand : uint8
+enum class EOccupiedHand : uint8
 {
 	Left,
 	Right,
@@ -33,10 +33,10 @@ struct FItemBehavior
 	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::Attack;
 	
 	UPROPERTY(EditAnywhere)
-	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::Alternative;
+	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::Aiming;
 	
 	UPROPERTY(EditAnywhere)
-	ECharacterSlotHand OccupiedHand = ECharacterSlotHand::Right;
+	EOccupiedHand OccupiedHand = EOccupiedHand::Right;
 	
 	UPROPERTY(EditAnywhere)
 	ECharacterOverlayState PrimaryOverlay = ECharacterOverlayState::Default;

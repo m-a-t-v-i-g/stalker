@@ -2,6 +2,7 @@
 
 #include "CharacterEquipmentWidget.h"
 #include "EquipmentSlotWidget.h"
+#include "Character/CharacterInventoryComponent.h"
 
 void UCharacterEquipmentWidget::SetupCharacterEquipment(UCharacterInventoryComponent* CharInventoryComp) const
 {
@@ -11,7 +12,7 @@ void UCharacterEquipmentWidget::SetupCharacterEquipment(UCharacterInventoryCompo
 	DetectorSlot->SetupEquipmentSlot(CharInventoryComp);
 }
 
-void UCharacterEquipmentWidget::ClearCharacterEquipment()
+void UCharacterEquipmentWidget::ClearCharacterEquipment() const
 {
 	ArmorSlot->ClearEquipmentSlot();
 	PrimarySlot->ClearEquipmentSlot();

@@ -174,6 +174,21 @@ bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
+bool UItemObject::IsGrounded() const
+{
+	return ItemInstance->Mode == EItemMode::Grounded;
+}
+
+bool UItemObject::IsCollected() const
+{
+	return ItemInstance->Mode == EItemMode::Collected;
+}
+
+bool UItemObject::IsEquipped() const
+{
+	return ItemInstance->Mode == EItemMode::Equipped;
+}
+
 uint32 UItemObject::GetItemId() const
 {
 	return ItemInstance->ItemId;

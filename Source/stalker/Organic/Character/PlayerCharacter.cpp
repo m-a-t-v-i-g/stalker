@@ -5,17 +5,31 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerGameplayTags.h"
+#include "Components/InteractionComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Input/StalkerInputComponent.h"
 #include "Player/StalkerPlayerController.h"
 
+FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
+
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(InteractionComponentName);
+}
+
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetupInteractionComponent();
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

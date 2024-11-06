@@ -65,7 +65,7 @@ public:
 
 	UItemObject* FindItemById(uint32 ItemId) const;
 
-	TArray<UItemObject*> GetItems() const { return ItemsContainer; }
+	TArray<UItemObject*> GetItems() const { return Items; }
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
@@ -74,11 +74,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Items Container")
 	TArray<FItemStartingData> StartingData;
 
-	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemsContainer", Category = "Items Container")
-	TArray<UItemObject*> ItemsContainer;
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_Items", Category = "Items Container")
+	TArray<UItemObject*> Items;
 
 	UItemObject* FindAvailableStack(const UItemObject* ItemObject) const;
 
 	UFUNCTION()
-	void OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer);
+	void OnRep_Items(TArray<UItemObject*> PrevContainer);
 };

@@ -2,14 +2,14 @@
 
 #include "ItemsContainer.h"
 #include "ItemObject.h"
-#include "Items/ItemsFunctionLibrary.h"
+#include "ItemSystemCore.h"
 #include "Net/UnrealNetwork.h"
 
 void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UItemsContainer, ItemsContainer, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemsContainer, Items, COND_OwnerOnly);
 }
 
 void UItemsContainer::AddStartingData()
@@ -23,7 +23,7 @@ void UItemsContainer::AddStartingData()
 
 		if (CanAddItem(ItemData.Definition))
 		{
-			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemData.Definition, ItemData.PredictedData))
+			if (auto ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, ItemData.PredictedData))
 			{
 				AddItem(ItemObject);
 			}
@@ -59,12 +59,12 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 		{
 			TargetItem->AddAmount(SourceItem->GetItemInstance()->Amount);
 		
-			if (ItemsContainer.Contains(SourceItem))
+			if (Items.Contains(SourceItem))
 			{
-				ItemsContainer.Remove(SourceItem);
+				Items.Remove(SourceItem);
 			}
 		
-			UItemsFunctionLibrary::DestroyItemObject(SourceItem);
+			UItemSystemCore::DestroyItemObject(SourceItem);
 			return true;
 		}
 	}
@@ -73,12 +73,12 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 
 bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
-	if (ItemObject && !ItemsContainer.Contains(ItemObject))
+	if (ItemObject && !Items.Contains(ItemObject))
 	{
 		if (CanAddItem(ItemObject->ItemDefinition))
 		{
 			ItemObject->SetCollected();
-			ItemsContainer.Add(ItemObject);
+			Items.Add(ItemObject);
 			OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
 			return true;
 		}
@@ -88,14 +88,26 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 
 void UItemsContainer::SplitItem(UItemObject* ItemObject)
 {
-	
+	if (!ItemObject || !CanAddItem(ItemObject->ItemDefinition))
+	{
+		return;
+	}
+
+	if (ItemObject->GetItemInstance()->Amount > 1)
+	{
+		if (auto NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
+		{
+			NewItemObject->SetAmount(NewItemObject->GetStackAmount()); // TODO
+			AddItem(NewItemObject);
+		}
+	}
 }
 
 bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
 {
-	if (ItemObject && ItemsContainer.Contains(ItemObject))
+	if (ItemObject && Items.Contains(ItemObject))
 	{
-		ItemsContainer.Remove(ItemObject);
+		Items.Remove(ItemObject);
 		OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
 		return true;
 	}
@@ -132,7 +144,7 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 		{
 			StackableItem->AddAmount(ItemObject->GetItemInstance()->Amount);
 		}
-		else if (auto NewItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemObject))
+		else if (auto NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
 		{
 			if (OtherContainer->AddItem(NewItemObject))
 			{
@@ -157,13 +169,13 @@ bool UItemsContainer::CanAddItem(const UItemDefinition* ItemDefinition) const
 
 bool UItemsContainer::Contains(const UItemObject* ItemObject) const
 {
-	return ItemsContainer.Contains(ItemObject);
+	return Items.Contains(ItemObject);
 }
 
 UItemObject* UItemsContainer::FindItemById(uint32 ItemId) const
 {
 	UItemObject* FoundItem = nullptr;
-	for (auto EachItem : ItemsContainer)
+	for (auto EachItem : Items)
 	{
 		if (EachItem->GetItemId() == ItemId)
 		{
@@ -176,9 +188,9 @@ UItemObject* UItemsContainer::FindItemById(uint32 ItemId) const
 
 UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) const
 {
-	for (int i = 0; i < ItemsContainer.Num(); i++)
+	for (int i = 0; i < Items.Num(); i++)
 	{
-		auto FoundItem = ItemsContainer[i];
+		auto FoundItem = Items[i];
 		if (!FoundItem)
 		{
 			continue;
@@ -192,12 +204,12 @@ UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) 
 	return nullptr;
 }
 
-void UItemsContainer::OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer)
+void UItemsContainer::OnRep_Items(TArray<UItemObject*> PrevContainer)
 {
 	UItemObject* AddedItem = nullptr;
 	UItemObject* RemovedItem = nullptr;
 	
-	for (UItemObject* Item : ItemsContainer)
+	for (UItemObject* Item : Items)
 	{
 		if (PrevContainer.Contains(Item))
 		{
@@ -210,7 +222,7 @@ void UItemsContainer::OnRep_ItemsContainer(TArray<UItemObject*> PrevContainer)
 	
 	for (UItemObject* Item : PrevContainer)
 	{
-		if (ItemsContainer.Contains(Item))
+		if (Items.Contains(Item))
 		{
 			continue;
 		}

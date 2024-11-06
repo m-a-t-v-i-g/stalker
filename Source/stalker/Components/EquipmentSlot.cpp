@@ -2,7 +2,7 @@
 
 #include "EquipmentSlot.h"
 #include "ItemObject.h"
-#include "Items/ItemsFunctionLibrary.h"
+#include "ItemSystemCore.h"
 #include "Net/UnrealNetwork.h"
 
 void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -22,7 +22,7 @@ void UEquipmentSlot::AddStartingData()
 	
 	if (CanEquipItem(StartingData.Definition))
 	{
-		if (UItemObject* ItemObject = UItemsFunctionLibrary::GenerateItemObject(
+		if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(
 			GetWorld(), StartingData.Definition, StartingData.PredictedData))
 		{
 			EquipSlot(ItemObject);
@@ -36,6 +36,7 @@ void UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 	if (BindObject)
 	{
 		BoundObject = BindObject;
+		BoundObject->SetEquipped();
 		OnSlotChanged.Broadcast(FUpdatedSlotData(BoundObject, true));
 	}
 }

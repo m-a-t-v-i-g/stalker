@@ -32,40 +32,10 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (bIsStalkerInitialized)
-	{
-		return;
-	}
-
 	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		AbilitySystemComp->InitAbilitySystem(NewController, this);
 	}
-	
-	if (auto CharacterInventory = GetInventoryComponent<UCharacterInventoryComponent>())
-	{
-		CharacterInventory->PreInitializeContainer();
-		
-		if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
-		{
-			CharacterWeapon->PreInitializeWeapon();
-			CharacterWeapon->PostInitializeWeapon();
-
-			CharacterWeapon->OnAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
-			CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
-			CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
-		}
-		
-		if (auto CharacterArmor = GetArmorComponent())
-		{
-			CharacterArmor->PreInitializeArmor();
-			CharacterArmor->PostInitializeArmor();
-		}
-		
-		CharacterInventory->PostInitializeContainer();
-	}
-	
-	bIsStalkerInitialized = true;
 }
 
 void AStalkerCharacter::OnRep_Controller()

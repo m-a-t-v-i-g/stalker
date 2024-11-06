@@ -150,15 +150,15 @@ void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointer
 ESlateVisibility UItemWidget::GetAmountVisibility()
 {
 	ESlateVisibility AmountVisibility = ESlateVisibility::Collapsed;
+
+	if (auto ItemObject = GetBoundObject<UItemObject>())
 	{
-		if (auto ItemObject = GetBoundObject<UItemObject>())
+		if (ItemObject->IsCollected())
 		{
-			if (ItemObject->IsStackable())
-			{
-				AmountVisibility = ESlateVisibility::SelfHitTestInvisible;
-			}
+			AmountVisibility = ESlateVisibility::SelfHitTestInvisible;
 		}
 	}
+	
 	return AmountVisibility;
 }
 

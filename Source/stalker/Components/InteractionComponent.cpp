@@ -8,6 +8,19 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UInteractionComponent::SetupInteractionComponent()
+{
+	if (auto Pawn = GetOwner<APawn>())
+	{
+		PawnRef = Pawn;
+		
+		if (auto Controller = Pawn->GetController())
+		{
+			ControllerRef = Controller;
+		}
+	}
+}
+
 void UInteractionComponent::Interact()
 {
 	FHitResult HitResult;
@@ -15,13 +28,13 @@ void UInteractionComponent::Interact()
 	FVector ViewPoint;
 	FRotator ViewRotation;
 
-	GetOwner()->GetActorEyesViewPoint(ViewPoint, ViewRotation);
+	ControllerRef->GetPlayerViewPoint(ViewPoint, ViewRotation);
 
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_Visibility);
 	
 	FVector StartPoint = ViewPoint;
-	FVector EndPoint = StartPoint + ViewRotation.Vector() * 1000.0f;
+	FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
 
 	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, StartPoint, EndPoint, ObjectQueryParams);
 	AActor* HitActor = HitResult.GetActor();
@@ -40,9 +53,4 @@ void UInteractionComponent::Interact()
 			InteractableActor->OnInteract();
 		}
 	}
-}
-
-void UInteractionComponent::ServerInteract_Implementation()
-{
-	Interact();
 }

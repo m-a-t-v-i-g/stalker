@@ -3,13 +3,14 @@
 #include "InventoryComponent.h"
 #include "ItemObject.h"
 #include "ItemsContainer.h"
+#include "ItemSystemCore.h"
 #include "Engine/ActorChannel.h"
-#include "Items/ItemsFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	
 	SetIsReplicatedByDefault(true);
 }
 
@@ -43,16 +44,6 @@ void UInventoryComponent::BeginPlay()
 	}
 }
 
-void UInventoryComponent::PreInitializeContainer()
-{
-	
-}
-
-void UInventoryComponent::PostInitializeContainer()
-{
-	
-}
-
 void UInventoryComponent::ServerStackItem_Implementation(uint32 SourceItemId, uint32 TargetItemId)
 {
 	if (ItemsContainerRef)
@@ -79,22 +70,43 @@ bool UInventoryComponent::ServerAddItem_Validate(uint32 ItemId)
 	return IsItemObjectValid(ItemId);
 }
 
-void UInventoryComponent::SplitItem(UItemObject* ItemObject)
-{
-	
-}
-
-void UInventoryComponent::RemoveItem(UItemObject* ItemObject)
-{
-	
-}
-
-void UInventoryComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)
+void UInventoryComponent::ServerSplitItem_Implementation(uint32 ItemId)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->SubtractOrRemoveItem(ItemObject, Amount);
+		ItemsContainerRef->SplitItem(GetItemObjectById(ItemId));
 	}
+}
+
+bool UInventoryComponent::ServerSplitItem_Validate(uint32 ItemId)
+{
+	return IsItemObjectValid(ItemId);
+}
+
+void UInventoryComponent::ServerRemoveItem_Implementation(uint32 ItemId)
+{
+	if (ItemsContainerRef)
+	{
+		ItemsContainerRef->RemoveItem(GetItemObjectById(ItemId));
+	}
+}
+
+bool UInventoryComponent::ServerRemoveItem_Validate(uint32 ItemId)
+{
+	return IsItemObjectValid(ItemId);
+}
+
+void UInventoryComponent::ServerSubtractOrRemoveItem_Implementation(uint32 ItemId, uint16 Amount)
+{
+	if (ItemsContainerRef)
+	{
+		ItemsContainerRef->SubtractOrRemoveItem(GetItemObjectById(ItemId), Amount);
+	}
+}
+
+bool UInventoryComponent::ServerSubtractOrRemoveItem_Validate(uint32 ItemId, uint16 Amount)
+{
+	return IsItemObjectValid(ItemId);
 }
 
 void UInventoryComponent::ServerMoveItemToOtherContainer_Implementation(uint32 ItemId, UItemsContainer* OtherContainer)
@@ -110,14 +122,6 @@ bool UInventoryComponent::ServerMoveItemToOtherContainer_Validate(uint32 ItemId,
 	return IsItemObjectValid(ItemId) && IsValid(OtherContainer);
 }
 
-void UInventoryComponent::DropItem(UItemObject* ItemObject)
-{
-}
-
-void UInventoryComponent::UseItem(UItemObject* ItemObject)
-{
-}
-
 bool UInventoryComponent::HasAuthority() const
 {
 	return GetOwner()->HasAuthority();
@@ -125,10 +129,10 @@ bool UInventoryComponent::HasAuthority() const
 
 UItemObject* UInventoryComponent::GetItemObjectById(uint32 ItemId) const
 {
-	return UItemsFunctionLibrary::GetItemObjectById(GetWorld(), ItemId);
+	return UItemSystemCore::GetItemObjectById(GetWorld(), ItemId);
 }
 
 bool UInventoryComponent::IsItemObjectValid(uint32 ItemId) const
 {
-	return UItemsFunctionLibrary::IsItemObjectExist(GetWorld(), ItemId);
+	return UItemSystemCore::IsItemObjectExist(GetWorld(), ItemId);
 }

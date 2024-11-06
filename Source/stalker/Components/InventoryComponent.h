@@ -26,27 +26,23 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void PreInitializeContainer();
-	virtual void PostInitializeContainer();
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(uint32 SourceItemId, uint32 TargetItemId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(uint32 ItemId);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSplitItem(uint32 ItemId);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRemoveItem(uint32 ItemId);
 	
-	void SplitItem(UItemObject* ItemObject);
-	
-	void RemoveItem(UItemObject* ItemObject);
-	
-	void SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSubtractOrRemoveItem(uint32 ItemId, uint16 Amount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemToOtherContainer(uint32 ItemId, UItemsContainer* OtherContainer);
-
-	void DropItem(UItemObject* ItemObject);
-	
-	void UseItem(UItemObject* ItemObject);
 
 	bool HasAuthority() const;
 
