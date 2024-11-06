@@ -9,7 +9,25 @@
 
 class UItemObject;
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnSlotChangedSignature, UItemObject*, bool, bool);
+USTRUCT()
+struct FUpdatedSlotData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UItemObject* SlotItem = nullptr;
+
+	bool bIsEquipped = false;
+	
+	FUpdatedSlotData() {}
+	
+	FUpdatedSlotData(UItemObject* Item, bool bEquipped)
+	{
+		SlotItem = Item;
+		bIsEquipped = bEquipped;
+	}
+};
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, const FUpdatedSlotData&);
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UEquipmentSlot : public UObject
@@ -25,13 +43,10 @@ public:
 	
 	void AddStartingData();
 	
-	bool EquipSlot(UItemObject* BindObject);
-	
-	void UnEquipSlot();
+	void EquipSlot(UItemObject* BindObject);
+	void UnequipSlot();
 
-	void UpdateSlot(bool bModified) const;
-
-	bool CanEquipItem(const UItemObject* ItemObject) const;
+	bool CanEquipItem(const UItemDefinition* ItemDefinition) const;
 	
 	bool IsEquipped() const { return BoundObject != nullptr; }
 	
@@ -49,12 +64,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
 	FItemStartingData StartingData;
 
-	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_EquipmentSlot", Category = "Equipment Slot")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundObject", Category = "Equipment Slot")
 	TObjectPtr<UItemObject> BoundObject;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
 	bool bAvailable = true;
 
 	UFUNCTION()
-	void OnRep_EquipmentSlot(UItemObject* PrevItemObject);
+	void OnRep_BoundObject(UItemObject* PrevItemObject);
 };

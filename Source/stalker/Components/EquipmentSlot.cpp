@@ -15,52 +15,49 @@ void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void UEquipmentSlot::AddStartingData()
 {
-	if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), StartingData.Definition,
-	                                                                StartingData.PredictedData))
+	if (!StartingData.IsValid())
 	{
-		if (!EquipSlot(ItemObject))
+		return;
+	}
+	
+	if (CanEquipItem(StartingData.Definition))
+	{
+		if (UItemObject* ItemObject = UItemsFunctionLibrary::GenerateItemObject(
+			GetWorld(), StartingData.Definition, StartingData.PredictedData))
 		{
-			ItemObject->MarkAsGarbage();
+			EquipSlot(ItemObject);
 		}
 	}
 	StartingData.Clear();
 }
 
-bool UEquipmentSlot::EquipSlot(UItemObject* BindObject)
+void UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 {
 	if (BindObject)
 	{
 		BoundObject = BindObject;
-		OnSlotChanged.Broadcast(BindObject, true, true);
-		return true;
+		OnSlotChanged.Broadcast(FUpdatedSlotData(BoundObject, true));
 	}
-	return false;
 }
 
-void UEquipmentSlot::UnEquipSlot()
+void UEquipmentSlot::UnequipSlot()
 {
 	if (BoundObject)
 	{
-		OnSlotChanged.Broadcast(BoundObject, true, false);
+		OnSlotChanged.Broadcast(FUpdatedSlotData(BoundObject, false));
 		BoundObject = nullptr;
 	}
 }
 
-bool UEquipmentSlot::CanEquipItem(const UItemObject* ItemObject) const
+bool UEquipmentSlot::CanEquipItem(const UItemDefinition* ItemDefinition) const
 {
-	if (ItemObject)
+	return ItemDefinition->Tag.MatchesAny(CategoryTags);
+}
+
+void UEquipmentSlot::OnRep_BoundObject(UItemObject* PrevItemObject)
+{
+	if (UItemObject* ItemObject = IsEquipped() ? BoundObject.Get() : PrevItemObject)
 	{
-		return ItemObject->GetItemTag().MatchesAny(CategoryTags);
+		OnSlotChanged.Broadcast(FUpdatedSlotData(ItemObject, IsEquipped()));
 	}
-	return false;
-}
-
-void UEquipmentSlot::UpdateSlot(bool bModified) const
-{
-	OnSlotChanged.Broadcast(BoundObject, bModified, IsEquipped());
-}
-
-void UEquipmentSlot::OnRep_EquipmentSlot(UItemObject* PrevItemObject)
-{
-	UpdateSlot(PrevItemObject != BoundObject);
 }

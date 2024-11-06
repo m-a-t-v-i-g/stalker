@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InteractableInterface.h"
 #include "GameFramework/Actor.h"
 #include "ItemActor.generated.h"
 
@@ -10,23 +11,40 @@ class USphereComponent;
 class UItemObject;
 
 UCLASS()
-class STALKER_API AItemActor : public AActor
+class STALKER_API AItemActor : public AActor, public IInteractableInterface
 {
 	GENERATED_BODY()
 
 public:
 	AItemActor();
 
+	static FName PhysicCollisionName;
+	
+	static FName InteractionSphereName;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	static FName SphereComponentName;
+	virtual void Destroyed() override;
+	
+	void BindItemObject(UItemObject* NewItemObject);
+	virtual void OnBindItem();
+
+	void UnbindItemObject();
+	virtual void OnUnbindItem();
+	
+	void SetEquipped();
+	void SetGrounded();
+
+	virtual void UpdateItem();
+	
+	UItemObject* GetItemObject() const { return ItemObject; }
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
-	TObjectPtr<USphereComponent> SphereComponent;
+	TObjectPtr<USphereComponent> PhysicCollision;
 	
-	UPROPERTY()
-	TObjectPtr<UStaticMeshComponent> PreviewMesh;
+	UPROPERTY(EditAnywhere, Category = "Item")
+	TObjectPtr<USphereComponent> InteractionSphere;
 	
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
@@ -34,39 +52,19 @@ protected:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemObject", Category = "Item")
 	TObjectPtr<UItemObject> ItemObject;
 	
-	UPROPERTY(EditAnywhere, Category = "Item")
-	bool bHidePreviewMeshWhenHanded = false;
-
-private:
-	UPROPERTY(ReplicatedUsing = "OnRep_Handed")
-	bool bHanded = false;
-	
-public:
-	void InitializeItem(UItemObject* NewItemObject);
-	virtual void OnInitializeItem();
-
-	void UnbindItem();
-	virtual void OnUnbindItem();
-	
-	void SetHandedMode();
-	void SetFreeMode();
-
-protected:
 	UFUNCTION()
 	void OnRep_ItemObject();
 	
 	UFUNCTION()
 	void OnRep_Handed();
 	
-public:
-	UItemObject* GetItemObject() const { return ItemObject; }
-	
-protected:
-	void UpdateItem() const;
-	
 	template <class T>
 	T* GetItemObject() const
 	{
 		return Cast<T>(ItemObject);
 	}
+	
+private:
+	UPROPERTY(ReplicatedUsing = "OnRep_Handed")
+	bool bHanded = false;
 };

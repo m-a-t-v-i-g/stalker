@@ -59,7 +59,7 @@ public:
 
 	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
 
-	bool CanAddItem(const FGameplayTag& ItemTag) const;
+	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
 	
 	bool Contains(const UItemObject* ItemObject) const;
 

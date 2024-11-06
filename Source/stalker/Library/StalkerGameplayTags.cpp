@@ -13,6 +13,7 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_BasicAction,			"Ability.Character.BasicAction", "Basic action ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_AlternativeAction,	"Ability.Character.AlternativeAction", "Alternative action ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Character.Reload", "Reload ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Character.Interaction", "Interaction ability.");
 
 	FGameplayTag FStalkerGameplayTags::FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{

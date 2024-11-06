@@ -19,6 +19,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
+	virtual void BeginPlay() override;
 	
 	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
 

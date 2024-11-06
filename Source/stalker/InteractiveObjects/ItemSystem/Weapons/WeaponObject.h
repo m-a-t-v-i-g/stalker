@@ -81,7 +81,7 @@ public:
 
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject) override;
 	
-	virtual void OnBindItem() override;
+	virtual void OnBindItemActor() override;
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const override;
 	

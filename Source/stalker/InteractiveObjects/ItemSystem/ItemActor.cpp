@@ -5,16 +5,18 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
-FName AItemActor::SphereComponentName {"ItemCollision"};
+FName AItemActor::PhysicCollisionName {"Physic Collision"};
+FName AItemActor::InteractionSphereName {"Interaction Sphere"};
 
 AItemActor::AItemActor()
 {
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(SphereComponentName);
-	SetRootComponent(SphereComponent);
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::Type::ProbeOnly);
+	PhysicCollision = CreateDefaultSubobject<USphereComponent>(PhysicCollisionName);
+	SetRootComponent(PhysicCollision);
+	PhysicCollision->SetCollisionEnabled(ECollisionEnabled::Type::ProbeOnly);
 
-	PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>("PreviewMesh");
-	PreviewMesh->SetupAttachment(GetRootComponent());
+	InteractionSphere = CreateDefaultSubobject<USphereComponent>(InteractionSphereName);
+	InteractionSphere->SetupAttachment(GetRootComponent());
+	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
 	
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
 	Mesh->SetupAttachment(GetRootComponent());
@@ -31,89 +33,75 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME_CONDITION(AItemActor, bHanded,	COND_OwnerOnly)
 }
 
-void AItemActor::InitializeItem(UItemObject* NewItemObject)
+void AItemActor::Destroyed()
 {
-	if (!IsValid(NewItemObject)) return;
+	UnbindItemObject();
 	
-	ItemObject = NewItemObject;
-	ItemObject->BindItem(this);
-	OnInitializeItem();
+	Super::Destroyed();
 }
 
-void AItemActor::OnInitializeItem()
+void AItemActor::BindItemObject(UItemObject* NewItemObject)
+{
+	if (!IsValid(NewItemObject))
+	{
+		return;
+	}
+	
+	ItemObject = NewItemObject;
+	ItemObject->BindItemActor(this);
+	
+	OnBindItem();
+}
+
+void AItemActor::OnBindItem()
 {
 	UpdateItem();
 }
 
-void AItemActor::UnbindItem()
+void AItemActor::UnbindItemObject()
 {
-	if (!IsValid(ItemObject)) return;
+	if (!IsValid(ItemObject))
+	{
+		return;
+	}
 
-	ItemObject->UnbindItem();
+	ItemObject->UnbindItemActor();
 	ItemObject = nullptr;
+	
 	OnUnbindItem();
 }
 
 void AItemActor::OnUnbindItem()
 {
+	UpdateItem();
 }
 
-void AItemActor::SetHandedMode()
+void AItemActor::SetEquipped()
 {
 	bHanded = true;
-	SphereComponent->SetSimulatePhysics(false);
-
-	if (PreviewMesh->GetStaticMesh())
-	{
-		PreviewMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	}
-	
-	if (Mesh->GetSkeletalMeshAsset())
-	{
-		Mesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	}
-	
-	if (bHidePreviewMeshWhenHanded)
-	{
-		PreviewMesh->SetHiddenInGame(true);
-	}
+	PhysicCollision->SetSimulatePhysics(false);
 }
 
-void AItemActor::SetFreeMode()
+void AItemActor::SetGrounded()
 {
 	bHanded = false;
-	SphereComponent->SetSimulatePhysics(true);
+	PhysicCollision->SetSimulatePhysics(true);
+}
 
-	if (PreviewMesh->GetStaticMesh())
-	{
-		PreviewMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	}
-	
-	if (Mesh->GetSkeletalMeshAsset())
-	{
-		Mesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	}
-	
-	if (bHidePreviewMeshWhenHanded)
-	{
-		PreviewMesh->SetHiddenInGame(false);
-	}
+void AItemActor::UpdateItem()
+{
+
 }
 
 void AItemActor::OnRep_ItemObject()
 {
 	if (ItemObject)
 	{
-		OnInitializeItem();
+		OnBindItem();
 	}
 }
 
 void AItemActor::OnRep_Handed()
 {
-	bHanded ? SetHandedMode() : SetFreeMode();
-}
-
-void AItemActor::UpdateItem() const
-{
-
+	bHanded ? SetEquipped() : SetGrounded();
 }

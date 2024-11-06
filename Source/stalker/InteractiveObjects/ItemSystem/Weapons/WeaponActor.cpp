@@ -10,9 +10,9 @@ AWeaponActor::AWeaponActor()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void AWeaponActor::OnInitializeItem()
+void AWeaponActor::OnBindItem()
 {
-	Super::OnInitializeItem();
+	Super::OnBindItem();
 
 	if (auto WeaponObject = GetItemObject<UWeaponObject>())
 	{

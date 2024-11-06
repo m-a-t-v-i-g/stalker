@@ -30,6 +30,19 @@ bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, F
 	return ReplicateSomething;
 }
 
+void UCharacterInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		for (UEquipmentSlot* Slot : EquipmentSlots)
+		{
+			Slot->AddStartingData();
+		}
+	}
+}
+
 void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObject* ItemObject)
 {
 	ServerEquipSlot(SlotName, ItemObject);
@@ -44,7 +57,7 @@ bool UCharacterInventoryComponent::CanEquipItemAtSlot(const FString& SlotName, U
 {
 	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
-		return Slot->CanEquipItem(ItemObject);
+		return Slot->CanEquipItem(ItemObject->ItemDefinition);
 	}
 	return false;
 }
@@ -74,7 +87,7 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 		{
 			if (UItemObject* OldBoundObject = Slot->GetBoundObject())
 			{
-				Slot->UnEquipSlot();
+				Slot->UnequipSlot();
 				ServerAddItem(OldBoundObject->GetItemId());
 			}
 		}
@@ -98,7 +111,7 @@ void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FStrin
 	{
 		if (Slot->IsEquipped())
 		{
-			Slot->UnEquipSlot();
+			Slot->UnequipSlot();
 		}
 	}
 }
@@ -112,7 +125,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 			continue;
 		}
 
-		if (EquipmentSlot->CanEquipItem(BoundObject))
+		if (EquipmentSlot->CanEquipItem(BoundObject->ItemDefinition))
 		{
 			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject);
 			break;

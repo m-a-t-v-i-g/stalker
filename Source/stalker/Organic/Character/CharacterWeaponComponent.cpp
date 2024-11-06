@@ -63,7 +63,7 @@ void UCharacterWeaponComponent::PreInitializeWeapon()
 			if (WeaponSlotSpecs[i].SlotName.IsEmpty()) continue;
 			if (auto SlotPtr = CharacterInventory->FindEquipmentSlot(WeaponSlotSpecs[i].SlotName))
 			{
-				SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnSlotEquipped, WeaponSlotSpecs[i].SlotName);
+				///SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnSlotEquipped, WeaponSlotSpecs[i].SlotName);
 			}
 		}
 	}
@@ -633,7 +633,7 @@ void UCharacterWeaponComponent::DisarmLeftHand()
 {
 	if (LeftHandItem)
 	{
-		LeftHandItem->UnbindItem();
+		LeftHandItem->UnbindItemObject();
 		LeftHandItem->Destroy();
 		LeftHandItem = nullptr;
 	}
@@ -643,7 +643,7 @@ void UCharacterWeaponComponent::DisarmRightHand()
 {
 	if (RightHandItem)
 	{
-		RightHandItem->UnbindItem();
+		RightHandItem->UnbindItemObject();
 		RightHandItem->Destroy();
 		RightHandItem = nullptr;
 	}
@@ -664,8 +664,8 @@ AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentCo
 			SpawnedWeapon = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,
 																	   StalkerCharacter, StalkerCharacter,
 																	   ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-			SpawnedWeapon->InitializeItem(ItemObject);
-			SpawnedWeapon->SetHandedMode();
+			SpawnedWeapon->BindItemObject(ItemObject);
+			SpawnedWeapon->SetEquipped();
 			SpawnedWeapon->AttachToComponent(AttachmentComponent, AttachmentRules,
 											 WeaponSlot->GetAttachmentSocketName());
 			SpawnedWeapon->FinishSpawning(SpawnTransform);

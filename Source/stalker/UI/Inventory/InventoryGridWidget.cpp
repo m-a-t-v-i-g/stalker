@@ -98,11 +98,13 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (ItemsContainerRef.IsValid() && InventoryComponentRef.IsValid())
 			{
-				uint32 RoomIndex = IndexFromTile(DraggedData.Tile, Columns);
+				uint32 StackableRoom = IndexFromTile(
+					GetTileFromMousePosition(InGeometry, InDragDropEvent.GetScreenSpacePosition()), Columns);
+				uint32 PlacedRoom = IndexFromTile(DraggedData.Tile, Columns);
 				
-				if (IsStackableRoom(Payload, RoomIndex))
+				if (IsStackableRoom(Payload, StackableRoom))
 				{
-					uint32 ItemId = ItemsSlots[RoomIndex];
+					uint32 ItemId = ItemsSlots[StackableRoom];
 					auto RoomItem = ItemsContainerRef->FindItemById(ItemId);
 				
 					if (ItemsContainerRef->Contains(Payload))
@@ -113,9 +115,9 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 					InventoryComponentRef->ServerStackItem(Payload->GetItemId(), RoomItem->GetItemId());
 					DragDropOperation->bWasSuccessful = true;
 				}
-				else if (IsAvailableRoom(Payload, RoomIndex) && ItemsContainerRef->Contains(Payload))
+				else if (IsAvailableRoom(Payload, PlacedRoom) && ItemsContainerRef->Contains(Payload))
 				{
-					const FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
+					const FIntPoint Tile = TileFromIndex(PlacedRoom, Columns);
 					const FIntPoint ItemSize = {Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)};
 
 					FillRoom(Payload->GetItemId(), DraggedData.Tile, ItemSize, Columns);

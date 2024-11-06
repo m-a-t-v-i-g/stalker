@@ -149,11 +149,11 @@ public:
 
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 	
-	void BindItem(AItemActor* BindItem);
-	virtual void OnBindItem();
+	void BindItemActor(AItemActor* BindItem);
+	virtual void OnBindItemActor();
 
-	void UnbindItem();
-	virtual void OnUnbindItem();
+	void UnbindItemActor();
+	virtual void OnUnbindItemActor();
 
 	virtual void SetGrounded();
 	virtual void SetCollected();
@@ -182,7 +182,7 @@ public:
 	FORCEINLINE bool IsStackable() const;
 	FORCEINLINE uint32 GetStackAmount() const;
 	
-	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItem.Get(); }
+	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItemActor.Get(); }
 
 	template <class T>
 	T* GetBoundItem() const
@@ -203,7 +203,7 @@ public:
 	FName GetItemRowName() const { return "ddddd"; }
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;
 
 	UFUNCTION()
@@ -211,5 +211,5 @@ protected:
 
 private:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")
-	TObjectPtr<AItemActor> BoundItem;
+	TObjectPtr<AItemActor> BoundItemActor;
 };

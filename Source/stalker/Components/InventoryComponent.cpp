@@ -20,8 +20,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION(UInventoryComponent, ItemsContainerRef, COND_OwnerOnly);
 }
 
-bool UInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch,
-                                                   FReplicationFlags* RepFlags)
+bool UInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
 	bool ReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 	for (UItemObject* EachItem : ItemsContainerRef->GetItems())

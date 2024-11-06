@@ -41,7 +41,7 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UItemObject, BoundItem,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, BoundItemActor, COND_OwnerOnly);
 }
 
 void UItemObject::Use_Implementation(UObject* Source)
@@ -87,27 +87,33 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 	ItemInstance->SetupProperties(ItemId, ItemDefinition, PredictedData);
 }
 
-void UItemObject::BindItem(AItemActor* BindItem)
+void UItemObject::BindItemActor(AItemActor* BindItem)
 {
-	if (!IsValid(BindItem)) return;
+	if (!IsValid(BindItem))
+	{
+		return;
+	}
 
-	BoundItem = BindItem;
-	OnBindItem();
+	BoundItemActor = BindItem;
+	OnBindItemActor();
 }
 
-void UItemObject::OnBindItem()
+void UItemObject::OnBindItemActor()
 {
 }
 
-void UItemObject::UnbindItem()
+void UItemObject::UnbindItemActor()
 {
-	if (!BoundItem.Get()) return;
+	if (!IsValid(BoundItemActor))
+	{
+		return;
+	}
 
-	BoundItem = nullptr;
-	OnUnbindItem();
+	BoundItemActor = nullptr;
+	OnUnbindItemActor();
 }
 
-void UItemObject::OnUnbindItem()
+void UItemObject::OnUnbindItemActor()
 {
 }
 
@@ -152,9 +158,9 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 
 void UItemObject::OnRep_BoundItem()
 {
-	if (BoundItem)
+	if (BoundItemActor)
 	{
-		OnBindItem();
+		OnBindItemActor();
 	}
 }
 

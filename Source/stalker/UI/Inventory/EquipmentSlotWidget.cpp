@@ -46,8 +46,12 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UObject* SlotContainerReference)
 
 			if (EquipmentSlotRef.IsValid())
 			{
-				EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotChanged);
-				UpdateCanvas();
+				if (EquipmentSlotRef->IsEquipped())
+				{
+					OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), true));
+				}
+				
+				EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
 			}
 		}
 	}
@@ -79,28 +83,16 @@ bool UEquipmentSlotWidget::IsSlotEmpty() const
 	return !EquipmentSlotRef->IsEquipped();
 }
 
-void UEquipmentSlotWidget::OnSlotChanged(UItemObject* BoundObject, bool bModified, bool bEquipped)
+void UEquipmentSlotWidget::OnSlotUpdated(const FUpdatedSlotData& UpdatedData)
 {
 	SlotCanvas->ClearChildren();
 	
-	if (!bEquipped)
+	if (!UpdatedData.bIsEquipped)
 	{
 		return;
 	}
 
 	if (!EquipmentSlotRef.IsValid() || !EquipmentSlotRef->IsEquipped())
-	{
-		return;
-	}
-
-	CreateItemWidget(EquipmentSlotRef->GetBoundObject());
-}
-
-void UEquipmentSlotWidget::UpdateCanvas()
-{
-	SlotCanvas->ClearChildren();
-	
-	if (!EquipmentSlotRef->IsEquipped())
 	{
 		return;
 	}
@@ -159,7 +151,7 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 		}
 		else
 		{
-			UpdateCanvas();
+			OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
 		}
 	}
 }

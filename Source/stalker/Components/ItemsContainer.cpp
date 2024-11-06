@@ -21,7 +21,7 @@ void UItemsContainer::AddStartingData()
 			continue;
 		}
 
-		if (CanAddItem(ItemData.Definition->Tag))
+		if (CanAddItem(ItemData.Definition))
 		{
 			if (auto ItemObject = UItemsFunctionLibrary::GenerateItemObject(GetWorld(), ItemData.Definition, ItemData.PredictedData))
 			{
@@ -75,7 +75,7 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
 	if (ItemObject && !ItemsContainer.Contains(ItemObject))
 	{
-		if (CanAddItem(ItemObject->ItemDefinition->Tag))
+		if (CanAddItem(ItemObject->ItemDefinition))
 		{
 			ItemObject->SetCollected();
 			ItemsContainer.Add(ItemObject);
@@ -150,9 +150,9 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 	}
 }
 
-bool UItemsContainer::CanAddItem(const FGameplayTag& ItemTag) const
+bool UItemsContainer::CanAddItem(const UItemDefinition* ItemDefinition) const
 {
-	return ItemTag.MatchesAny(CategoryTags);
+	return ItemDefinition->Tag.MatchesAny(CategoryTags);
 }
 
 bool UItemsContainer::Contains(const UItemObject* ItemObject) const

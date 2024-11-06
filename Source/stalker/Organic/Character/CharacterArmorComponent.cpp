@@ -19,7 +19,7 @@ void UCharacterArmorComponent::PreInitializeArmor()
 	{
 		if (auto ArmorSlot = CharacterInventoryComp->FindEquipmentSlot(ArmorSlotName))
 		{
-			ArmorSlot->OnSlotChanged.AddUObject(this, &UCharacterArmorComponent::OnArmorSlotChanged);
+			//ArmorSlot->OnSlotChanged.AddUObject(this, &UCharacterArmorComponent::OnArmorSlotChanged);
 		}
 	}
 }

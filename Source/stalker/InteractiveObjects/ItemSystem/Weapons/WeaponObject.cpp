@@ -51,9 +51,9 @@ void UWeaponObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	}
 }
 
-void UWeaponObject::OnBindItem()
+void UWeaponObject::OnBindItemActor()
 {
-	Super::OnBindItem();
+	Super::OnBindItemActor();
 
 	if (auto BindWeapon = GetBoundItem<AWeaponActor>())
 	{

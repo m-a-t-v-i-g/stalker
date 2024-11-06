@@ -36,7 +36,7 @@ private:
 	bool bHoldTrigger = false;
 	
 public:
-	virtual void OnInitializeItem() override;
+	virtual void OnBindItem() override;
 
 	void StartAttack();
 	void CallAttack();
