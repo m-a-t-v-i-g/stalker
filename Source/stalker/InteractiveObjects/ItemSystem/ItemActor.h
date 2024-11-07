@@ -8,6 +8,8 @@
 #include "ItemActor.generated.h"
 
 class USphereComponent;
+class UItemDefinition;
+class UItemPredictedData;
 class UItemObject;
 
 UCLASS()
@@ -25,6 +27,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void Destroyed() override;
+
+	virtual bool OnInteract(AActor* Interactor) override;
 	
 	void BindItemObject(UItemObject* NewItemObject);
 	virtual void OnBindItem();
@@ -40,6 +44,15 @@ public:
 	UItemObject* GetItemObject() const { return ItemObject; }
 	
 protected:
+	UPROPERTY(EditInstanceOnly, Category = "Starting Data")
+	bool bUsePredictedData = false;
+	
+	UPROPERTY(EditInstanceOnly, Instanced, Category = "Starting Data", meta = (EditCondition = "bUsePredictedData"))
+	TObjectPtr<UItemPredictedData> PredictedData;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	TObjectPtr<const UItemDefinition> ItemDefinition;
+	
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TObjectPtr<USphereComponent> PhysicCollision;
 	
@@ -51,6 +64,19 @@ protected:
 	
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemObject", Category = "Item")
 	TObjectPtr<UItemObject> ItemObject;
+	
+	virtual void PostInitializeComponents() override;
+
+	virtual void BeginPlay() override;
+	
+	UFUNCTION()
+	void OnInteractionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                                     const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
 	UFUNCTION()
 	void OnRep_ItemObject();

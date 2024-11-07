@@ -7,11 +7,34 @@
 #include "InputMappingContext.h"
 #include "StalkerPlayerController.generated.h"
 
+class UOrganicAbilityComponent;
+class UCharacterInventoryComponent;
+class UInteractionComponent;
+
 UENUM()
 enum class EHUDTab : uint8
 {
 	HUD,
 	Inventory
+};
+
+USTRUCT()
+struct FCharacterInitInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
+	UCharacterInventoryComponent* InventoryComponent = nullptr;
+	UInteractionComponent* InteractionComponent = nullptr;
+
+	FCharacterInitInfo() {}
+
+	FCharacterInitInfo(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp,
+	                   UInteractionComponent* InteractionComp) : AbilitySystemComponent(AbilityComp),
+	                                                             InventoryComponent(InventoryComp),
+	                                                             InteractionComponent(InteractionComp)
+	{
+	}
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDTabChanged, EHUDTab);

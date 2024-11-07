@@ -22,8 +22,8 @@ void UEquipmentSlot::AddStartingData()
 	
 	if (CanEquipItem(StartingData.Definition))
 	{
-		if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(
-			GetWorld(), StartingData.Definition, StartingData.PredictedData))
+		UItemPredictedData* PredictedData = StartingData.bUsePredictedData ? StartingData.PredictedData : nullptr;
+		if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), StartingData.Definition, PredictedData))
 		{
 			EquipSlot(ItemObject);
 		}

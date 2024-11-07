@@ -118,12 +118,12 @@ FReply UItemWidget::HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent
 
 void UItemWidget::RotateItem()
 {
-	ItemImage->SetRenderTransformAngle(-90.0f);
+	SizeBox->SetRenderTransformAngle(-90.0f);
 }
 
 void UItemWidget::UnRotateItem()
 {
-	ItemImage->SetRenderTransformAngle(0.0f);
+	SizeBox->SetRenderTransformAngle(0.0f);
 }
 
 void UItemWidget::MouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent)

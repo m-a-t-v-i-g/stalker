@@ -45,7 +45,6 @@ protected:
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
-	
 	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
 	EPlayerInventoryTab ActiveTab;

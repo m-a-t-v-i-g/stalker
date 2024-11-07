@@ -61,10 +61,10 @@ class STALKER_API UItemPredictedData : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Item", meta = (ClampMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "Item", meta = (ClampMin = "1"))
 	uint16 Amount = 1;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Item", meta = (ClampMin = "0.0", ClampMax = "100.0", ForceUnits = "%"))
+	UPROPERTY(EditAnywhere, Category = "Item", meta = (ClampMin = "0.0", ClampMax = "100.0", ForceUnits = "%"))
 	float Endurance = 100.0f;
 };
 

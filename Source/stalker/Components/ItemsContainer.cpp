@@ -23,7 +23,8 @@ void UItemsContainer::AddStartingData()
 
 		if (CanAddItem(ItemData.Definition))
 		{
-			if (auto ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, ItemData.PredictedData))
+			UItemPredictedData* PredictedData = ItemData.bUsePredictedData ? ItemData.PredictedData : nullptr;
+			if (auto ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, PredictedData))
 			{
 				AddItem(ItemObject);
 			}
@@ -77,8 +78,8 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 	{
 		if (CanAddItem(ItemObject->ItemDefinition))
 		{
-			ItemObject->SetCollected();
 			Items.Add(ItemObject);
+			ItemObject->SetCollected();
 			OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
 			return true;
 		}

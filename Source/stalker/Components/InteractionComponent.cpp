@@ -21,7 +21,100 @@ void UInteractionComponent::SetupInteractionComponent()
 	}
 }
 
+void UInteractionComponent::AddPossibleInteraction(AActor* NewActor)
+{
+	if (!PawnRef || !ControllerRef)
+	{
+		return;
+	}
+
+	if (!PossibleInteractions.Contains(NewActor))
+	{
+		PossibleInteractions.Add(NewActor);
+	}
+
+	UpdateFindActorTimer();
+	bActive = !PossibleInteractions.IsEmpty();
+}
+
+void UInteractionComponent::RemovePossibleInteraction(AActor* NewActor)
+{
+	if (!PawnRef || !ControllerRef)
+	{
+		return;
+	}
+
+	if (PossibleInteractions.Contains(NewActor))
+	{
+		PossibleInteractions.Remove(NewActor);
+	}
+
+	UpdateFindActorTimer();
+	bActive = !PossibleInteractions.IsEmpty();
+}
+
 void UInteractionComponent::Interact()
+{
+	if (!bActive)
+	{
+		return;
+	}
+	
+	if (auto ActorUnderTrace = GetActorUnderLineTrace())
+	{
+		if (ActorUnderTrace->Implements<UInteractableInterface>())
+		{
+			ServerInteract(ActorUnderTrace);
+		}
+	}
+}
+
+void UInteractionComponent::ServerInteract_Implementation(AActor* ActorToInteract)
+{
+	if (auto InteractableActor = Cast<IInteractableInterface>(ActorToInteract))
+	{
+		InteractableActor->OnInteract(GetOwner());
+	}
+}
+
+void UInteractionComponent::UpdateFindActorTimer()
+{
+	FindInteract();
+	
+	if (!PossibleInteractions.IsEmpty() && !FindActorTimer.IsValid())
+	{
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindLambda([this]
+		{
+			FindInteract();
+		});
+		
+		GetWorld()->GetTimerManager().SetTimer(FindActorTimer, TimerDelegate, DetectionRate, true);
+	}
+	
+	if (PossibleInteractions.IsEmpty()) 
+	{
+		GetWorld()->GetTimerManager().ClearTimer(FindActorTimer);
+	}
+}
+
+void UInteractionComponent::FindInteract()
+{
+	if (!bActive)
+	{
+		return;
+	}
+
+	AActor* FoundActor = GetActorUnderLineTrace();
+	
+	if (DetectedActor != FoundActor)
+	{
+		DetectedActor = FoundActor;
+		OnDetectedActorChanged.Broadcast(DetectedActor.Get());
+	}
+}
+
+AActor* UInteractionComponent::GetActorUnderLineTrace() const
 {
 	FHitResult HitResult;
 	
@@ -30,27 +123,18 @@ void UInteractionComponent::Interact()
 
 	ControllerRef->GetPlayerViewPoint(ViewPoint, ViewRotation);
 
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Visibility);
-	
 	FVector StartPoint = ViewPoint;
 	FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
 
-	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, StartPoint, EndPoint, ObjectQueryParams);
-	AActor* HitActor = HitResult.GetActor();
-
-	DrawDebugLine(GetWorld(), StartPoint, EndPoint, FColor::Red, false, 2.0f, 0, 3.5f);
-
-	if (!HitActor)
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility))
 	{
-		return;
-	}
-	
-	if (bHit)
-	{
-		if (auto InteractableActor = Cast<IInteractableInterface>(HitActor))
+		AActor* HitActor = HitResult.GetActor();
+
+		if (HitActor && PossibleInteractions.Contains(HitActor))
 		{
-			InteractableActor->OnInteract();
+			return HitActor;
 		}
 	}
+	
+	return nullptr;
 }

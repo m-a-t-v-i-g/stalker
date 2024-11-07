@@ -39,7 +39,7 @@ class STALKER_API UWeaponPredictedData : public UItemPredictedData
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0"))
 	int Rounds = 0;
 };
 
@@ -51,6 +51,8 @@ class STALKER_API UWeaponInstance : public UItemInstance
 public:
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData) override;
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+	                             const UItemInstance* Instance) override;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;

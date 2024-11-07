@@ -7,6 +7,7 @@
 #include "InventoryComponent.generated.h"
 
 class UItemsContainer;
+class UItemDefinition;
 class UItemObject;
 
 DECLARE_MULTICAST_DELEGATE(FOnItemsContainerUpdatedSignature);
@@ -25,6 +26,9 @@ public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerFindAvailablePlace(uint32 ItemId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(uint32 SourceItemId, uint32 TargetItemId);
@@ -46,10 +50,12 @@ public:
 
 	bool HasAuthority() const;
 
+	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
+	
 	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
 
 protected:
-	UPROPERTY(EditAnywhere, Instanced, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Instanced, Replicated, Category = "Inventory")
 	TObjectPtr<UItemsContainer> ItemsContainerRef;
 
 	UItemObject* GetItemObjectById(uint32 ItemId) const;

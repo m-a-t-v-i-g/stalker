@@ -6,7 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
+struct FCharacterInitInfo;
 class UOrganicAbilityComponent;
+class UInteractionComponent;
 
 UCLASS(DisplayName = "HUD Widget")
 class STALKER_API UHUDWidget : public UUserWidget
@@ -17,9 +19,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UHUDStatsWidget> StatsWidget;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UHUDInteractionWidget> InteractionWidget;
+
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UInteractionComponent> OwnInteractionComponent;
 	
 public:
-	void InitializeHUD(UOrganicAbilityComponent* AbilityComp);
+	void InitializeHUD(const FCharacterInitInfo& CharacterInitInfo);
 };

@@ -37,7 +37,7 @@ private:
 	TObjectPtr<class UPlayerInventoryWidget> InventoryWidget;
 	
 public:
-	void InitializeMainWidget(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo);
 	
 	void ToggleTab(EHUDTab ActivateTab);
 

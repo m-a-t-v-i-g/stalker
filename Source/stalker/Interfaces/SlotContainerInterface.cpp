@@ -2,7 +2,7 @@
 
 #include "SlotContainerInterface.h"
 
-void ISlotContainerInterface::EquipSlot(const FString& SlotName, UItemObject* ItemObject)
+void ISlotContainerInterface::EquipSlot(const FString& SlotName, uint32 ItemId)
 {
 }
 

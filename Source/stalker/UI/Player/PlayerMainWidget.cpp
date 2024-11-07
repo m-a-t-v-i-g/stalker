@@ -41,15 +41,14 @@ void UPlayerMainWidget::StartLooting(UInventoryComponent* LootItemsContainer)
 	
 }
 
-void UPlayerMainWidget::InitializeMainWidget(UOrganicAbilityComponent* AbilityComp,
-                                             UCharacterInventoryComponent* InventoryComp)
+void UPlayerMainWidget::InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo)
 {
-	OwnAbilityComponent = AbilityComp;
-	OwnInventoryComponent = InventoryComp;
+	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
+	OwnInventoryComponent = CharacterInitInfo.InventoryComponent;
 
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
 
-	HUD->InitializeHUD(OwnAbilityComponent.Get());
+	HUD->InitializeHUD(CharacterInitInfo);
 }
 
 void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)

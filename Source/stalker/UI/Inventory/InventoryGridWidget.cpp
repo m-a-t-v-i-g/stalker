@@ -134,7 +134,7 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UInventoryGridWidget::ClearChildrenItems()
+void UInventoryGridWidget::ClearChildrenItems() const
 {
 	TArray<UWidget*> Children = GridCanvas->GetAllChildren();
 	
@@ -235,6 +235,13 @@ void UInventoryGridWidget::OnItemMouseLeave()
 	HoveredData.Clear();
 }
 
+void UInventoryGridWidget::OnItemDoubleClick(UItemObject* ItemObject)
+{
+	OnItemWidgetDoubleClick.Broadcast(ItemObject);
+	
+	HoveredData.Clear();
+}
+
 void UInventoryGridWidget::OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                       UDragDropOperation* InOperation)
 {
@@ -287,11 +294,17 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 			{
 				if (ItemsContainerRef->Contains(Payload))
 				{
-					const FIntPoint Tile = DraggedData.SourceTile;
-					const FIntPoint ItemSize = {
-						Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
-					};
-					FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
+					bool bFound;
+					uint32 RoomIndex = FindAvailableRoom(Payload, bFound);
+
+					if (bFound)
+					{
+						const FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
+						const FIntPoint ItemSize = {
+							Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
+						};
+						FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
+					}
 				}
 			}
 		}
@@ -314,6 +327,7 @@ UItemWidget* UInventoryGridWidget::CreateItemWidget(UItemObject* ItemObject, con
 		{
 			ItemWidget->OnMouseEnter.BindUObject(this, &UInventoryGridWidget::OnItemMouseEnter);
 			ItemWidget->OnMouseLeave.BindUObject(this, &UInventoryGridWidget::OnItemMouseLeave);
+			ItemWidget->OnDoubleClick.BindUObject(this, &UInventoryGridWidget::OnItemDoubleClick);
 			ItemWidget->OnDragItem.BindUObject(this, &UInventoryGridWidget::OnDragItem);
 			
 			FVector2D WidgetPosition = PositionOnGrid;

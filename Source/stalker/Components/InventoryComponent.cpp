@@ -44,6 +44,19 @@ void UInventoryComponent::BeginPlay()
 	}
 }
 
+void UInventoryComponent::ServerFindAvailablePlace_Implementation(uint32 ItemId)
+{
+	if (ItemsContainerRef)
+	{
+		ItemsContainerRef->FindAvailablePlace(GetItemObjectById(ItemId));
+	}
+}
+
+bool UInventoryComponent::ServerFindAvailablePlace_Validate(uint32 ItemId)
+{
+	return IsItemObjectValid(ItemId);
+}
+
 void UInventoryComponent::ServerStackItem_Implementation(uint32 SourceItemId, uint32 TargetItemId)
 {
 	if (ItemsContainerRef)
@@ -54,7 +67,7 @@ void UInventoryComponent::ServerStackItem_Implementation(uint32 SourceItemId, ui
 
 bool UInventoryComponent::ServerStackItem_Validate(uint32 SourceItemId, uint32 TargetItemId)
 {
-	return IsItemObjectValid(SourceItemId) && IsItemObjectValid(TargetItemId);
+	return IsItemObjectValid(SourceItemId);
 }
 
 void UInventoryComponent::ServerAddItem_Implementation(uint32 ItemId)
@@ -125,6 +138,15 @@ bool UInventoryComponent::ServerMoveItemToOtherContainer_Validate(uint32 ItemId,
 bool UInventoryComponent::HasAuthority() const
 {
 	return GetOwner()->HasAuthority();
+}
+
+bool UInventoryComponent::CanAddItem(const UItemDefinition* ItemDefinition) const
+{
+	if (ItemsContainerRef)
+	{
+		return ItemsContainerRef->CanAddItem(ItemDefinition);
+	}
+	return false;
 }
 
 UItemObject* UInventoryComponent::GetItemObjectById(uint32 ItemId) const

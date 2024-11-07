@@ -43,9 +43,9 @@ void UCharacterInventoryComponent::BeginPlay()
 	}
 }
 
-void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, UItemObject* ItemObject)
+void UCharacterInventoryComponent::EquipSlot(const FString& SlotName, uint32 ItemId)
 {
-	ServerEquipSlot(SlotName, ItemObject);
+	ServerEquipSlot(SlotName, ItemId);
 }
 
 void UCharacterInventoryComponent::UnequipSlot(const FString& SlotName)
@@ -55,9 +55,12 @@ void UCharacterInventoryComponent::UnequipSlot(const FString& SlotName)
 
 bool UCharacterInventoryComponent::CanEquipItemAtSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (auto Slot = FindEquipmentSlot(SlotName))
+	if (UEquipmentSlot* Slot = FindEquipmentSlot(SlotName))
 	{
-		return Slot->CanEquipItem(ItemObject->ItemDefinition);
+		if (Slot->GetBoundObject() != ItemObject)
+		{
+			return Slot->CanEquipItem(ItemObject->ItemDefinition);
+		}
 	}
 	return false;
 }
@@ -79,17 +82,19 @@ UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& S
 	return nullptr;
 }
 
-void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString& SlotName, UItemObject* ItemObject)
+void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString& SlotName, uint32 ItemId)
 {
+	UItemObject* ItemObject = GetItemObjectById(ItemId);
+	if (!ItemObject)
+	{
+		return;
+	}
+	
 	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (Slot->IsEquipped())
 		{
-			if (UItemObject* OldBoundObject = Slot->GetBoundObject())
-			{
-				Slot->UnequipSlot();
-				ServerAddItem(OldBoundObject->GetItemId());
-			}
+			ServerMoveItemFromSlot(SlotName);
 		}
 
 		UItemObject* OtherItem = ItemObject;
@@ -105,6 +110,11 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 	}
 }
 
+bool UCharacterInventoryComponent::ServerEquipSlot_Validate(const FString& SlotName, uint32 ItemId)
+{
+	return IsItemObjectValid(ItemId);
+}
+
 void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FString& SlotName)
 {
 	if (auto Slot = FindEquipmentSlot(SlotName))
@@ -114,6 +124,28 @@ void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FStrin
 			Slot->UnequipSlot();
 		}
 	}
+}
+
+bool UCharacterInventoryComponent::ServerUnequipSlot_Validate(const FString& SlotName)
+{
+	return IsEquipmentSlotValid(SlotName);
+}
+
+void UCharacterInventoryComponent::ServerMoveItemFromSlot_Implementation(const FString& SlotName)
+{
+	if (auto Slot = FindEquipmentSlot(SlotName))
+	{
+		if (UItemObject* OldBoundObject = Slot->GetBoundObject())
+		{
+			Slot->UnequipSlot();
+			ServerAddItem(OldBoundObject->GetItemId());
+		}
+	}
+}
+
+bool UCharacterInventoryComponent::ServerMoveItemFromSlot_Validate(const FString& SlotName)
+{
+	return IsEquipmentSlotValid(SlotName);
 }
 
 void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
@@ -127,8 +159,13 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 
 		if (EquipmentSlot->CanEquipItem(BoundObject->ItemDefinition))
 		{
-			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject);
+			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
 			break;
 		}
 	}
+}
+
+bool UCharacterInventoryComponent::IsEquipmentSlotValid(const FString& SlotName) const
+{
+	return IsValid(FindEquipmentSlot(SlotName));
 }

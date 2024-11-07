@@ -25,6 +25,20 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 	}
 }
 
+void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
+{
+	if (auto WeaponInstance = Cast<UWeaponInstance>(Instance))
+	{
+		Super::SetupProperties(NewItemId, Definition, Instance);
+
+		AmmoClasses = WeaponInstance->AmmoClasses;
+		Rounds = WeaponInstance->Rounds;
+		FireRate = WeaponInstance->FireRate;
+		ReloadTime = WeaponInstance->ReloadTime;
+		bAutomatic = WeaponInstance->bAutomatic;
+	}
+}
+
 void UWeaponObject::Use_Implementation(UObject* Source)
 {
 	Super::Use_Implementation(Source);
@@ -69,10 +83,19 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 	{
 		auto OtherWeaponObject = Cast<UWeaponObject>(OtherItemObject);
 		bResult &= OtherWeaponObject != nullptr;
-
+		
 		if (OtherWeaponObject)
 		{
+			auto OtherWeaponInstance = OtherWeaponObject->GetItemInstance<UWeaponInstance>();
+			bResult &= OtherWeaponInstance != nullptr;
 			
+			if (OtherWeaponInstance)
+			{
+				if (auto MyWeaponInstance = GetItemInstance<UWeaponInstance>())
+				{
+					bResult &= MyWeaponInstance->Rounds == OtherWeaponInstance->Rounds;
+				}
+			}
 		}
 	}
 	return bResult;

@@ -46,6 +46,8 @@ protected:
 	virtual void PostInitializeComponents() override;
 	
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
+	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
 	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;

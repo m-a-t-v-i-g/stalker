@@ -17,5 +17,5 @@ class STALKER_API IInteractableInterface
 	GENERATED_BODY()
 
 public:
-	virtual bool OnInteract();
+	virtual bool OnInteract(AActor* Interactor);
 };

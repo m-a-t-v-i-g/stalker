@@ -17,6 +17,8 @@ class STALKER_API UInventoryWidget : public UUserWidget
 public:
 	void SetupInventory(UInventoryComponent* InventoryComp);
 	void ClearInventory();
+
+	UInventoryGridWidget* GetInventoryGridWidget() const { return ItemsGrid; }
 	
 protected:
 	UPROPERTY(meta = (BindWidget))

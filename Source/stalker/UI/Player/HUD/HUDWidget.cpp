@@ -1,14 +1,19 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDWidget.h"
-#include "AbilitySystem/Components/OrganicAbilityComponent.h"
+#include "Components/HUDInteractionWidget.h"
+#include "Components/OrganicAbilityComponent.h"
 #include "Components/HUDStatsWidget.h"
+#include "Components/InteractionComponent.h"
+#include "Player/StalkerPlayerController.h"
 
-void UHUDWidget::InitializeHUD(UOrganicAbilityComponent* AbilityComp)
+void UHUDWidget::InitializeHUD(const FCharacterInitInfo& CharacterInitInfo)
 {
-	OwnAbilityComponent = AbilityComp;
+	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
+	OwnInteractionComponent = CharacterInitInfo.InteractionComponent;
 
-	check(OwnAbilityComponent.IsValid());
+	check(OwnAbilityComponent.IsValid() && OwnInteractionComponent.IsValid());
 
 	StatsWidget->SetupStatsWidget(OwnAbilityComponent.Get());
+	InteractionWidget->SetupInteractionWidget(OwnInteractionComponent.Get());
 }

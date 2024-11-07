@@ -20,7 +20,7 @@ class STALKER_API ISlotContainerInterface
 	GENERATED_BODY()
 
 public:
-	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject);
+	virtual void EquipSlot(const FString& SlotName, uint32 ItemId);
 	
 	virtual void UnequipSlot(const FString& SlotName);
 

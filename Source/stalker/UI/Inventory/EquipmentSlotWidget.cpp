@@ -23,7 +23,7 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 				{
 					if (SlotContainer->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 					{
-						SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload);
+						SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload->GetItemId());
 						DragDropOperation->bWasSuccessful = true;
 						DragDropOperation->bTryRecoveryItem = true;
 					}

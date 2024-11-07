@@ -26,9 +26,25 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (InteractionComponent)
+	if (IsLocallyControlled())
 	{
-		InteractionComponent->SetupInteractionComponent();
+		if (InteractionComponent)
+		{
+			InteractionComponent->SetupInteractionComponent();
+		}
+	}
+}
+
+void APlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	if (IsLocallyControlled())
+	{
+		if (InteractionComponent)
+		{
+			InteractionComponent->SetupInteractionComponent();
+		}
 	}
 }
 

@@ -22,7 +22,7 @@ public:
 
 	virtual void BeginPlay() override;
 	
-	virtual void EquipSlot(const FString& SlotName, UItemObject* ItemObject) override;
+	virtual void EquipSlot(const FString& SlotName, uint32 ItemId) override;
 
 	virtual void UnequipSlot(const FString& SlotName) override;
 	
@@ -30,15 +30,20 @@ public:
 	
 	virtual UEquipmentSlot* FindEquipmentSlot(const FString& SlotName) const override;
 	
-	UFUNCTION(Server, Reliable)
-	void ServerEquipSlot(const FString& SlotName, UItemObject* ItemObject);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEquipSlot(const FString& SlotName, uint32 ItemId);
 	
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUnequipSlot(const FString& SlotName);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerMoveItemFromSlot(const FString& SlotName);
 	
 	void TryEquipItem(UItemObject* BoundObject);
 
+	bool IsEquipmentSlotValid(const FString& SlotName) const;
+	
 protected:
-	UPROPERTY(EditAnywhere, Instanced, Category = "Equipment")
+	UPROPERTY(EditAnywhere, Instanced, Replicated, Category = "Equipment")
 	TArray<UEquipmentSlot*> EquipmentSlots;
 };

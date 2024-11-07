@@ -45,7 +45,7 @@ public:
 	
 	static float TileSize;
 	
-	void InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo);
 
 	void ToggleTab(EHUDTab& Tab, bool bForce = false);
 	

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/ItemsLibrary.h"
 #include "InventoryGridWidget.generated.h"
 
 struct FUpdatedContainerData;
@@ -62,6 +63,8 @@ class STALKER_API UInventoryGridWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
+	
 	void SetupContainerGrid(UInventoryComponent* InventoryComp);
 	void ClearContainerGrid();
 	
@@ -75,10 +78,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Drawing")
 	FLinearColor GridHighlightColor;
 
-	TWeakObjectPtr<UItemsContainer> ItemsContainerRef;
-
-	TWeakObjectPtr<UInventoryComponent> InventoryComponentRef;
-
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 	                          const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	                          const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -89,7 +88,7 @@ protected:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	                          UDragDropOperation* InOperation) override;
 	
-	void ClearChildrenItems();
+	void ClearChildrenItems() const;
 	
 	void UpdateItemsMap();
 	void UpdateGrid();
@@ -98,6 +97,8 @@ protected:
 
 	void OnItemMouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem);
 	void OnItemMouseLeave();
+	
+	void OnItemDoubleClick(UItemObject* ItemObject);
 	
 	void OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation);
 
@@ -132,10 +133,12 @@ protected:
 	                                          const UItemObject* ItemObject);
 	
 private:
+	TWeakObjectPtr<UItemsContainer> ItemsContainerRef;
+	TWeakObjectPtr<UInventoryComponent> InventoryComponentRef;
+
 	const uint8 Columns = 8;
 	
 	FHoveredItemData HoveredData;
-	
 	FDraggedItemData DraggedData;
 
 	TArray<uint32> ItemsSlots;

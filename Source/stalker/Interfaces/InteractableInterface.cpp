@@ -2,7 +2,7 @@
 
 #include "InteractableInterface.h"
 
-bool IInteractableInterface::OnInteract()
+bool IInteractableInterface::OnInteract(AActor* Interactor)
 {
 	return false;
 }

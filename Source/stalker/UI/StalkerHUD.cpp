@@ -40,11 +40,11 @@ void AStalkerHUD::PostInitializeComponents()
 	}
 }
 
-void AStalkerHUD::InitializePlayerHUD(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
+void AStalkerHUD::InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo)
 {
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(AbilityComp, CharInventoryComp);
+		MainWidget->InitializeMainWidget(CharacterInitInfo);
 	}
 }
 

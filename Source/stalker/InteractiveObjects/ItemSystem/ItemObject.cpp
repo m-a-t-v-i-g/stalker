@@ -169,7 +169,7 @@ bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 	bool bResult = ItemDefinition == OtherItemObject->ItemDefinition;
 	if (bResult)
 	{
-		
+		bResult &= ItemInstance->Endurance == OtherItemObject->GetItemInstance()->Endurance;
 	}
 	return bResult;
 }
