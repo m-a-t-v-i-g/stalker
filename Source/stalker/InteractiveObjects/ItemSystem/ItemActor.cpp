@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemActor.h"
+
+#include "InteractorInterface.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
 #include "Components/InteractionComponent.h"
@@ -47,13 +49,16 @@ bool AItemActor::OnInteract(AActor* Interactor)
 {
 	if (ItemObject && Interactor)
 	{
-		if (auto Inventory = Interactor->GetComponentByClass<UInventoryComponent>())
+		if (auto InteractorInterface = Cast<IInteractorInterface>(Interactor))
 		{
-			Inventory->ServerFindAvailablePlace(ItemObject->GetItemId());
-			Destroy();
+			if (InteractorInterface->ItemInteract(ItemObject))
+			{
+				Destroy();
+				return true;
+			}
 		}
 	}
-	return true;
+	return false;
 }
 
 void AItemActor::BindItemObject(UItemObject* NewItemObject)

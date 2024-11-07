@@ -35,8 +35,6 @@ void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp
 	{
 		EachSlotWidget->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerInventoryWidget::OnOwnEquippedItemDoubleClick);
 	}
-
-	ClearTabs();
 }
 
 void UPlayerInventoryWidget::CloseInventory()
@@ -59,9 +57,16 @@ void UPlayerInventoryWidget::CloseInventory()
 	{
 		EachSlotWidget->OnItemWidgetDoubleClick.RemoveAll(this);
 	}
+
+	ClearTabs();
 }
 
-void UPlayerInventoryWidget::StartLooting(UInventoryComponent* LootItemsContainer)
+void UPlayerInventoryWidget::OpenEmpty()
+{
+	ActivateTab(EPlayerInventoryTab::Inventory);
+}
+
+void UPlayerInventoryWidget::OpenLooting(UInventoryComponent* LootItemsContainer)
 {
 	LootingInventory = LootItemsContainer;
 	check(LootingInventory.IsValid());
@@ -69,7 +74,7 @@ void UPlayerInventoryWidget::StartLooting(UInventoryComponent* LootItemsContaine
 	ActivateTab(EPlayerInventoryTab::Looting);
 }
 
-void UPlayerInventoryWidget::StartUpgrading()
+void UPlayerInventoryWidget::OpenUpgrading()
 {
 	ActivateTab(EPlayerInventoryTab::Upgrading);
 }

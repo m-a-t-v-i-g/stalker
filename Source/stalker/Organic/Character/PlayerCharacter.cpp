@@ -4,8 +4,10 @@
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ItemObject.h"
 #include "StalkerGameplayTags.h"
 #include "Components/InteractionComponent.h"
+#include "Components/InventoryComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Input/StalkerInputComponent.h"
 #include "Player/StalkerPlayerController.h"
@@ -15,6 +17,21 @@ FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(InteractionComponentName);
+}
+
+bool APlayerCharacter::ContainerInteract()
+{
+	ToggleHUDTab.Broadcast(EHUDTab::Inventory, EInventoryAction::Looting, true);
+	return Super::ContainerInteract();
+}
+
+bool APlayerCharacter::ItemInteract(const UItemObject* ItemObject)
+{
+	if (GetInventoryComponent())
+	{
+		GetInventoryComponent()->ServerFindAvailablePlace(ItemObject->GetItemId());
+	}
+	return false;
 }
 
 void APlayerCharacter::PostInitializeComponents()
@@ -84,6 +101,9 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 {
 	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
 	{
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Inventory, ETriggerEvent::Triggered,
+		                                   this, &APlayerCharacter::IA_Inventory);
+		
 		TArray<uint32> BindHandles;
 		StalkerInputComp->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed,
 		                                     &ThisClass::Input_AbilityInputTagReleased, BindHandles);
@@ -100,6 +120,11 @@ void APlayerCharacter::IA_View(const FInputActionValue& Value)
 {
 	Super::TurnView(Value.Get<FVector2D>().X);
 	Super::PitchView(Value.Get<FVector2D>().Y);
+}
+
+void APlayerCharacter::IA_Inventory(const FInputActionValue& Value)
+{
+	ToggleHUDTab.Broadcast(EHUDTab::Inventory, EInventoryAction::None, true);
 }
 
 void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
@@ -165,31 +190,5 @@ void APlayerCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	if (UOrganicAbilityComponent* LyraASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		LyraASC->AbilityInputTagReleased(InputTag);
-	}
-}
-
-void APlayerCharacter::SetupCharacterLocally(AController* NewController)
-{
-	Super::SetupCharacterLocally(NewController);
-	
-	auto StalkerController = GetController<AStalkerPlayerController>();
-	if (!StalkerController)
-	{
-		return;
-	}
-	
-	StalkerController->OnHUDTabChanged.AddUObject(this, &APlayerCharacter::OnHUDTabChanged);
-}
-
-void APlayerCharacter::OnHUDTabChanged(EHUDTab Tab)
-{
-	switch (Tab)
-	{
-	case EHUDTab::Inventory:
-		
-		break;
-	default:
-		
-		break;
 	}
 }

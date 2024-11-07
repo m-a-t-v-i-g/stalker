@@ -46,7 +46,7 @@ struct FItemBehavior
 };
 
 UCLASS()
-class STALKER_API UItemBehaviorDataAsset : public UDataAsset
+class STALKER_API UItemBehaviorDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "StalkerPlayerController.generated.h"
 
+class APlayerCharacter;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UInteractionComponent;
@@ -18,26 +19,34 @@ enum class EHUDTab : uint8
 	Inventory
 };
 
+UENUM()
+enum class EInventoryAction : uint8
+{
+	None,
+	Looting,
+	Upgrading
+};
+
 USTRUCT()
 struct FCharacterInitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
+	APlayerCharacter* Character = nullptr;
 	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
 	UCharacterInventoryComponent* InventoryComponent = nullptr;
 	UInteractionComponent* InteractionComponent = nullptr;
 
 	FCharacterInitInfo() {}
 
-	FCharacterInitInfo(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* InventoryComp,
-	                   UInteractionComponent* InteractionComp) : AbilitySystemComponent(AbilityComp),
+	FCharacterInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
+	                   UCharacterInventoryComponent* InventoryComp,
+	                   UInteractionComponent* InteractionComp) : Character(Char), AbilitySystemComponent(AbilityComp),
 	                                                             InventoryComponent(InventoryComp),
 	                                                             InteractionComponent(InteractionComp)
 	{
 	}
 };
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHUDTabChanged, EHUDTab);
 
 UCLASS()
 class STALKER_API AStalkerPlayerController : public AGenPlayerController
@@ -60,28 +69,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<class UInputDataAsset> GeneralInputData;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	FString InputInventoryName;
-
-	UPROPERTY(EditDefaultsOnly, DisplayName = "Input PDA Name", Category = "Input")
-	FString InputPDAName;
-
 	TObjectPtr<class AStalkerHUD> StalkerHUD;
 	
-	TObjectPtr<class APlayerCharacter> Stalker;
+	TObjectPtr<APlayerCharacter> Stalker;
 
-public:
-	FOnHUDTabChanged OnHUDTabChanged;
+	void ConnectHUD();
 	
 private:
 	bool bIsControllerInitialized = false;
-	
-protected:
-	void IA_Inventory(const FInputActionValue& Value);
-	void IA_PDA(const FInputActionValue& Value);
-	
-	void ToggleHUD(EHUDTab Tab, bool bForce = false) const;
 };

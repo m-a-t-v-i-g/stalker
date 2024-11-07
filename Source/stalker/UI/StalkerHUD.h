@@ -18,9 +18,20 @@ class STALKER_API AStalkerHUD : public AHUD
 	GENERATED_BODY()
 
 public:
+	static UClass* StaticInventoryWidgetClass;
+	static UClass* StaticItemWidgetClass;
+	
+	static float TileSize;
+	
+	void InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo);
+
+	void ToggleTab(EHUDTab Tab, bool bForce = false);
+	
 	void OpenInventory();
 	void CloseInventory();
 
+	void StartLooting(UInventoryComponent* InventoryToLoot);
+	
 protected:
 	virtual void PostInitializeComponents() override;
 	
@@ -38,16 +49,4 @@ protected:
 
 private:
 	EHUDTab ActiveTab = EHUDTab::HUD;
-	
-public:
-	static UClass* StaticInventoryWidgetClass;
-	static UClass* StaticItemWidgetClass;
-	
-	static float TileSize;
-	
-	void InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo);
-
-	void ToggleTab(EHUDTab& Tab, bool bForce = false);
-	
-	void StartLooting(UInventoryComponent* LootItemsContainer);
 };

@@ -53,8 +53,9 @@ public:
 	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
 	void CloseInventory();
 
-	void StartLooting(UInventoryComponent* LootItemsContainer);
-	void StartUpgrading();
+	void OpenEmpty();
+	void OpenLooting(UInventoryComponent* LootItemsContainer);
+	void OpenUpgrading();
 
 	void ClearTabs();
 

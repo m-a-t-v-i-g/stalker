@@ -1,13 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/StalkerPlayerController.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerHUD.h"
 #include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Character/PlayerCharacter.h"
-#include "Data/InputDataAsset.h"
 
 AStalkerPlayerController::AStalkerPlayerController()
 {
@@ -16,44 +14,15 @@ AStalkerPlayerController::AStalkerPlayerController()
 void AStalkerPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
 	Stalker = GetPawn<APlayerCharacter>();
-	if (!Stalker)
-	{
-		return;
-	}
-	
-	if (IsLocalController() && StalkerHUD)
-	{
-		if (!bIsControllerInitialized)
-		{
-			StalkerHUD->InitializePlayerHUD(FCharacterInitInfo(
-				Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-				Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
-				Stalker->GetInteractionComponent()));
-			bIsControllerInitialized = true;
-		}
-	}
+	ConnectHUD();
 }
 
 void AStalkerPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
-
 	Stalker = GetPawn<APlayerCharacter>();
-	if (!Stalker) return;
-
-	if (StalkerHUD)
-	{
-		if (!bIsControllerInitialized)
-		{
-			StalkerHUD->InitializePlayerHUD(FCharacterInitInfo(
-				Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-				Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
-				Stalker->GetInteractionComponent()));
-			bIsControllerInitialized = true;
-		}
-	}
+	ConnectHUD();
 }
 
 void AStalkerPlayerController::SetupInputComponent()
@@ -68,14 +37,6 @@ void AStalkerPlayerController::SetupInputComponent()
 	}
 
 	Super::SetupInputComponent();
-
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
-	{
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputInventoryName], ETriggerEvent::Triggered, this,
-										   &AStalkerPlayerController::IA_Inventory);
-		EnhancedInputComponent->BindAction(GeneralInputData->InputMap[InputPDAName], ETriggerEvent::Triggered, this,
-										   &AStalkerPlayerController::IA_PDA);
-	}
 }
 
 void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass)
@@ -94,22 +55,19 @@ void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const boo
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
-void AStalkerPlayerController::IA_Inventory(const FInputActionValue& Value)
+void AStalkerPlayerController::ConnectHUD()
 {
-	ToggleHUD(EHUDTab::Inventory, false);
-}
-
-void AStalkerPlayerController::IA_PDA(const FInputActionValue& Value)
-{
-	
-}
-
-void AStalkerPlayerController::ToggleHUD(EHUDTab Tab, bool bForce) const
-{
-	if (StalkerHUD)
+	if (!Stalker)
 	{
-		EHUDTab DesiredTab = Tab;
-		StalkerHUD->ToggleTab(DesiredTab, bForce);
-		OnHUDTabChanged.Broadcast(DesiredTab);
+		return;
+	}
+
+	if (IsLocalController() && StalkerHUD)
+	{
+		StalkerHUD->InitializePlayerHUD(FCharacterInitInfo(
+			Stalker,
+			Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
+			Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+			Stalker->GetInteractionComponent()));
 	}
 }

@@ -18,7 +18,7 @@ public:
 	void OpenInventory();
 	void CloseInventory();
 	
-	void StartLooting(UInventoryComponent* LootItemsContainer);
+	void StartLooting(UInventoryComponent* InventoryToLoot);
 	
 protected:
 	UPROPERTY(meta = (BindWidget))

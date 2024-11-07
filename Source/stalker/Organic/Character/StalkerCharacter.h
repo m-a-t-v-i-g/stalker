@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "InteractorInterface.h"
 #include "StalkerCharacter.generated.h"
 
 class UAbilitySet;
 class UCharacterArmorComponent;
 
 UCLASS(Blueprintable, BlueprintType)
-class STALKER_API AStalkerCharacter : public ABaseCharacter
+class STALKER_API AStalkerCharacter : public ABaseCharacter, public IInteractorInterface
 {
 	GENERATED_BODY()
 
@@ -18,7 +19,7 @@ public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName ArmorComponentName;
-
+	
 	virtual void PostInitializeComponents() override;
 	
 	virtual void PossessedBy(AController* NewController) override;

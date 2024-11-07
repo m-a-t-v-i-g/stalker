@@ -13,6 +13,8 @@ class UAbilitySet;
 class UPlayerInputConfig;
 class UInteractionComponent;
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FToggleHUDTab, EHUDTab DesiredTab, EInventoryAction, bool bForce);
+
 UCLASS()
 class STALKER_API APlayerCharacter : public AStalkerCharacter
 {
@@ -22,11 +24,9 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName InteractionComponentName;
+
+	FToggleHUDTab ToggleHUDTab;
 	
-	virtual void SetupCharacterLocally(AController* NewController) override;
-
-	void OnHUDTabChanged(EHUDTab Tab);
-
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE UInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
+	virtual bool ContainerInteract() override;
+	virtual bool ItemInteract(const UItemObject* ItemObject) override;
+	
 	virtual void PostInitializeComponents() override;
 	
 	virtual void PossessedBy(AController* NewController) override;
@@ -57,6 +60,8 @@ protected:
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
 	
+	void IA_Inventory(const FInputActionValue& Value);
+
 	void IA_Slot(const FInputActionValue& Value);
 
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);

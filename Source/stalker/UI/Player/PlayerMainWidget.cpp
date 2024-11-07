@@ -36,9 +36,12 @@ void UPlayerMainWidget::CloseInventory()
 	ToggleTab(EHUDTab::HUD);
 }
 
-void UPlayerMainWidget::StartLooting(UInventoryComponent* LootItemsContainer)
+void UPlayerMainWidget::StartLooting(UInventoryComponent* InventoryToLoot)
 {
-	
+	if (InventoryWidget)
+	{
+		InventoryWidget->OpenLooting(InventoryToLoot);
+	}
 }
 
 void UPlayerMainWidget::InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo)
