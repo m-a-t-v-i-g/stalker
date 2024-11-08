@@ -8,42 +8,6 @@
 #include "Components/WidgetSwitcher.h"
 #include "HUD/HUDWidget.h"
 
-void UPlayerMainWidget::OpenInventory()
-{
-	if (!InventoryWidget)
-	{
-		InventoryWidget = CreateWidget<UPlayerInventoryWidget>(GetOwningPlayer(), AStalkerHUD::StaticInventoryWidgetClass);
-		
-		if (InventoryWidget)
-		{
-			InventoryWidget->OpenInventory(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
-			SlotManager->AddChild(InventoryWidget);
-		}
-		
-		ToggleTab(EHUDTab::Inventory);
-	}
-}
-
-void UPlayerMainWidget::CloseInventory()
-{
-	if (InventoryWidget)
-	{
-		InventoryWidget->RemoveFromParent();
-		InventoryWidget->CloseInventory();
-		InventoryWidget = nullptr;
-	}
-
-	ToggleTab(EHUDTab::HUD);
-}
-
-void UPlayerMainWidget::StartLooting(UInventoryComponent* InventoryToLoot)
-{
-	if (InventoryWidget)
-	{
-		InventoryWidget->OpenLooting(InventoryToLoot);
-	}
-}
-
 void UPlayerMainWidget::InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo)
 {
 	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
@@ -54,15 +18,52 @@ void UPlayerMainWidget::InitializeMainWidget(const FCharacterInitInfo& Character
 	HUD->InitializeHUD(CharacterInitInfo);
 }
 
-void UPlayerMainWidget::ToggleTab(EHUDTab ActivateTab)
+void UPlayerMainWidget::SetupOwnInventory()
 {
-	switch (ActivateTab)
+	if (!InventoryWidget)
 	{
-	case EHUDTab::Inventory:
-		TabSwitcher->SetActiveWidget(SlotManager);
-		break;
-	default:
-		TabSwitcher->SetActiveWidget(HUD);
-		break;
+		InventoryWidget = CreateWidget<UPlayerInventoryWidget>(GetOwningPlayer(), AStalkerHUD::StaticInventoryWidgetClass);
+		
+		if (InventoryWidget)
+		{
+			InventoryWidget->OpenInventory(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
+			SlotManager->AddChild(InventoryWidget);
+		}
 	}
+}
+
+void UPlayerMainWidget::CloseOwnInventory()
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->RemoveFromParent();
+		InventoryWidget->CloseInventory();
+		InventoryWidget = nullptr;
+	}
+}
+
+void UPlayerMainWidget::OpenEmptyTab()
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->OpenEmpty();
+	}
+}
+
+void UPlayerMainWidget::OpenLootingTab(UInventoryComponent* InventoryToLoot)
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->OpenLooting(InventoryToLoot);
+	}
+}
+
+void UPlayerMainWidget::OpenHUDTab()
+{
+	TabSwitcher->SetActiveWidget(HUD);
+}
+
+void UPlayerMainWidget::OpenInventoryTab()
+{
+	TabSwitcher->SetActiveWidget(SlotManager);
 }

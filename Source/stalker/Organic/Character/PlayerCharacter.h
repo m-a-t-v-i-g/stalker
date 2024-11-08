@@ -13,7 +13,9 @@ class UAbilitySet;
 class UPlayerInputConfig;
 class UInteractionComponent;
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FToggleHUDTab, EHUDTab DesiredTab, EInventoryAction, bool bForce);
+DECLARE_MULTICAST_DELEGATE(FOnPlayerToggleInventorySignature);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerLootContainerSignature, UInventoryComponent*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerPickUpItemSignature, UItemObject*);
 
 UCLASS()
 class STALKER_API APlayerCharacter : public AStalkerCharacter
@@ -25,7 +27,11 @@ public:
 
 	static FName InteractionComponentName;
 
-	FToggleHUDTab ToggleHUDTab;
+	FOnPlayerToggleInventorySignature OnPlayerToggleInventory;
+	
+	FOnPlayerLootContainerSignature OnContainerInteraction;
+	
+	FOnPlayerPickUpItemSignature OnItemInteraction;
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE UInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
@@ -43,8 +49,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
-	virtual bool ContainerInteract() override;
-	virtual bool ItemInteract(const UItemObject* ItemObject) override;
+	virtual bool ContainerInteract(UInventoryComponent* TargetInventory) override;
+	virtual bool ItemInteract(UItemObject* ItemObject) override;
 	
 	virtual void PostInitializeComponents() override;
 	

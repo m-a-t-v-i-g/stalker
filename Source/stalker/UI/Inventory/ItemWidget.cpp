@@ -56,9 +56,10 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	DragDropOperation->Payload = BoundObject.Get();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
 
-	if (auto DragVisual = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass))
+	if (auto DragVisual = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass)) // TODO: класс виджета для драг дропа
 	{
-		DragVisual->InitItemWidget(BoundObject.Get(), {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
+		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(),
+		                           {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
 		DragDropOperation->DefaultDragVisual = DragVisual;
 	}
 	
@@ -67,8 +68,9 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	BeginDragOperation(InGeometry, InMouseEvent, OutOperation);
 }
 
-void UItemWidget::InitItemWidget(UItemObject* BindObject, FIntPoint Size)
+void UItemWidget::InitItemWidget(const UObject* Owner, UItemObject* BindObject, FIntPoint Size)
 {
+	OwnerPrivate = Owner;
 	BoundObject = BindObject;
 
 	FVector2D GridSize = {Size.X * AStalkerHUD::TileSize, Size.Y * AStalkerHUD::TileSize};

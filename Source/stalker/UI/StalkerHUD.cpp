@@ -1,11 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerHUD.h"
-
 #include "Character/PlayerCharacter.h"
 #include "Inventory/ItemWidget.h"
-#include "Player/PlayerMainWidget.h"
 #include "Player/PlayerInventoryWidget.h"
+#include "Player/PlayerMainWidget.h"
 
 UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
 UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
@@ -15,13 +14,25 @@ void AStalkerHUD::InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInf
 {
 	if (APlayerCharacter* PlayerCharacter = CharacterInitInfo.Character)
 	{
-		//PlayerCharacter->ToggleHUDTab.AddUObject(this, &AStalkerHUD::ToggleTab);
+		PlayerCharacter->OnPlayerToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
+		PlayerCharacter->OnContainerInteraction.AddUObject(this, &AStalkerHUD::OnContainerInteract);
 	}
-	
+
 	if (MainWidget)
 	{
 		MainWidget->InitializeMainWidget(CharacterInitInfo);
 	}
+}
+
+void AStalkerHUD::OnOpenInventory()
+{
+	ToggleTab(EHUDTab::Inventory, false);
+}
+
+void AStalkerHUD::OnContainerInteract(UInventoryComponent* TargetInventory)
+{
+	ToggleTab(EHUDTab::Inventory, false);
+	StartLooting(TargetInventory);
 }
 
 void AStalkerHUD::ToggleTab(EHUDTab Tab, bool bForce)
@@ -37,43 +48,54 @@ void AStalkerHUD::ToggleTab(EHUDTab Tab, bool bForce)
 	switch (ActiveTab)
 	{
 	case EHUDTab::Inventory:
-		GetOwningPlayerController()->SetInputMode(FInputModeGameAndUI());
-		GetOwningPlayerController()->SetShowMouseCursor(true);
-		OpenInventory();
+		SetupAndOpenOwnInventory();
+		SetGameAndUIMode();
 		break;
 	default:
-		GetOwningPlayerController()->SetInputMode(FInputModeGameOnly());
-		GetOwningPlayerController()->SetShowMouseCursor(false);
-		CloseInventory();
+		OpenHUD();
+		SetGameOnlyMode();
 		break;
 	}
 }
 
-void AStalkerHUD::OpenInventory()
+void AStalkerHUD::SetupAndOpenOwnInventory()
 {
 	if (MainWidget)
 	{
-		MainWidget->OpenInventory();
+		MainWidget->SetupOwnInventory();
+		MainWidget->OpenInventoryTab();
 	}
 }
 
-void AStalkerHUD::CloseInventory()
+void AStalkerHUD::CloseOwnInventory()
 {
 	if (MainWidget)
 	{
-		MainWidget->CloseInventory();
+		MainWidget->CloseOwnInventory();
 	}
 }
 
 void AStalkerHUD::StartLooting(UInventoryComponent* InventoryToLoot)
 {
-	ToggleTab(EHUDTab::Inventory, true);
+	if (MainWidget)
+	{
+		MainWidget->OpenLootingTab(InventoryToLoot);
+	}
+}
+
+void AStalkerHUD::OpenHUD()
+{
+	ClearAll();
 	
 	if (MainWidget)
 	{
-		MainWidget->OpenInventory();
-		MainWidget->StartLooting(InventoryToLoot);
+		MainWidget->OpenHUDTab();
 	}
+}
+
+void AStalkerHUD::ClearAll()
+{
+	CloseOwnInventory();
 }
 
 void AStalkerHUD::PostInitializeComponents()
@@ -93,4 +115,16 @@ void AStalkerHUD::PostInitializeComponents()
 			ToggleTab(EHUDTab::HUD, true);
 		}
 	}
+}
+
+void AStalkerHUD::SetGameOnlyMode()
+{
+	GetOwningPlayerController()->SetInputMode(FInputModeGameOnly());
+	GetOwningPlayerController()->SetShowMouseCursor(false);
+}
+
+void AStalkerHUD::SetGameAndUIMode()
+{
+	GetOwningPlayerController()->SetInputMode(FInputModeGameAndUI());
+	GetOwningPlayerController()->SetShowMouseCursor(true);
 }

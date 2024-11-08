@@ -84,29 +84,35 @@ UEquipmentSlot* UCharacterInventoryComponent::FindEquipmentSlot(const FString& S
 
 void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString& SlotName, uint32 ItemId)
 {
-	UItemObject* ItemObject = GetItemObjectById(ItemId);
-	if (!ItemObject)
-	{
-		return;
-	}
-	
 	if (auto Slot = FindEquipmentSlot(SlotName))
 	{
 		if (Slot->IsEquipped())
 		{
 			ServerMoveItemFromSlot(SlotName);
 		}
-
-		UItemObject* OtherItem = ItemObject;
-
-		if (ItemObject->GetItemInstance()->Amount > 1)
+		
+		UItemObject* EquippingItem = GetItemObjectById(ItemId);
+		if (!EquippingItem)
 		{
-			OtherItem = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject);
-			OtherItem->SetAmount(1);
+			return;
 		}
 
-		ServerSubtractOrRemoveItem(ItemObject->GetItemId(), 1);
-		Slot->EquipSlot(OtherItem);
+		if (EquippingItem->GetItemInstance()->Amount > 1)
+		{
+			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(GetWorld(), EquippingItem);
+			if (!RemainedItem)
+			{
+				return;
+			}
+
+			RemainedItem = UItemSystemCore::GenerateItemObject(GetWorld(), EquippingItem);
+			RemainedItem->SetAmount(EquippingItem->GetItemInstance()->Amount - 1);
+			ServerAddItem(RemainedItem->GetItemId());
+
+			EquippingItem->SetAmount(1);
+		}
+
+		Slot->EquipSlot(EquippingItem);
 	}
 }
 
@@ -160,6 +166,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 		if (EquipmentSlot->CanEquipItem(BoundObject->ItemDefinition))
 		{
 			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
+			ServerRemoveItem(BoundObject->GetItemId());
 			break;
 		}
 	}

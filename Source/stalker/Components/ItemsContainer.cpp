@@ -3,6 +3,7 @@
 #include "ItemsContainer.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
+#include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
 void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -10,6 +11,16 @@ void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UItemsContainer, Items, COND_OwnerOnly);
+}
+
+bool UItemsContainer::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool bReplicateSomething = false;
+	for (UItemObject* EachItem : GetItems())
+	{
+		bReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
+	}
+	return bReplicateSomething;
 }
 
 void UItemsContainer::AddStartingData()
@@ -64,8 +75,6 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 			{
 				Items.Remove(SourceItem);
 			}
-		
-			UItemSystemCore::DestroyItemObject(SourceItem);
 			return true;
 		}
 	}
@@ -108,9 +117,12 @@ bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
 {
 	if (ItemObject && Items.Contains(ItemObject))
 	{
-		Items.Remove(ItemObject);
-		OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
-		return true;
+		if (Items.Contains(ItemObject))
+		{
+			Items.Remove(ItemObject);
+			OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
+			return true;
+		}
 	}
 	return false;
 }
@@ -143,9 +155,9 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 	{
 		if (auto StackableItem = OtherContainer->FindAvailableStack(ItemObject))
 		{
-			StackableItem->AddAmount(ItemObject->GetItemInstance()->Amount);
+			StackableItem->AddAmount(ItemObject->GetStackAmount());
 		}
-		else if (auto NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
+		else if (UItemObject* NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
 		{
 			if (OtherContainer->AddItem(NewItemObject))
 			{

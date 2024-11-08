@@ -12,6 +12,14 @@ class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UInventoryComponent;
 
+UENUM()
+enum class EPlayerInventoryTab : uint8
+{
+	Inventory,
+	Looting,
+	Upgrading
+};
+
 UCLASS()
 class STALKER_API AStalkerHUD : public AHUD
 {
@@ -25,12 +33,19 @@ public:
 	
 	void InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo);
 
+	void OnOpenInventory();
+	void OnContainerInteract(UInventoryComponent* TargetInventory);
+	
 	void ToggleTab(EHUDTab Tab, bool bForce = false);
 	
-	void OpenInventory();
-	void CloseInventory();
+	void SetupAndOpenOwnInventory();
+	void CloseOwnInventory();
 
 	void StartLooting(UInventoryComponent* InventoryToLoot);
+
+	void OpenHUD();
+	
+	void ClearAll();
 	
 protected:
 	virtual void PostInitializeComponents() override;
@@ -47,6 +62,9 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "HUD")
 	TObjectPtr<UPlayerMainWidget> MainWidget;
 
+	void SetGameOnlyMode();
+	void SetGameAndUIMode();
+	
 private:
 	EHUDTab ActiveTab = EHUDTab::HUD;
 };

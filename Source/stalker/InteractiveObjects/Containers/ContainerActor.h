@@ -6,6 +6,8 @@
 #include "InteractiveActor.h"
 #include "ContainerActor.generated.h"
 
+class UInventoryComponent;
+
 UCLASS()
 class STALKER_API AContainerActor : public AInteractiveActor
 {
@@ -14,5 +16,13 @@ class STALKER_API AContainerActor : public AInteractiveActor
 public:
 	AContainerActor();
 
+	static FName InventoryComponentName;
+	
 	virtual bool OnInteract(AActor* Interactor) override;
+
+protected:
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Container", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInventoryComponent> InventoryComponent;
 };

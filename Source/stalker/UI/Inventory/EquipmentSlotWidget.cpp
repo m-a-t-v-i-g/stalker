@@ -21,11 +21,12 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			{
 				if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
 				{
+					DragDropOperation->Target = EquipmentSlotRef;
+					
 					if (SlotContainer->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 					{
 						SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload->GetItemId());
 						DragDropOperation->bWasSuccessful = true;
-						DragDropOperation->bTryRecoveryItem = true;
 					}
 				}
 			}
@@ -141,19 +142,23 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 	{
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
-
-		if (DragDropOperation->bWasSuccessful)
+		
+		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
+			if (DragDropOperation->bWasSuccessful)
 			{
-				SlotContainer->UnequipSlot(EquipmentSlotRef->GetSlotName());
+				if (EquipmentSlotRef.Get() != DragDropOperation->Target.Get())
+				{
+					if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
+					{
+						SlotContainer->UnequipSlot(EquipmentSlotRef->GetSlotName());
+					}
+				}
 			}
 		}
-		else
-		{
-			OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
-		}
 	}
+	
+	OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
 }
 
 UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
@@ -161,7 +166,7 @@ UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
 	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass);
 	if (ItemWidget)
 	{
-		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+		ItemWidget->InitItemWidget(EquipmentSlotRef.Get(), ItemObject, ItemObject->GetItemSize());
 		
 		if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 		{

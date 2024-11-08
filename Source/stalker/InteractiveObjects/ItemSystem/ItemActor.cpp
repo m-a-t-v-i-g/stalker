@@ -1,12 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemActor.h"
-
 #include "InteractorInterface.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
 #include "Components/InteractionComponent.h"
-#include "Components/InventoryComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -34,7 +32,7 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(AItemActor, ItemObject, COND_OwnerOnly);
+	DOREPLIFETIME(AItemActor, ItemObject);
 	DOREPLIFETIME_CONDITION(AItemActor, bHanded,	COND_OwnerOnly)
 }
 

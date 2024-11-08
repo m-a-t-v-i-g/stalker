@@ -49,6 +49,8 @@ class STALKER_API UWeaponInstance : public UItemInstance
 	GENERATED_BODY()
 
 public:
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData) override;
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,

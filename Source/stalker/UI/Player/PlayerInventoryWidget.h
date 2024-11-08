@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StalkerHUD.h"
 #include "Blueprint/UserWidget.h"
 #include "PlayerInventoryWidget.generated.h"
 
@@ -10,14 +11,6 @@ class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UInventoryComponent;
 class UItemObject;
-
-UENUM()
-enum class EPlayerInventoryTab : uint8
-{
-	Inventory,
-	Looting,
-	Upgrading
-};
 
 UCLASS()
 class STALKER_API UPlayerInventoryWidget : public UUserWidget

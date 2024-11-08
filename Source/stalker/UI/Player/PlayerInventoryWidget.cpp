@@ -2,6 +2,7 @@
 
 #include "PlayerInventoryWidget.h"
 #include "ItemObject.h"
+#include "StalkerHUD.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
@@ -70,6 +71,13 @@ void UPlayerInventoryWidget::OpenLooting(UInventoryComponent* LootItemsContainer
 {
 	LootingInventory = LootItemsContainer;
 	check(LootingInventory.IsValid());
+
+	Looting->SetupInventory(LootingInventory.Get());
+	
+	if (UInventoryGridWidget* LootingGrid = Looting->GetInventoryGridWidget())
+	{
+		LootingGrid->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerInventoryWidget::OnLootingItemDoubleClick);
+	}
 	
 	ActivateTab(EPlayerInventoryTab::Looting);
 }
@@ -82,6 +90,13 @@ void UPlayerInventoryWidget::OpenUpgrading()
 void UPlayerInventoryWidget::ClearTabs()
 {
 	ActivateTab(EPlayerInventoryTab::Inventory);
+	
+	Inventory->ClearInventory();
+	
+	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
+	{
+		GridWidget->OnItemWidgetDoubleClick.RemoveAll(this);
+	}
 	
 	LootingInventory.Reset();
 }

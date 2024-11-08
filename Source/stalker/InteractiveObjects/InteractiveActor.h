@@ -19,7 +19,18 @@ public:
 
 	virtual bool OnInteract(AActor* Interactor) override;
 	
+	UFUNCTION()
+	void OnInteractionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+										 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+										 const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+									   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TObjectPtr<USphereComponent> InteractionSphere;
+	
+	virtual void PostInitializeComponents() override;
 };

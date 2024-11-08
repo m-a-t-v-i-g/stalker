@@ -23,12 +23,10 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 bool UInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
-	bool ReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	for (UItemObject* EachItem : ItemsContainerRef->GetItems())
-	{
-		ReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
-	}
-	return ReplicateSomething;
+	bool bReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	bReplicateSomething |= Channel->ReplicateSubobject(ItemsContainerRef, *Bunch, *RepFlags);
+	bReplicateSomething |= ItemsContainerRef->ReplicateSubobjects(Channel, Bunch, RepFlags);
+	return bReplicateSomething;
 }
 
 void UInventoryComponent::BeginPlay()

@@ -98,34 +98,35 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (ItemsContainerRef.IsValid() && InventoryComponentRef.IsValid())
 			{
-				uint32 StackableRoom = IndexFromTile(
+				DragDropOperation->Target = ItemsContainerRef;
+				
+				const uint32 StackableRoom = IndexFromTile(
 					GetTileFromMousePosition(InGeometry, InDragDropEvent.GetScreenSpacePosition()), Columns);
-				uint32 PlacedRoom = IndexFromTile(DraggedData.Tile, Columns);
+				const uint32 PlacedRoom = IndexFromTile(DraggedData.Tile, Columns);
 				
 				if (IsStackableRoom(Payload, StackableRoom))
 				{
-					uint32 ItemId = ItemsSlots[StackableRoom];
-					auto RoomItem = ItemsContainerRef->FindItemById(ItemId);
-				
-					if (ItemsContainerRef->Contains(Payload))
-					{
-						ClearRoom(Payload->GetItemId()); // TODO: возможно будут траблы при перемещении в другой контейнер
-					}
-				
+					const uint32 ItemId = ItemsSlots[StackableRoom];
+					const UItemObject* RoomItem = ItemsContainerRef->FindItemById(ItemId);
+
 					InventoryComponentRef->ServerStackItem(Payload->GetItemId(), RoomItem->GetItemId());
+
 					DragDropOperation->bWasSuccessful = true;
 				}
-				else if (IsAvailableRoom(Payload, PlacedRoom) && ItemsContainerRef->Contains(Payload))
+				else if (IsAvailableRoom(Payload, PlacedRoom))
 				{
 					const FIntPoint Tile = TileFromIndex(PlacedRoom, Columns);
 					const FIntPoint ItemSize = {Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)};
 
-					FillRoom(Payload->GetItemId(), DraggedData.Tile, ItemSize, Columns);
-					DragDropOperation->bWasSuccessful = true;
-				}
-				else if (!ItemsContainerRef->Contains(Payload))
-				{
-					InventoryComponentRef->ServerAddItem(Payload->GetItemId());
+					if (!ItemsContainerRef->Contains(Payload))
+					{
+						InventoryComponentRef->ServerAddItem(Payload->GetItemId());
+					}
+					else
+					{
+						FillRoom(Payload->GetItemId(), DraggedData.Tile, ItemSize, Columns);
+					}
+
 					DragDropOperation->bWasSuccessful = true;
 				}
 			}
@@ -171,7 +172,7 @@ void UInventoryGridWidget::UpdateGrid()
 
 	for (auto EachItem : ItemsMap)
 	{
-		auto ItemId = EachItem.Key;
+		uint32 ItemId = EachItem.Key;
 		FIntPoint Tile = EachItem.Value;
 
 		auto ItemObject = ItemsContainerRef->FindItemById(ItemId);
@@ -237,8 +238,9 @@ void UInventoryGridWidget::OnItemMouseLeave()
 
 void UInventoryGridWidget::OnItemDoubleClick(UItemObject* ItemObject)
 {
+	ClearRoom(ItemObject->GetItemId());
+	UpdateItemsMap();
 	OnItemWidgetDoubleClick.Broadcast(ItemObject);
-	
 	HoveredData.Clear();
 }
 
@@ -288,23 +290,30 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
 
-		if (!DragDropOperation->bWasSuccessful || DragDropOperation->bTryRecoveryItem)
+		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
+			if (DragDropOperation->bWasSuccessful)
 			{
-				if (ItemsContainerRef->Contains(Payload))
+				if (ItemsContainerRef.Get() != DragDropOperation->Target.Get())
 				{
-					bool bFound;
-					uint32 RoomIndex = FindAvailableRoom(Payload, bFound);
-
-					if (bFound)
+					if (ItemsContainerRef->Contains(Payload))
 					{
-						const FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
-						const FIntPoint ItemSize = {
-							Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
-						};
-						FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
+						InventoryComponentRef->ServerRemoveItem(Payload->GetItemId());
 					}
+				}
+			}
+			else
+			{
+				bool bFound;
+				uint32 RoomIndex = FindAvailableRoom(Payload, bFound);
+				FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
+
+				if (bFound)
+				{
+					const FIntPoint ItemSize = {
+						Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
+					};
+					FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
 				}
 			}
 		}
@@ -321,7 +330,7 @@ UItemWidget* UInventoryGridWidget::CreateItemWidget(UItemObject* ItemObject, con
 	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass);
 	if (ItemWidget)
 	{
-		ItemWidget->InitItemWidget(ItemObject, ItemObject->GetItemSize());
+		ItemWidget->InitItemWidget(InventoryComponentRef.Get(), ItemObject, ItemObject->GetItemSize());
 			
 		if (UCanvasPanelSlot* ItemSlot = GridCanvas->AddChildToCanvas(ItemWidget))
 		{

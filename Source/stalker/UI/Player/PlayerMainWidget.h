@@ -15,10 +15,16 @@ class STALKER_API UPlayerMainWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void OpenInventory();
-	void CloseInventory();
+	void InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo);
 	
-	void StartLooting(UInventoryComponent* InventoryToLoot);
+	void SetupOwnInventory();
+	void CloseOwnInventory();
+	
+	void OpenEmptyTab();
+	void OpenLootingTab(UInventoryComponent* InventoryToLoot);
+
+	void OpenHUDTab();
+	void OpenInventoryTab();
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -35,10 +41,4 @@ private:
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 
 	TObjectPtr<class UPlayerInventoryWidget> InventoryWidget;
-	
-public:
-	void InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo);
-	
-	void ToggleTab(EHUDTab ActivateTab);
-
 };

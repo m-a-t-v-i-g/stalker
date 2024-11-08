@@ -10,7 +10,6 @@
 #include "Components/InventoryComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Input/StalkerInputComponent.h"
-#include "Player/StalkerPlayerController.h"
 
 FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
 
@@ -19,17 +18,19 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(InteractionComponentName);
 }
 
-bool APlayerCharacter::ContainerInteract()
+bool APlayerCharacter::ContainerInteract(UInventoryComponent* TargetInventory)
 {
-	ToggleHUDTab.Broadcast(EHUDTab::Inventory, EInventoryAction::Looting, true);
-	return Super::ContainerInteract();
+	OnContainerInteraction.Broadcast(TargetInventory);
+	return true;
 }
 
-bool APlayerCharacter::ItemInteract(const UItemObject* ItemObject)
+bool APlayerCharacter::ItemInteract(UItemObject* ItemObject)
 {
 	if (GetInventoryComponent())
 	{
 		GetInventoryComponent()->ServerFindAvailablePlace(ItemObject->GetItemId());
+		OnItemInteraction.Broadcast(ItemObject);
+		return true;
 	}
 	return false;
 }
@@ -124,7 +125,7 @@ void APlayerCharacter::IA_View(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Inventory(const FInputActionValue& Value)
 {
-	ToggleHUDTab.Broadcast(EHUDTab::Inventory, EInventoryAction::None, true);
+	OnPlayerToggleInventory.Broadcast();
 }
 
 void APlayerCharacter::IA_Slot(const FInputActionValue& Value)

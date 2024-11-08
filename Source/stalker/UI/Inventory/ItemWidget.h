@@ -42,6 +42,7 @@ protected:
 	TObjectPtr<class UTextBlock> TextAmount;
 
 private:
+	TWeakObjectPtr<const UObject> OwnerPrivate;
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 public:
@@ -50,7 +51,7 @@ public:
 	FDoubleClickSignature OnDoubleClick;
 	FDragDropOperationSignature OnDragItem;
 
-	virtual void InitItemWidget(UItemObject* BindObject, FIntPoint Size);
+	virtual void InitItemWidget(const UObject* Owner, UItemObject* BindObject, FIntPoint Size);
 
 protected:
 	virtual FReply HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey);

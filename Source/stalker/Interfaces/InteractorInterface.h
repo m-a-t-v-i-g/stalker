@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "InteractorInterface.generated.h"
 
+class UInventoryComponent;
 class UItemObject;
 
 UINTERFACE()
@@ -19,7 +20,7 @@ class STALKER_API IInteractorInterface
 	GENERATED_BODY()
 
 public:
-	virtual bool ContainerInteract();
+	virtual bool ContainerInteract(UInventoryComponent* TargetInventory);
 
-	virtual bool ItemInteract(const UItemObject* ItemObject);
+	virtual bool ItemInteract(UItemObject* ItemObject);
 };
