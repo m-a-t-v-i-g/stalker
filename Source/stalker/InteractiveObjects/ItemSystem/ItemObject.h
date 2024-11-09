@@ -146,14 +146,13 @@ public:
 	virtual void Use_Implementation(UObject* Source) override;
 	
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
-
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 	
 	void BindItemActor(AItemActor* BindItem);
-	virtual void OnBindItemActor();
+	virtual void OnBindItemActor(AItemActor* NewItemActor);
 
 	void UnbindItemActor();
-	virtual void OnUnbindItemActor();
+	virtual void OnUnbindItemActor(AItemActor* PrevItemActor);
 
 	virtual void SetGrounded();
 	virtual void SetCollected();
@@ -211,7 +210,7 @@ protected:
 	TObjectPtr<UItemInstance> ItemInstance;
 
 	UFUNCTION()
-	void OnRep_BoundItem();
+	void OnRep_BoundItem(AItemActor* PrevItemActor);
 
 private:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")

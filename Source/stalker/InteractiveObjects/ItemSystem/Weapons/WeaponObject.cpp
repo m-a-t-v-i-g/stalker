@@ -65,14 +65,25 @@ void UWeaponObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	}
 }
 
-void UWeaponObject::OnBindItemActor()
+void UWeaponObject::OnBindItemActor(AItemActor* NewItemActor)
 {
-	Super::OnBindItemActor();
+	Super::OnBindItemActor(NewItemActor);
 
 	if (auto BindWeapon = GetBoundItem<AWeaponActor>())
 	{
 		BindWeapon->OnWeaponStartAttack.BindUObject(this, &UWeaponObject::OnWeaponAttackStart);
 		BindWeapon->OnWeaponStopAttack.BindUObject(this, &UWeaponObject::OnWeaponAttackStop);
+	}
+}
+
+void UWeaponObject::OnUnbindItemActor(AItemActor* PrevItemActor)
+{
+	Super::OnUnbindItemActor(PrevItemActor);
+
+	if (auto PrevBoundWeapon = Cast<AWeaponActor>(PrevItemActor))
+	{
+		PrevBoundWeapon->OnWeaponStartAttack.Unbind();
+		PrevBoundWeapon->OnWeaponStopAttack.Unbind();
 	}
 }
 
@@ -101,9 +112,21 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
-void UWeaponObject::OnWeaponAttackStart_Implementation()
+void UWeaponObject::StartAttack()
 {
 	DecreaseAmmo();
+
+	OnWeaponAttackStart();
+}
+
+void UWeaponObject::StopAttack()
+{
+	OnWeaponAttackStop();
+}
+
+void UWeaponObject::OnWeaponAttackStart_Implementation()
+{
+
 }
 
 void UWeaponObject::OnWeaponAttackStop_Implementation()

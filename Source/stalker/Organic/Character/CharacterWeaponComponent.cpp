@@ -32,7 +32,10 @@ void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!StalkerCharacter.Get()) return;
+	if (!StalkerCharacter)
+	{
+		return;
+	}
 
 	if (ReloadingData.bInProgress && !StalkerCharacter->CheckReloadAbility())
 	{

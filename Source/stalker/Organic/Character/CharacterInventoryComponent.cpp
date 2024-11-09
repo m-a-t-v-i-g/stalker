@@ -16,18 +16,20 @@ void UCharacterInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UCharacterInventoryComponent, EquipmentSlots, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UCharacterInventoryComponent, EquipmentSlots,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UCharacterInventoryComponent, FastUseSlots,		COND_OwnerOnly);
 }
 
 bool UCharacterInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch,
                                                        FReplicationFlags* RepFlags)
 {
-	bool ReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	for (UEquipmentSlot* EachSlot : EquipmentSlots)
+	bool bReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	for (UEquipmentSlot* EquipmentSlot : EquipmentSlots)
 	{
-		ReplicateSomething |= Channel->ReplicateSubobject(EachSlot, *Bunch, *RepFlags);
+		bReplicateSomething |= Channel->ReplicateSubobject(EquipmentSlot, *Bunch, *RepFlags);
+		bReplicateSomething |= EquipmentSlot->ReplicateSubobjects(Channel, Bunch, RepFlags);
 	}
-	return ReplicateSomething;
+	return bReplicateSomething;
 }
 
 void UCharacterInventoryComponent::BeginPlay()
@@ -105,7 +107,6 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 				return;
 			}
 
-			RemainedItem = UItemSystemCore::GenerateItemObject(GetWorld(), EquippingItem);
 			RemainedItem->SetAmount(EquippingItem->GetItemInstance()->Amount - 1);
 			ServerAddItem(RemainedItem->GetItemId());
 
@@ -118,7 +119,7 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 
 bool UCharacterInventoryComponent::ServerEquipSlot_Validate(const FString& SlotName, uint32 ItemId)
 {
-	return IsItemObjectValid(ItemId);
+	return IsEquipmentSlotValid(SlotName) && IsItemObjectValid(ItemId);
 }
 
 void UCharacterInventoryComponent::ServerUnequipSlot_Implementation(const FString& SlotName)
@@ -172,7 +173,27 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 	}
 }
 
+void UCharacterInventoryComponent::ServerEquipFastUseSlot_Implementation(uint8 SlotId)
+{
+	
+}
+
+bool UCharacterInventoryComponent::ServerEquipFastUseSlot_Validate(uint8 SlotId)
+{
+	return IsFastUseSlotValid(SlotId);
+}
+
+void UCharacterInventoryComponent::TryUseFastSlot(uint8 SlotId)
+{
+	
+}
+
 bool UCharacterInventoryComponent::IsEquipmentSlotValid(const FString& SlotName) const
 {
 	return IsValid(FindEquipmentSlot(SlotName));
+}
+
+bool UCharacterInventoryComponent::IsFastUseSlotValid(uint8 SlotId) const
+{
+	return true;
 }

@@ -3,6 +3,7 @@
 #include "EquipmentSlot.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
+#include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
 void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -11,6 +12,13 @@ void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, BoundObject,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UEquipmentSlot, bAvailable,		COND_OwnerOnly);
+}
+
+bool UEquipmentSlot::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool bReplicateSomething = false;
+	bReplicateSomething |= Channel->ReplicateSubobject(BoundObject, *Bunch, *RepFlags);
+	return bReplicateSomething;
 }
 
 void UEquipmentSlot::AddStartingData()

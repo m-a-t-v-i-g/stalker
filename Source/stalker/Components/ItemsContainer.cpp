@@ -75,6 +75,8 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 			{
 				Items.Remove(SourceItem);
 			}
+
+			UItemSystemCore::DestroyItemObject(SourceItem);
 			return true;
 		}
 	}

@@ -9,20 +9,28 @@ void AStalkerGameState::AddItemObject(uint32 ItemId, UItemObject* ItemObject)
 	{
 		WorldItems.Add(ItemId, ItemObject);
 	}
+	else
+	{
+		// Error log
+	}
 }
 
 void AStalkerGameState::RemoveItemObject(uint32 ItemId)
 {
-	if (auto ItemObject = WorldItems.FindChecked(ItemId))
+	if (UItemObject* ItemObject = WorldItems.FindChecked(ItemId))
 	{
 		WorldItems.Remove(ItemId);
 		ItemObject->MarkAsGarbage();
+	}
+	else
+	{
+		// Error log
 	}
 }
 
 UItemObject* AStalkerGameState::GetItemObjectById(uint32 ItemId) const
 {
-	if (auto ItemObject = WorldItems.FindChecked(ItemId))
+	if (UItemObject* ItemObject = WorldItems.FindChecked(ItemId))
 	{
 		if (IsValid(ItemObject))
 		{
@@ -34,7 +42,7 @@ UItemObject* AStalkerGameState::GetItemObjectById(uint32 ItemId) const
 
 bool AStalkerGameState::IsItemObjectExist(uint32 ItemId) const
 {
-	if (auto ItemObject = WorldItems.FindChecked(ItemId))
+	if (UItemObject* ItemObject = WorldItems.FindChecked(ItemId))
 	{
 		return IsValid(ItemObject);
 	}

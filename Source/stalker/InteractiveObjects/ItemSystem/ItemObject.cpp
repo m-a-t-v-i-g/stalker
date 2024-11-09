@@ -95,10 +95,10 @@ void UItemObject::BindItemActor(AItemActor* BindItem)
 	}
 
 	BoundItemActor = BindItem;
-	OnBindItemActor();
+	OnBindItemActor(BoundItemActor);
 }
 
-void UItemObject::OnBindItemActor()
+void UItemObject::OnBindItemActor(AItemActor* NewItemActor)
 {
 }
 
@@ -109,11 +109,12 @@ void UItemObject::UnbindItemActor()
 		return;
 	}
 
+	AItemActor* PrevItemActor = BoundItemActor;
 	BoundItemActor = nullptr;
-	OnUnbindItemActor();
+	OnUnbindItemActor(PrevItemActor);
 }
 
-void UItemObject::OnUnbindItemActor()
+void UItemObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 {
 }
 
@@ -156,11 +157,15 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 	}
 }
 
-void UItemObject::OnRep_BoundItem()
+void UItemObject::OnRep_BoundItem(AItemActor* PrevItemActor)
 {
 	if (BoundItemActor)
 	{
-		OnBindItemActor();
+		OnBindItemActor(BoundItemActor);
+	}
+	else
+	{
+		OnUnbindItemActor(PrevItemActor);
 	}
 }
 

@@ -22,13 +22,17 @@ void AWeaponActor::OnBindItem()
 
 void AWeaponActor::StartAttack()
 {
-	if (bHoldTrigger) return;
+	if (bHoldTrigger)
+	{
+		return;
+	}
 
 	if (bInFireRate)
 	{
 		CallAttack();
 		WeaponParams->bAutomatic ? SetRepetitiveFireTimer() : SetSingleFireTimer();
 	}
+	
 	bHoldTrigger = true;
 }
 
@@ -41,10 +45,12 @@ void AWeaponActor::CallAttack()
 	else if (bInFireRate)
 	{
 		OnWeaponStartAttack.ExecuteIfBound();
+		
 		if (HasAuthority())
 		{
 			MulticastMakeAttackVisual();
 		}
+		
 		bInFireRate = false;
 	}
 }
@@ -56,14 +62,19 @@ void AWeaponActor::MulticastMakeAttackVisual_Implementation()
 
 void AWeaponActor::StopAttack()
 {
-	if (!bHoldTrigger) return;
+	if (!bHoldTrigger)
+	{
+		return;
+	}
 
 	OnWeaponStopAttack.ExecuteIfBound();
+	
 	if (WeaponParams->bAutomatic)
 	{
 		GetWorldTimerManager().ClearTimer(RepeatAttackTimer);
 		SetSingleFireTimer();
 	}
+	
 	bHoldTrigger = false;
 }
 
@@ -95,6 +106,7 @@ void AWeaponActor::SetSingleFireTimer()
 			bInFireRate = true;
 			GetWorldTimerManager().ClearTimer(CanAttackTimer);
 		});
+		
 		GetWorldTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, CalculateFireRate(), false);
 	}
 }
@@ -107,6 +119,7 @@ void AWeaponActor::SetRepetitiveFireTimer()
 		bInFireRate = true;
 		CallAttack();
 	});
+	
 	GetWorldTimerManager().SetTimer(RepeatAttackTimer, RepeatAttackDelegate, CalculateFireRate(), true);
 }
 
