@@ -16,6 +16,9 @@ class STALKER_API UItemDefinition : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Class")
+	FName ScriptName;
+
+	UPROPERTY(EditAnywhere, Category = "Class")
 	FGameplayTag Tag;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
@@ -168,6 +171,8 @@ public:
 	virtual bool IsCollected() const;
 	virtual bool IsEquipped() const;
 
+	FORCEINLINE FName GetScriptName() const;
+
 	FORCEINLINE uint32 GetItemId() const;
 	
 	FORCEINLINE FGameplayTag GetItemTag() const;
@@ -201,10 +206,9 @@ public:
 		return Cast<T>(GetItemInstance());
 	}
 
-	bool CanStackItem(const UItemObject* OtherItem) const;
+	virtual bool CanCollected() const;
+	virtual bool CanStackItem(const UItemObject* OtherItem) const;
 
-	FName GetItemRowName() const { return "ddddd"; }
-	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;

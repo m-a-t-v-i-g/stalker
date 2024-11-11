@@ -11,8 +11,6 @@ class UStalkerCharacterMovementComponent;
 class UInventoryComponent;
 class UWeaponComponent;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
-
 UCLASS(Abstract, NotBlueprintable, NotBlueprintType)
 class STALKER_API ABaseCharacter : public ABaseOrganic
 {
@@ -22,8 +20,6 @@ public:
 	ABaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName CharacterMovementName;
-	static FName InventoryComponentName;
-	static FName WeaponComponentName;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -48,24 +44,6 @@ public:
 		return Cast<T>(GetCharacterMovement());
 	}
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
-	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
-
-	template <class T>
-	T* GetInventoryComponent() const
-	{
-		return Cast<T>(GetInventoryComponent());
-	}
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
-	FORCEINLINE UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
-
-	template <class T>
-	T* GetWeaponComponent() const
-	{
-		return Cast<T>(GetWeaponComponent());
-	}
-	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character|Movement")
 	TObjectPtr<class UMovementModelConfig> DefaultMovementModel;
@@ -79,10 +57,4 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStalkerCharacterMovementComponent> CharacterMovementComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInventoryComponent> InventoryComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWeaponComponent> WeaponComponent;
 };

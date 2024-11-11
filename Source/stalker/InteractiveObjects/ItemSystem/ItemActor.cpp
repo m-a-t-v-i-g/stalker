@@ -45,7 +45,9 @@ void AItemActor::Destroyed()
 
 bool AItemActor::OnInteract(AActor* Interactor)
 {
-	if (ItemObject && Interactor)
+	check(Interactor);
+	
+	if (ItemObject && ItemObject->CanCollected())
 	{
 		if (auto InteractorInterface = Cast<IInteractorInterface>(Interactor))
 		{

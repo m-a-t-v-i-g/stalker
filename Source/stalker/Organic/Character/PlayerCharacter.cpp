@@ -2,12 +2,12 @@
 
 #include "PlayerCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "CharacterInventoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ItemObject.h"
 #include "StalkerGameplayTags.h"
 #include "Components/InteractionComponent.h"
-#include "Components/InventoryComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Input/StalkerInputComponent.h"
 
@@ -35,37 +35,6 @@ bool APlayerCharacter::ItemInteract(UItemObject* ItemObject)
 	return false;
 }
 
-void APlayerCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-}
-
-void APlayerCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	if (IsLocallyControlled())
-	{
-		if (InteractionComponent)
-		{
-			InteractionComponent->SetupInteractionComponent();
-		}
-	}
-}
-
-void APlayerCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-
-	if (IsLocallyControlled())
-	{
-		if (InteractionComponent)
-		{
-			InteractionComponent->SetupInteractionComponent();
-		}
-	}
-}
-
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
@@ -78,6 +47,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void APlayerCharacter::SetupCharacterLocally()
+{
+	Super::SetupCharacterLocally();
+
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetupInteractionComponent();
+	}
 }
 
 void APlayerCharacter::BindDirectionalInput(UInputComponent* PlayerInputComponent)
@@ -104,6 +83,8 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 	{
 		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Inventory, ETriggerEvent::Triggered,
 		                                   this, &APlayerCharacter::IA_Inventory);
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Slot, ETriggerEvent::Triggered,
+										   this, &APlayerCharacter::IA_Slot);
 		
 		TArray<uint32> BindHandles;
 		StalkerInputComp->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed,
@@ -128,21 +109,13 @@ void APlayerCharacter::IA_Inventory(const FInputActionValue& Value)
 	OnPlayerToggleInventory.Broadcast();
 }
 
-void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
+void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 {
-	
-	/*
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
 		GetController<APlayerController>()->GetLocalPlayer()))
 	{
-		auto SlotAction = GeneralInputData->InputMap[InputSlotName];
-		if (!SlotAction)
-		{
-			return;
-		}
-
-		auto Keys = Subsystem->QueryKeysMappedToAction(SlotAction);
-		const auto PressedKey = Keys.FindByPredicate([&](const FKey& Key)
+		TArray<FKey> Keys = Subsystem->QueryKeysMappedToAction(InputAction.GetSourceAction());
+		const FKey* PressedKey = Keys.FindByPredicate([&](const FKey& Key)
 		{
 			return GetController<APlayerController>()->IsInputKeyDown(Key);
 		});
@@ -151,45 +124,37 @@ void APlayerCharacter::IA_Slot(const FInputActionValue& Value)
 		{
 			return;
 		}
-
-		auto Mappings = InputMappingContext->GetMappings();
-		for (int8 i = 0, a = 0; i < Mappings.Num(); i++)
+		
+		const TArray<FEnhancedActionKeyMapping>& Mappings = InputMappingContext->GetMappings();
+		for (uint8 i = 0, a = 0; i < Mappings.Num(); i++)
 		{
-			if (Mappings[i].Action != SlotAction)
+			if (Mappings[i].Action != InputAction.GetSourceAction())
 			{
 				continue;
 			}
 
-			if (Mappings[i].Key.ToString() == PressedKey->ToString())
+			if (Mappings[i].Key == *PressedKey)
 			{
-				auto CharWeapon = GetWeaponComponent<UCharacterWeaponComponent>();
-				if (!CharWeapon)
-				{
-					return;
-				}
-
-				CharWeapon->ServerToggleSlot(a);
-				return;
+				OnPlayerToggleSlot.Broadcast(i);
+				break;
 			}
 			a++;
 		}
 	}
-	*/
-	
 }
 
 void APlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	if (UOrganicAbilityComponent* LyraASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	if (UOrganicAbilityComponent* AbilityComponent = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
-		LyraASC->AbilityInputTagPressed(InputTag);
+		AbilityComponent->AbilityInputTagPressed(InputTag);
 	}
 }
 
 void APlayerCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (UOrganicAbilityComponent* LyraASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	if (UOrganicAbilityComponent* AbilityComponent = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
-		LyraASC->AbilityInputTagReleased(InputTag);
+		AbilityComponent->AbilityInputTagReleased(InputTag);
 	}
 }

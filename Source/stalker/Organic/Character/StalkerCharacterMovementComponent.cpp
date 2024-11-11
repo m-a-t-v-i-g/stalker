@@ -336,8 +336,7 @@ void UStalkerCharacterMovementComponent::UpdateGroundRotation(float DeltaTime)
 	{
 		if (RotationMode.ControlDirection())
 		{
-			// TODO: убрать хард код
-			LimitRotation(-35.0f, 35.0f, 20.0f, DeltaTime);
+			LimitRotation(-100.0f, 100.0f, 20.0f, DeltaTime);
 		}
 		else if (RotationMode.LookingDirection())
 		{

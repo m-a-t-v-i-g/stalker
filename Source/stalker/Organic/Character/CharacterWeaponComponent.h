@@ -3,14 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/WeaponComponent.h"
+#include "CharacterLibrary.h"
 #include "Ammo/AmmoObject.h"
-#include "Data/ItemBehaviorDataAsset.h"
+#include "Components/WeaponComponent.h"
+#include "Data/ItemBehaviorConfig.h"
 #include "CharacterWeaponComponent.generated.h"
 
+struct FUpdatedSlotData;
 class UWeaponObject;
 class UCharacterInventoryComponent;
 
+DECLARE_MULTICAST_DELEGATE(FCharacterFireDelegate);
 DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStartReloadSignature, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
@@ -54,7 +57,7 @@ struct FReloadingData
 	}
 };
 
-UCLASS(meta=(BlueprintSpawnableComponent))
+UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
 {
 	GENERATED_BODY()
@@ -62,24 +65,25 @@ class STALKER_API UCharacterWeaponComponent : public UWeaponComponent
 public:
 	UCharacterWeaponComponent();
 
+	FCharacterFireDelegate OnFireStart;
+	FCharacterFireDelegate OnFireStop;
 	FCharacterAimingDelegate OnAimingStart;
 	FCharacterAimingDelegate OnAimingStop;
 	FOnCharacterStartReloadSignature OnReloadStart;
 	FOnCharacterStopReloadSignature OnReloadStop;
-	FOnWeaponOverlayChangedSignature OnWeaponOverlayChanged;
+	FOnWeaponOverlayChangedSignature OnOverlayChanged;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	virtual void PreInitializeWeapon() override;
-	virtual void PostInitializeWeapon() override;
+	virtual void SetupWeaponComponent() override;
 
 	virtual bool CanAttack() const override;
 	virtual bool IsArmed() const override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TObjectPtr<UItemBehaviorDataAsset> WeaponBehaviorConfig;
+	TObjectPtr<const UItemBehaviorConfig> WeaponBehaviorConfig;
 
 private:
 	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
@@ -91,9 +95,6 @@ private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	TObjectPtr<AItemActor> RightHandItem;
 
-	UPROPERTY(Replicated)
-	bool bAiming = false;
-
 	FReloadingData ReloadingData;
 
 	FTimerHandle ReloadTimer;
@@ -102,10 +103,16 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void PlayBasicAction();
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void StopBasicAction();
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void PlayAlternativeAction();
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void StopAlternativeAction();
 
 	void StartFire();
@@ -164,11 +171,10 @@ protected:
 	void DisarmLeftHand();
 	void DisarmRightHand();
 	
-	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, const FWeaponSlot* WeaponSlot,
-									UItemObject* ItemObject) const;
+	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName) const;
 	
 public:
-	void OnSlotEquipped(UItemObject* ItemObject, bool bModified, bool bEquipped, FString SlotName);
+	void OnSlotEquipped(const FUpdatedSlotData& SlotData, FString SlotName);
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
 	FORCEINLINE UItemObject* GetItemObjectAtRightHand() const;

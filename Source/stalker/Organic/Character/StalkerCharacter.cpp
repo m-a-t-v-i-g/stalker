@@ -4,18 +4,28 @@
 #include "AbilitySet.h"
 #include "CharacterArmorComponent.h"
 #include "CharacterInventoryComponent.h"
+#include "CharacterStateComponent.h"
 #include "CharacterWeaponComponent.h"
 #include "StalkerCharacterMovementComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 
-FName AStalkerCharacter::ArmorComponentName {"Char Armor Component"};
+DEFINE_LOG_CATEGORY(LogCharacter);
 
-AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(
-	ObjectInitializer.SetDefaultSubobjectClass<UCharacterInventoryComponent>(InventoryComponentName)
-	                 .SetDefaultSubobjectClass<UCharacterWeaponComponent>(WeaponComponentName))
+FName AStalkerCharacter::InventoryComponentName	{"Inventory Component"};
+FName AStalkerCharacter::WeaponComponentName	{"Weapon Component"};
+FName AStalkerCharacter::StateComponentName		{"Char State Component"};
+FName AStalkerCharacter::ArmorComponentName		{"Char Armor Component"};
+
+AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	InventoryComponent = CreateDefaultSubobject<UCharacterInventoryComponent>(InventoryComponentName);
+	
+	WeaponComponent = CreateDefaultSubobject<UCharacterWeaponComponent>(WeaponComponentName);
+	
+	StateComponent = CreateDefaultSubobject<UCharacterStateComponent>(StateComponentName);
+	
 	ArmorComponent = CreateDefaultSubobject<UCharacterArmorComponent>(ArmorComponentName);
-
+	
 	ID_Action1 = "Jump";
 	ID_Action2 = "Crouch";
 	ID_Action3 = "Sprint";
@@ -25,7 +35,20 @@ void AStalkerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	SetCharacterData();
+	if (HasAuthority())
+	{
+		SetCharacterData();
+	}
+	
+	if (WeaponComponent)
+	{
+		WeaponComponent->SetupWeaponComponent();
+	}
+	
+	if (StateComponent)
+	{
+		StateComponent->SetupStateComponent();
+	}
 }
 
 void AStalkerCharacter::PossessedBy(AController* NewController)
@@ -34,7 +57,12 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 
 	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
-		AbilitySystemComp->InitAbilitySystem(NewController, this);
+		AbilitySystemComp->SetupAbilitySystem(NewController, this);
+	}
+	
+	if (IsLocallyControlled())
+	{
+		SetupCharacterLocally();
 	}
 }
 
@@ -44,28 +72,12 @@ void AStalkerCharacter::OnRep_Controller()
 	
 	if (IsLocallyControlled())
 	{
-		SetupCharacterLocally(GetController());
+		SetupCharacterLocally();
 	}
 }
 
-void AStalkerCharacter::SetupCharacterLocally(AController* NewController)
+void AStalkerCharacter::SetupCharacterLocally()
 {
-	if (bIsStalkerInitialized)
-	{
-		return;
-	}
-	
-	if (auto CharacterWeapon = GetWeaponComponent<UCharacterWeaponComponent>())
-	{
-		CharacterWeapon->PreInitializeWeapon();
-		CharacterWeapon->PostInitializeWeapon();
-
-		CharacterWeapon->OnAimingStart.AddUObject(this, &AStalkerCharacter::OnAimingStart);
-		CharacterWeapon->OnAimingStop.AddUObject(this, &AStalkerCharacter::OnAimingStop);
-		CharacterWeapon->OnWeaponOverlayChanged.AddUObject(this, &AStalkerCharacter::OnOverlayChanged);
-	}
-	
-	bIsStalkerInitialized = true;
 }
 
 void AStalkerCharacter::SetCharacterData()
@@ -80,31 +92,6 @@ void AStalkerCharacter::SetCharacterData()
 	{
 		AbilitySet->GiveToAbilitySystem(AbilityComp);
 	}
-}
-
-void AStalkerCharacter::OnAimingStart()
-{
-	if (!GetCharacterMovement())
-	{
-		return;
-	}
-	
-	GetCharacterMovement()->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
-}
-
-void AStalkerCharacter::OnAimingStop()
-{
-	if (!GetCharacterMovement())
-	{
-		return;
-	}
-	
-	GetCharacterMovement()->SetRotationMode(GetCharacterMovement()->GetInputRotationMode(), true);
-}
-
-void AStalkerCharacter::OnOverlayChanged(ECharacterOverlayState NewOverlay)
-{
-	SetOverlayState(NewOverlay);
 }
 
 bool AStalkerCharacter::CheckReloadAbility()

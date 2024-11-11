@@ -21,7 +21,7 @@ public:
 	void SetupInteractionComponent();
 
 	void AddPossibleInteraction(AActor* NewActor);
-	void RemovePossibleInteraction(AActor* NewActor);
+	void RemovePossibleInteraction(AActor* OldActor);
 
 	AActor* GetDetectedActor() const { return DetectedActor.Get(); }
 	
@@ -45,6 +45,7 @@ private:
 	TObjectPtr<APawn> PawnRef;
 	TObjectPtr<AController> ControllerRef;
 
+	UPROPERTY(VisibleInstanceOnly, Category = "Interaction")
 	TArray<AActor*> PossibleInteractions;
 
 	TWeakObjectPtr<AActor> DetectedActor;

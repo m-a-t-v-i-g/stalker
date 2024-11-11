@@ -6,54 +6,32 @@
 #include "Components/ActorComponent.h"
 #include "WeaponComponent.generated.h"
 
-class AItemActor;
 class UItemObject;
-
-USTRUCT(Blueprintable)
-struct FWeaponSlotSpec
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
-	FString SlotName = "Default";
-	
-	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
-	FName AttachmentSocketName = "Default";
-	
-	const FString& GetSlotName() const { return SlotName; }
-};
+class AItemActor;
 
 USTRUCT(Blueprintable)
 struct FWeaponSlot
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleInstanceOnly)
-	uint8 Handle = 0;
+	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
+	FString SlotName = "Default";
 	
-	UPROPERTY(VisibleInstanceOnly)
-	UItemObject* ArmedItemObject = nullptr;
-	
-	FWeaponSlotSpec* WeaponSlotPtr = nullptr;
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon Slot")
+	UItemObject* ArmedObject = nullptr;
 	
 	FWeaponSlot()
 	{
 	}
 
-	FWeaponSlot(uint8 Index, FWeaponSlotSpec& SlotSpec)
+	const FString& GetSlotName() const
 	{
-		Handle = Index;
-		WeaponSlotPtr = &SlotSpec;
+		return SlotName;
 	}
-
-	const FString& GetSlotName() const { return WeaponSlotPtr->SlotName; }
-	const FName& GetAttachmentSocketName() const { return WeaponSlotPtr->AttachmentSocketName; }
-
-	bool IsArmed() const { return ArmedItemObject != nullptr; }
-
-	friend uint8 GetTypeHash(const FWeaponSlot& Handle)
+	
+	bool IsArmed() const
 	{
-		return GetTypeHash(Handle.Handle);
+		return ArmedObject != nullptr;
 	}
 };
 
@@ -65,26 +43,16 @@ class STALKER_API UWeaponComponent : public UActorComponent
 public:
 	UWeaponComponent();
 
-protected:
-	UPROPERTY(EditDefaultsOnly, DisplayName = "Weapon Slots", Category = "Weapon")
-	TArray<FWeaponSlotSpec> WeaponSlotSpecs;
+	virtual void SetupWeaponComponent();
 
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+protected:
+	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<FWeaponSlot> WeaponSlots;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bAllowUnarmedAttack = false;
 
 public:
-	virtual void PreInitializeWeapon();
-	virtual void PostInitializeWeapon();
-
-	UFUNCTION(Server, Unreliable)
-	void ServerActivateSlot(int8 SlotIndex);
-
-	UFUNCTION(Server, Unreliable)
-	void ServerDeactivateSlot(int8 SlotIndex);
-	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);
 
@@ -95,8 +63,8 @@ public:
 	virtual bool IsArmed() const;
 	
 	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
-	
-	bool IsAutonomousProxy() const;
 
+	bool IsAuthority() const;
+	bool IsAutonomousProxy() const;
 	bool IsSimulatedProxy() const;
 };

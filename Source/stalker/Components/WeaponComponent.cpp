@@ -5,33 +5,11 @@
 UWeaponComponent::UWeaponComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	
 	SetIsReplicatedByDefault(true);
 }
 
-void UWeaponComponent::PreInitializeWeapon()
-{
-	if (!GetOwner()->HasAuthority()) return;
-	
-	if (WeaponSlotSpecs.Num() > 0)
-	{
-		for (uint8 i = 0; i < WeaponSlotSpecs.Num(); i++)
-		{
-			FWeaponSlot SlotHandle {i, WeaponSlotSpecs[i]};
-			WeaponSlots.Add(SlotHandle);
-		}
-	}
-}
-
-void UWeaponComponent::PostInitializeWeapon()
-{
-	if (!GetOwner()->HasAuthority()) return;
-}
-
-void UWeaponComponent::ServerActivateSlot_Implementation(int8 SlotIndex)
-{
-}
-
-void UWeaponComponent::ServerDeactivateSlot_Implementation(int8 SlotIndex)
+void UWeaponComponent::SetupWeaponComponent()
 {
 }
 
@@ -41,7 +19,7 @@ void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 
 	if (auto Slot = FindWeaponSlot(SlotName))
 	{
-		Slot->ArmedItemObject = ItemObject;
+		Slot->ArmedObject = ItemObject;
 	}
 }
 
@@ -50,7 +28,7 @@ void UWeaponComponent::DisarmSlot(const FString& SlotName)
 	if (auto Slot = FindWeaponSlot(SlotName))
 	{
 		if (!Slot->IsArmed()) return;
-		Slot->ArmedItemObject = nullptr;
+		Slot->ArmedObject = nullptr;
 	}
 }
 
@@ -80,15 +58,23 @@ bool UWeaponComponent::IsArmed() const
 
 FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)
 {
-	FWeaponSlot* FoundSlot = nullptr;
-	if (WeaponSlots.Num() > 0)
+	for (FWeaponSlot& Slot : WeaponSlots)
 	{
-		FoundSlot = WeaponSlots.FindByPredicate([&, SlotName] (const FWeaponSlot& Slot)
+		if (Slot.SlotName == SlotName)
 		{
-			return Slot.GetSlotName() == SlotName;
-		});
+			return &Slot;
+		}
 	}
-	return FoundSlot;
+	return nullptr;
+}
+
+bool UWeaponComponent::IsAuthority() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->HasAuthority();
 }
 
 bool UWeaponComponent::IsAutonomousProxy() const

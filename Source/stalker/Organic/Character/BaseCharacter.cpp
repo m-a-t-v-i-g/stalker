@@ -7,11 +7,8 @@
 #include "Components/WeaponComponent.h"
 #include "Net/UnrealNetwork.h"
 
-DEFINE_LOG_CATEGORY(LogCharacter);
-
 FName ABaseCharacter::CharacterMovementName {"Char Movement Component"};
-FName ABaseCharacter::InventoryComponentName {"Inventory Component"};
-FName ABaseCharacter::WeaponComponentName {"Weapon Component"};
+
 
 ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -21,9 +18,6 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer) : Su
 		CharacterMovementComponent->UpdatedComponent = GetRootComponent();
 	}
 	
-	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
-	
-	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(WeaponComponentName);
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

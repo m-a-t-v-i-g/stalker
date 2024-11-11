@@ -19,7 +19,7 @@ protected:
 public:
 	UOrganicAbilityComponent();
 	
-	void InitAbilitySystem(AController* InController, AActor* InActor);
+	void SetupAbilitySystem(AController* InController, AActor* InActor);
 	
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);

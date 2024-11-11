@@ -8,7 +8,12 @@
 #include "StalkerCharacter.generated.h"
 
 class UAbilitySet;
+class UCharacterInventoryComponent;
+class UCharacterWeaponComponent;
+class UCharacterStateComponent;
 class UCharacterArmorComponent;
+
+DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
 
 UCLASS(Blueprintable, BlueprintType)
 class STALKER_API AStalkerCharacter : public ABaseCharacter, public IInteractorInterface
@@ -18,6 +23,9 @@ class STALKER_API AStalkerCharacter : public ABaseCharacter, public IInteractorI
 public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
 
+	static FName InventoryComponentName;
+	static FName WeaponComponentName;
+	static FName StateComponentName;
 	static FName ArmorComponentName;
 	
 	virtual void PostInitializeComponents() override;
@@ -27,7 +35,34 @@ public:
 
 	virtual bool CheckReloadAbility();
 
-	virtual void SetupCharacterLocally(AController* NewController);
+	virtual void SetupCharacterLocally();
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UCharacterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	template <class T>
+	T* GetInventoryComponent() const
+	{
+		return Cast<T>(GetInventoryComponent());
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UCharacterWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
+
+	template <class T>
+	T* GetWeaponComponent() const
+	{
+		return Cast<T>(GetWeaponComponent());
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UCharacterStateComponent* GetStateComponent() const { return StateComponent; }
+
+	template <class T>
+	T* GetStateComponent() const
+	{
+		return Cast<T>(GetStateComponent());
+	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterArmorComponent* GetArmorComponent() const { return ArmorComponent; }
@@ -44,13 +79,16 @@ protected:
 	
 	virtual void SetCharacterData();
 	
-	void OnAimingStart();
-	void OnAimingStop();
-	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
-
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
+	TObjectPtr<UCharacterInventoryComponent> InventoryComponent;
 	
-	bool bIsStalkerInitialized = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCharacterWeaponComponent> WeaponComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCharacterStateComponent> StateComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
 };

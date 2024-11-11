@@ -14,6 +14,7 @@ class UPlayerInputConfig;
 class UInteractionComponent;
 
 DECLARE_MULTICAST_DELEGATE(FOnPlayerToggleInventorySignature);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerToggleSlotSignature, uint8);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerLootContainerSignature, UInventoryComponent*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerPickUpItemSignature, UItemObject*);
 
@@ -28,6 +29,8 @@ public:
 	static FName InteractionComponentName;
 
 	FOnPlayerToggleInventorySignature OnPlayerToggleInventory;
+
+	FOnPlayerToggleSlotSignature OnPlayerToggleSlot;
 	
 	FOnPlayerLootContainerSignature OnContainerInteraction;
 	
@@ -52,12 +55,9 @@ protected:
 	virtual bool ContainerInteract(UInventoryComponent* TargetInventory) override;
 	virtual bool ItemInteract(UItemObject* ItemObject) override;
 	
-	virtual void PostInitializeComponents() override;
-	
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_Controller() override;
-	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	virtual void SetupCharacterLocally() override;
 	
 	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindViewInput(UInputComponent* PlayerInputComponent) override;
@@ -68,7 +68,7 @@ protected:
 	
 	void IA_Inventory(const FInputActionValue& Value);
 
-	void IA_Slot(const FInputActionValue& Value);
+	void IA_Slot(const FInputActionInstance& InputAction);
 
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);

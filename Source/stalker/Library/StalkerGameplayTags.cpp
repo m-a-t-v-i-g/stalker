@@ -7,6 +7,7 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move,					"InputTag.Move", "Move input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_View,					"InputTag.View", "Look input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Inventory,				"InputTag.Inventory", "Inventory input.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Slot,					"InputTag.Slot", "Slot input.");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Sprint,				"Ability.Character.Sprint", "Sprint ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Crouch,				"Ability.Character.Crouch",	"Crouch ability.");

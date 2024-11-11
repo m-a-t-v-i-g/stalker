@@ -57,13 +57,13 @@ void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const boo
 
 void AStalkerPlayerController::ConnectHUD()
 {
-	if (!Stalker)
+	if (IsLocalController())
 	{
-		return;
-	}
+		if (!Stalker && !StalkerHUD)
+		{
+			return;
+		}
 
-	if (IsLocalController() && StalkerHUD)
-	{
 		StalkerHUD->InitializePlayerHUD(FCharacterInitInfo(
 			Stalker,
 			Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),

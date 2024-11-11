@@ -10,7 +10,7 @@ UOrganicAbilityComponent::UOrganicAbilityComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UOrganicAbilityComponent::InitAbilitySystem(AController* InController, AActor* InActor)
+void UOrganicAbilityComponent::SetupAbilitySystem(AController* InController, AActor* InActor)
 {
 	InitAbilityActorInfo(InController, InActor);
 }

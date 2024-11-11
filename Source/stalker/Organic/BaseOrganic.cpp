@@ -89,7 +89,7 @@ void ABaseOrganic::PossessedBy(AController* NewController)
 
 	if (auto ASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
-		ASC->InitAbilitySystem(NewController, this);
+		ASC->SetupAbilitySystem(NewController, this);
 	}
 }
 

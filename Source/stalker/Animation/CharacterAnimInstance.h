@@ -9,9 +9,10 @@
 #include "Library/CharacterLibrary.h"
 #include "CharacterAnimInstance.generated.h"
 
-class UStalkerCharacterMovementComponent;
 class UCharacterAnimConfig;
-class ABaseCharacter;
+class UStalkerCharacterMovementComponent;
+class UCharacterStateComponent;
+class AStalkerCharacter;
 
 USTRUCT(BlueprintType)
 struct FCharacterAnim_MovementInfo
@@ -425,31 +426,40 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration")
 	TObjectPtr<const UCharacterAnimConfig> AnimConfig;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(BlueprintReadOnly, Category = "Character Information")
 	TWeakObjectPtr<UStalkerCharacterMovementComponent> CharacterMovement;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Input Information")
-	TWeakObjectPtr<ABaseCharacter> Character;
+	UPROPERTY(BlueprintReadOnly, Category = "Character Information")
+	TWeakObjectPtr<UCharacterStateComponent> CharacterStateComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character Information")
+	TWeakObjectPtr<AStalkerCharacter> Character;
 
 #pragma region Input Info
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterMovementState MovementState = ECharacterMovementState::None;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterRotationMode RotationMode = ECharacterRotationMode::VelocityDirection;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterStanceType Stance = ECharacterStanceType::Standing;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterGaitType Gait = ECharacterGaitType::Walk;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterMovementAction MovementAction = ECharacterMovementAction::None;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input Information")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
 	FCharacterOverlayState OverlayState = ECharacterOverlayState::Default;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
+	FCharacterHealthState HealthState = ECharacterHealthState::Normal;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Information")
+	FCharacterCombatState CombatState = ECharacterCombatState::Relaxed;
 
 #pragma endregion Input Info
 
@@ -492,6 +502,7 @@ protected:
 
 	virtual void UpdateMovementInfo(float DeltaSeconds);
 	virtual void UpdateViewInfo(float DeltaSeconds);
+	virtual void UpdateStateInfo(float DeltaSeconds);
 	
 	virtual void UpdateMovementValues(float DeltaSeconds);
 	virtual void UpdateRotationValues(float DeltaSeconds);

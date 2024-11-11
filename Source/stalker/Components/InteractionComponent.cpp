@@ -31,26 +31,26 @@ void UInteractionComponent::AddPossibleInteraction(AActor* NewActor)
 	if (!PossibleInteractions.Contains(NewActor))
 	{
 		PossibleInteractions.Add(NewActor);
+		
+		UpdateFindActorTimer();
+		bActive = !PossibleInteractions.IsEmpty();
 	}
-
-	UpdateFindActorTimer();
-	bActive = !PossibleInteractions.IsEmpty();
 }
 
-void UInteractionComponent::RemovePossibleInteraction(AActor* NewActor)
+void UInteractionComponent::RemovePossibleInteraction(AActor* OldActor)
 {
 	if (!PawnRef || !ControllerRef)
 	{
 		return;
 	}
 
-	if (PossibleInteractions.Contains(NewActor))
+	if (PossibleInteractions.Contains(OldActor))
 	{
-		PossibleInteractions.Remove(NewActor);
+		PossibleInteractions.Remove(OldActor);
+		
+		UpdateFindActorTimer();
+		bActive = !PossibleInteractions.IsEmpty();
 	}
-
-	UpdateFindActorTimer();
-	bActive = !PossibleInteractions.IsEmpty();
 }
 
 void UInteractionComponent::Interact()
@@ -60,7 +60,7 @@ void UInteractionComponent::Interact()
 		return;
 	}
 	
-	if (auto ActorUnderTrace = GetActorUnderLineTrace())
+	if (AActor* ActorUnderTrace = GetActorUnderLineTrace())
 	{
 		if (ActorUnderTrace->Implements<UInteractableInterface>())
 		{
@@ -116,25 +116,27 @@ void UInteractionComponent::FindInteract()
 
 AActor* UInteractionComponent::GetActorUnderLineTrace() const
 {
-	FHitResult HitResult;
-	
-	FVector ViewPoint;
-	FRotator ViewRotation;
-
-	ControllerRef->GetPlayerViewPoint(ViewPoint, ViewRotation);
-
-	FVector StartPoint = ViewPoint;
-	FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility))
+	if (PawnRef && ControllerRef)
 	{
-		AActor* HitActor = HitResult.GetActor();
+		FHitResult HitResult;
 
-		if (HitActor && PossibleInteractions.Contains(HitActor))
+		FVector ViewPoint;
+		FRotator ViewRotation;
+
+		ControllerRef->GetPlayerViewPoint(ViewPoint, ViewRotation);
+
+		FVector StartPoint = ViewPoint;
+		FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility))
 		{
-			return HitActor;
+			AActor* HitActor = HitResult.GetActor();
+
+			if (HitActor && PossibleInteractions.Contains(HitActor))
+			{
+				return HitActor;
+			}
 		}
 	}
-	
 	return nullptr;
 }

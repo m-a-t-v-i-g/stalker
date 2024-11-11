@@ -4,6 +4,8 @@
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
 #include "Character/BaseCharacter.h"
+#include "Character/CharacterStateComponent.h"
+#include "Character/StalkerCharacter.h"
 #include "Character/StalkerCharacterMovementComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Curves/CurveVector.h"
@@ -44,11 +46,12 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Character = Cast<ABaseCharacter>(TryGetPawnOwner());
+	Character = Cast<AStalkerCharacter>(TryGetPawnOwner());
 
 	if (Character.IsValid())
 	{
 		CharacterMovement = Character->GetCharacterMovement();
+		CharacterStateComponent = Character->GetStateComponent();
 		
 		if (CharacterMovement.IsValid())
 		{
@@ -62,10 +65,14 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	
-	if (!Character.IsValid() || !CharacterMovement.IsValid()) return;
+	if (!Character.IsValid() || !CharacterMovement.IsValid() || !CharacterStateComponent.IsValid())
+	{
+		return;
+	}
 	
 	UpdateMovementInfo(DeltaSeconds);
 	UpdateViewInfo(DeltaSeconds);
+	UpdateStateInfo(DeltaSeconds);
 
 	if (MovementState.Grounded())
 	{
@@ -83,7 +90,10 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 {
-	if (!Character.IsValid()) return;
+	if (!Character.IsValid())
+	{
+		return;
+	}
 	
 	Movement.Acceleration = CharacterMovement->GetInstantAcceleration();
 	Movement.Velocity = CharacterMovement->GetVelocity();
@@ -103,11 +113,7 @@ void UCharacterAnimInstance::UpdateMovementInfo(float DeltaSeconds)
 	RotationMode = CharacterMovement->GetRotationMode();
 	Stance = CharacterMovement->GetStance();
 	Gait = CharacterMovement->GetGait();
-	MovementAction = Character->GetMovementAction();
-	OverlayState = Character->GetOverlayState();
-	
-	// LayerBlendingValues.OverlayOverrideState = Character->GetOverlayOverrideState();
-	
+
 	UpdateLayerValues(DeltaSeconds);
 	UpdateFootIK(DeltaSeconds);
 }
@@ -116,7 +122,7 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 {
 	FRotator Delta = Movement.ViewRotation - Movement.ActorRotation;
 	Delta.Normalize();
-
+	
 	View.AimingAngle.X = Delta.Yaw;
 	View.AimingAngle.Y = Delta.Pitch;
 
@@ -148,6 +154,14 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 	View.LeftYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 0.0f}, FMath::Abs(View.SmoothedAimingAngle.X));
 	View.RightYawTime = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 180.0f}, {0.5f, 1.0f}, FMath::Abs(View.SmoothedAimingAngle.X));
 	View.ForwardYawTime = FMath::GetMappedRangeValueClamped<float, float>({-180.0f, 180.0f}, {0.0f, 1.0f}, View.SmoothedAimingAngle.X);
+}
+
+void UCharacterAnimInstance::UpdateStateInfo(float DeltaSeconds)
+{
+	MovementAction = CharacterStateComponent->GetMovementAction();
+	OverlayState = CharacterStateComponent->GetOverlayState();
+	HealthState = CharacterStateComponent->GetHealthState();
+	CombatState = CharacterStateComponent->GetCombatState();
 }
 
 void UCharacterAnimInstance::UpdateMovementValues(float DeltaSeconds)

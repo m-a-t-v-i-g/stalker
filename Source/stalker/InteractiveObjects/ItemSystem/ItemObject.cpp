@@ -194,6 +194,11 @@ bool UItemObject::IsEquipped() const
 	return ItemInstance->Mode == EItemMode::Equipped;
 }
 
+FName UItemObject::GetScriptName() const
+{
+	return ItemDefinition->ScriptName;
+}
+
 uint32 UItemObject::GetItemId() const
 {
 	return ItemInstance->ItemId;
@@ -252,6 +257,11 @@ bool UItemObject::IsStackable() const
 uint32 UItemObject::GetStackAmount() const
 {
 	return ItemDefinition->StackAmount;
+}
+
+bool UItemObject::CanCollected() const
+{
+	return IsGrounded() && !IsCollected() && !IsEquipped();
 }
 
 bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
