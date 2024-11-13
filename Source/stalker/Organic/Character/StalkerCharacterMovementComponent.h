@@ -128,7 +128,7 @@ public:
 	FORCEINLINE bool IsJumping() const { return bJustJumped; }
 	
 protected:
-	TObjectPtr<class ABaseCharacter> CharacterOwner;
+	TObjectPtr<class AStalkerCharacter> CharacterOwner;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement|Defaults")
 	float JumpForce = 500.0f;

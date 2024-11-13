@@ -95,10 +95,11 @@ void UItemObject::BindItemActor(AItemActor* BindItem)
 	}
 
 	BoundItemActor = BindItem;
-	OnBindItemActor(BoundItemActor);
+	BoundItemActor->BindItemObject(this);
+	OnBindItemActor();
 }
 
-void UItemObject::OnBindItemActor(AItemActor* NewItemActor)
+void UItemObject::OnBindItemActor()
 {
 }
 
@@ -161,7 +162,7 @@ void UItemObject::OnRep_BoundItem(AItemActor* PrevItemActor)
 {
 	if (BoundItemActor)
 	{
-		OnBindItemActor(BoundItemActor);
+		OnBindItemActor();
 	}
 	else
 	{

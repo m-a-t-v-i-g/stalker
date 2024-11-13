@@ -166,7 +166,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 
 		if (EquipmentSlot->CanEquipItem(BoundObject->ItemDefinition))
 		{
-			EquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
+			ServerEquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
 			ServerRemoveItem(BoundObject->GetItemId());
 			break;
 		}

@@ -4,13 +4,19 @@
 #include "CharacterWeaponComponent.h"
 #include "StalkerCharacter.h"
 #include "StalkerCharacterMovementComponent.h"
+#include "Attributes/HealthAttributeSet.h"
 #include "Components/OrganicAbilityComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 UCharacterStateComponent::UCharacterStateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
+}
+
+void UCharacterStateComponent::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -35,16 +41,35 @@ void UCharacterStateComponent::SetupStateComponent()
 		}
 	}
 
-	if (CharacterRef)
+	if (!CharacterRef || !ControllerRef)
 	{
-		AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
-		MovementComponentRef = CharacterRef->GetCharacterMovement();
-		WeaponComponentRef = CharacterRef->GetWeaponComponent<UCharacterWeaponComponent>();
+		UE_LOG(LogCharacter, Error,
+		       TEXT(
+			       "Unable to setup the State Component: one of the references (character or controller) is null. Character: %s."
+		       ), *CharacterRef->GetName());
+	}
 
-		check(AbilityComponentRef);
-		check(MovementComponentRef);
-		check(WeaponComponentRef);
+	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
+	MovementComponentRef = CharacterRef->GetCharacterMovement();
+	WeaponComponentRef = CharacterRef->GetWeaponComponent<UCharacterWeaponComponent>();
 
+	if (AbilityComponentRef)
+	{
+		if (const UHealthAttributeSet* HealthAttribute = Cast<UHealthAttributeSet>(
+			AbilityComponentRef->GetAttributeSet(UHealthAttributeSet::StaticClass())))
+		{
+			HealthAttributeSet = HealthAttribute;
+			
+			FOnGameplayAttributeValueChange& HealthDelegate = AbilityComponentRef->
+				GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetHealthAttribute());
+			HealthDelegate.AddUObject(this, &UCharacterStateComponent::OnHealthChange);
+
+			SetupHealth();
+		}
+	}
+
+	if (WeaponComponentRef)
+	{
 		WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
 		WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
 		WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
@@ -103,7 +128,16 @@ void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState Previo
 {
 	if (HealthState != PreviousState)
 	{
-		// Logic
+		switch (HealthState)
+		{
+		case ECharacterHealthState::Normal:
+			MovementComponentRef->SetMovementModel(NormalMovementModel);
+			break;
+		case ECharacterHealthState::Injured:
+			MovementComponentRef->SetMovementModel(InjuredMovementModel);
+			break;
+		default: break;
+		}
 	}
 }
 
@@ -125,6 +159,57 @@ void UCharacterStateComponent::OnCombatStateChanged(ECharacterCombatState Previo
 	}
 }
 
+bool UCharacterStateComponent::IsAuthority() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->HasAuthority();
+}
+
+bool UCharacterStateComponent::IsAutonomousProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_AutonomousProxy;
+}
+
+bool UCharacterStateComponent::IsSimulatedProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
+}
+
+void UCharacterStateComponent::SetupHealth()
+{
+	if (!HealthAttributeSet || !MovementComponentRef)
+	{
+		return;
+	}
+
+	float CurrentHealth = HealthAttributeSet->GetHealth();
+	float HealthPercentage = CurrentHealth / HealthAttributeSet->GetMaxHealth() * 100.0f;
+	if (HealthPercentage > 10.0f)
+	{
+		SetHealthState(ECharacterHealthState::Normal);
+	}
+	else
+	{
+		SetHealthState(ECharacterHealthState::Injured);
+	}
+}
+
+void UCharacterStateComponent::OnHealthChange(const FOnAttributeChangeData& HealthChangeData)
+{
+	SetupHealth();
+}
+
 void UCharacterStateComponent::OnFireStart()
 {
 	bFiring = true;
@@ -133,7 +218,7 @@ void UCharacterStateComponent::OnFireStart()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(CombatStateTimer);
 	}
-	
+
 	if (!bAiming)
 	{
 		SetCombatState(ECharacterCombatState::Tense);
@@ -189,7 +274,6 @@ void UCharacterStateComponent::SetRelaxTimer()
 		if (CombatStateTimer.IsValid())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(CombatStateTimer);
-			UKismetSystemLibrary::PrintString(this, FString("valid"), true, false);
 		}
 
 		FTimerDelegate TimerDelegate;
@@ -199,6 +283,16 @@ void UCharacterStateComponent::SetRelaxTimer()
 			GetWorld()->GetTimerManager().ClearTimer(CombatStateTimer);
 		});
 
-		GetWorld()->GetTimerManager().SetTimer(CombatStateTimer, TimerDelegate, 5.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(CombatStateTimer, TimerDelegate, StateTransitionTime, false);
 	}
+}
+
+void UCharacterStateComponent::OnRep_HealthState(ECharacterHealthState PrevHealthState)
+{
+	OnHealthStateChanged(PrevHealthState);
+}
+
+void UCharacterStateComponent::OnRep_CombatState(ECharacterCombatState PrevCombatState)
+{
+	OnCombatStateChanged(PrevCombatState);
 }

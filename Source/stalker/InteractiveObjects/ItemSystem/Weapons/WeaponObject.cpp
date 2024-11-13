@@ -56,18 +56,9 @@ void UWeaponObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME_CONDITION(UWeaponObject, WeaponParams, COND_OwnerOnly);
 }
 
-void UWeaponObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
+void UWeaponObject::OnBindItemActor()
 {
-	Super::InitItem(ItemId, ItemObject);
-	if (auto WeaponObject = Cast<UWeaponObject>(ItemObject))
-	{
-		WeaponParams = WeaponObject->GetWeaponParams();
-	}
-}
-
-void UWeaponObject::OnBindItemActor(AItemActor* NewItemActor)
-{
-	Super::OnBindItemActor(NewItemActor);
+	Super::OnBindItemActor();
 
 	if (auto BindWeapon = GetBoundItem<AWeaponActor>())
 	{

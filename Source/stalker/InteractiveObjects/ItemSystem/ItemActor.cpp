@@ -26,20 +26,20 @@ AItemActor::AItemActor()
 	
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SetReplicatingMovement(true);
 }
 
 void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AItemActor, ItemObject);
-	DOREPLIFETIME_CONDITION(AItemActor, bHanded,	COND_OwnerOnly)
+	DOREPLIFETIME_CONDITION(ThisClass, ItemObject,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, bHanded,		COND_OwnerOnly)
 }
 
 void AItemActor::Destroyed()
 {
 	UnbindItemObject();
-	
 	Super::Destroyed();
 }
 
@@ -69,8 +69,6 @@ void AItemActor::BindItemObject(UItemObject* NewItemObject)
 	}
 	
 	ItemObject = NewItemObject;
-	ItemObject->BindItemActor(this);
-	
 	OnBindItem();
 }
 
@@ -86,32 +84,32 @@ void AItemActor::UnbindItemObject()
 		return;
 	}
 
-	ItemObject->UnbindItemActor();
+	UItemObject* PrevItemObject = ItemObject;
 	ItemObject = nullptr;
-	
-	OnUnbindItem();
+	OnUnbindItem(PrevItemObject);
 }
 
-void AItemActor::OnUnbindItem()
+void AItemActor::OnUnbindItem(UItemObject* PrevItemObject)
 {
 	UpdateItem();
+}
+
+void AItemActor::UpdateItem()
+{
 }
 
 void AItemActor::SetEquipped()
 {
 	bHanded = true;
 	PhysicCollision->SetSimulatePhysics(false);
+	//InteractionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AItemActor::SetGrounded()
 {
 	bHanded = false;
 	PhysicCollision->SetSimulatePhysics(true);
-}
-
-void AItemActor::UpdateItem()
-{
-
+	//InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 void AItemActor::PostInitializeComponents()
@@ -128,13 +126,13 @@ void AItemActor::BeginPlay()
 
 	if (HasAuthority())
 	{
-		if (!IsValid(ItemObject))
+		if (!IsBoundItem())
 		{
-			UItemPredictedData* PreData = bUsePredictedData ? PredictedData : nullptr;
+			const UItemPredictedData* PreData = bUsePredictedData ? PredictedData : nullptr;
 			if (UItemObject* NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemDefinition, PreData))
 			{
 				ItemObject = NewItemObject;
-				BindItemObject(ItemObject);
+				ItemObject->BindItemActor(this);
 			}
 		}
 	}
@@ -165,11 +163,15 @@ void AItemActor::OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedCo
 	}
 }
 
-void AItemActor::OnRep_ItemObject()
+void AItemActor::OnRep_ItemObject(UItemObject* PrevItemObject)
 {
 	if (ItemObject)
 	{
 		OnBindItem();
+	}
+	else
+	{
+		OnUnbindItem(PrevItemObject);
 	}
 }
 

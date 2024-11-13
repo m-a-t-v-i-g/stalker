@@ -59,7 +59,7 @@ void AStalkerPlayerController::ConnectHUD()
 {
 	if (IsLocalController())
 	{
-		if (!Stalker && !StalkerHUD)
+		if (!Stalker || !StalkerHUD)
 		{
 			return;
 		}

@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerCharacterMovementComponent.h"
-#include "BaseCharacter.h"
 #include "MovementModelConfig.h"
+#include "StalkerCharacter.h"
 
 UStalkerCharacterMovementComponent::UStalkerCharacterMovementComponent()
 {
@@ -17,7 +17,11 @@ UStalkerCharacterMovementComponent::UStalkerCharacterMovementComponent()
 void UStalkerCharacterMovementComponent::SetUpdatedComponent(USceneComponent* NewUpdatedComponent)
 {
 	Super::SetUpdatedComponent(NewUpdatedComponent);
-	CharacterOwner = GetOwner<ABaseCharacter>();
+
+	if (auto StalkerChar = GetOwner<AStalkerCharacter>())
+	{
+		CharacterOwner = StalkerChar;
+	}
 }
 
 void UStalkerCharacterMovementComponent::BindReplicationData_Implementation()
@@ -28,12 +32,12 @@ void UStalkerCharacterMovementComponent::BindReplicationData_Implementation()
 	BindInputFlag(ID_Action2(), bWantsToCrouch);
 	BindInputFlag(ID_Action1(), bWantsToJump);
 	
-	BindRotator(ViewRotation, false, true, true);
-	BindRotator(PrevPawnRotation, false, true, true);
-
 	BindBool(bJustSprinting, false, true, true);
 	BindBool(bJustJumped, false, true, true);
 	BindBool(bJustCrouched, false, true, true);
+	
+	BindRotator(ViewRotation, false, true, true);
+	BindRotator(PrevPawnRotation, false, true, true);
 }
 
 void UStalkerCharacterMovementComponent::PreMovementUpdate_Implementation(float DeltaSeconds)
@@ -336,18 +340,17 @@ void UStalkerCharacterMovementComponent::UpdateGroundRotation(float DeltaTime)
 	{
 		if (RotationMode.ControlDirection())
 		{
-			LimitRotation(-100.0f, 100.0f, 20.0f, DeltaTime);
+			LimitRotation(-50.0f, 50.0f, 20.0f, DeltaTime);
 		}
-		else if (RotationMode.LookingDirection())
+
+		float RotationAmount = GetAnimCurveValue("RotationAmount");
+		if (FMath::Abs(RotationAmount) > 0.001f)
 		{
-			float RotationAmount = GetAnimCurveValue("RotationAmount");
-			if (FMath::Abs(RotationAmount) > 0.001f)
-			{
-				TargetRotation.Yaw = FRotator::NormalizeAxis(TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
-				SetRootCollisionRotation(TargetRotation);
-			}
-			TargetRotation = GetRootCollisionRotation();
+			TargetRotation.Yaw = FRotator::NormalizeAxis(
+				TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
+			SetRootCollisionRotation(TargetRotation);
 		}
+		TargetRotation = GetRootCollisionRotation();
 	}
 }
 

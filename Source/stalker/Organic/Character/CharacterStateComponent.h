@@ -7,6 +7,8 @@
 #include "Components/ActorComponent.h"
 #include "CharacterStateComponent.generated.h"
 
+struct FOnAttributeChangeData;
+class UHealthAttributeSet;
 class UOrganicAbilityComponent;
 class UStalkerCharacterMovementComponent;
 class UCharacterWeaponComponent;
@@ -21,6 +23,7 @@ class STALKER_API UCharacterStateComponent : public UActorComponent
 public:
 	UCharacterStateComponent();
 
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void SetupStateComponent();
@@ -45,6 +48,10 @@ public:
 
 	virtual void OnCombatStateChanged(ECharacterCombatState PreviousState);
 	
+	bool IsAuthority() const;
+	bool IsAutonomousProxy() const;
+	bool IsSimulatedProxy() const;
+	
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
 	ECharacterMovementAction MovementAction = ECharacterMovementAction::None;
@@ -52,17 +59,23 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
 	ECharacterOverlayState OverlayState = ECharacterOverlayState::Default;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = "OnRep_HealthState", Category = "Character State")
 	ECharacterHealthState HealthState = ECharacterHealthState::Normal;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = "OnRep_CombatState", Category = "Character State")
 	ECharacterCombatState CombatState = ECharacterCombatState::Relaxed;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
-	TObjectPtr<UMovementModelConfig> DefaultMovementModel;
+	UPROPERTY(EditDefaultsOnly, Category = "Character State")
+	float StateTransitionTime = 3.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
-	TObjectPtr<UMovementModelConfig> InjuredMovementModel;
+	TObjectPtr<const UMovementModelConfig> NormalMovementModel;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
+	TObjectPtr<const UMovementModelConfig> InjuredMovementModel;
+
+	void SetupHealth();
+	void OnHealthChange(const FOnAttributeChangeData& HealthChangeData);
 	
 	void OnFireStart();
 	void OnFireStop();
@@ -72,6 +85,12 @@ protected:
 
 	void SetRelaxTimer();
 
+	UFUNCTION()
+	void OnRep_HealthState(ECharacterHealthState PrevHealthState);
+
+	UFUNCTION()
+	void OnRep_CombatState(ECharacterCombatState PrevCombatState);
+
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
@@ -80,6 +99,8 @@ private:
 	TObjectPtr<UStalkerCharacterMovementComponent> MovementComponentRef;
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponentRef;
 
+	TObjectPtr<const UHealthAttributeSet> HealthAttributeSet;
+	
 	bool bFiring = false;
 	bool bAiming = false;
 	

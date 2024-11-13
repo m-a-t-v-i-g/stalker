@@ -11,13 +11,20 @@
 
 DEFINE_LOG_CATEGORY(LogCharacter);
 
-FName AStalkerCharacter::InventoryComponentName	{"Inventory Component"};
-FName AStalkerCharacter::WeaponComponentName	{"Weapon Component"};
+FName AStalkerCharacter::CharacterMovementName	{"Char Movement Component"};
+FName AStalkerCharacter::InventoryComponentName	{"Char Inventory Component"};
+FName AStalkerCharacter::WeaponComponentName	{"Char Weapon Component"};
 FName AStalkerCharacter::StateComponentName		{"Char State Component"};
 FName AStalkerCharacter::ArmorComponentName		{"Char Armor Component"};
 
 AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	CharacterMovementComponent = CreateDefaultSubobject<UStalkerCharacterMovementComponent>(CharacterMovementName);
+	if (CharacterMovementComponent)
+	{
+		CharacterMovementComponent->UpdatedComponent = GetRootComponent();
+	}
+	
 	InventoryComponent = CreateDefaultSubobject<UCharacterInventoryComponent>(InventoryComponentName);
 	
 	WeaponComponent = CreateDefaultSubobject<UCharacterWeaponComponent>(WeaponComponentName);
@@ -35,9 +42,64 @@ void AStalkerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	if (GetCharacterMovement())
+	{
+		if (GetMesh())
+		{
+			GetMesh()->AddTickPrerequisiteActor(this);
+		
+			if (GetMesh()->PrimaryComponentTick.bCanEverTick)
+			{
+				GetMesh()->PrimaryComponentTick.AddPrerequisite(GetCharacterMovement(), GetCharacterMovement()->PrimaryComponentTick);
+			}
+		}
+
+		if (GetCapsuleComponent())
+		{
+			GetCharacterMovement()->UpdateNavAgent(*GetCapsuleComponent());
+		}
+	}
+
 	if (HasAuthority())
 	{
 		SetCharacterData();
+	}
+}
+
+void AStalkerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	SetupCharacterComponents();
+	
+	if (IsLocallyControlled())
+	{
+		SetupCharacterLocally();
+	}
+}
+
+void AStalkerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	SetupCharacterComponents();
+	
+	if (IsLocallyControlled())
+	{
+		SetupCharacterLocally();
+	}
+}
+
+void AStalkerCharacter::SetupCharacterComponents()
+{
+	if (!GetController())
+	{
+		return;
+	}
+	
+	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	{
+		AbilitySystemComp->SetupAbilitySystem(GetController(), this);
 	}
 	
 	if (WeaponComponent)
@@ -51,33 +113,12 @@ void AStalkerCharacter::PostInitializeComponents()
 	}
 }
 
-void AStalkerCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
-	{
-		AbilitySystemComp->SetupAbilitySystem(NewController, this);
-	}
-	
-	if (IsLocallyControlled())
-	{
-		SetupCharacterLocally();
-	}
-}
-
-void AStalkerCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-	
-	if (IsLocallyControlled())
-	{
-		SetupCharacterLocally();
-	}
-}
-
 void AStalkerCharacter::SetupCharacterLocally()
 {
+	if (!GetController())
+	{
+		return;
+	}
 }
 
 void AStalkerCharacter::SetCharacterData()

@@ -83,9 +83,7 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject) override;
-	
-	virtual void OnBindItemActor(AItemActor* NewItemActor) override;
+	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const override;

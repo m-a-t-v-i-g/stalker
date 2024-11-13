@@ -86,14 +86,22 @@ protected:
 	TObjectPtr<const UItemBehaviorConfig> WeaponBehaviorConfig;
 
 private:
-	TObjectPtr<class AStalkerCharacter> StalkerCharacter;
-	TObjectPtr<UCharacterInventoryComponent> CharacterInventory;
+	TObjectPtr<class AStalkerCharacter> CharacterRef;
+	TObjectPtr<AController> ControllerRef;
+	
+	TObjectPtr<UCharacterInventoryComponent> CharacterInventoryRef;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<AItemActor> LeftHandItem;
+	TObjectPtr<UItemObject> LeftHandItemObject;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<AItemActor> RightHandItem;
+	TObjectPtr<UItemObject> RightHandItemObject;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
+	TObjectPtr<AItemActor> LeftHandItemActor;
+
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
+	TObjectPtr<AItemActor> RightHandItemActor;
 
 	FReloadingData ReloadingData;
 
@@ -177,13 +185,14 @@ public:
 	void OnSlotEquipped(const FUpdatedSlotData& SlotData, FString SlotName);
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
-	FORCEINLINE UItemObject* GetItemObjectAtRightHand() const;
-
+	
 	template<class T>
 	T* GetItemObjectAtLeftHand() const
 	{
 		return Cast<T>(GetItemObjectAtLeftHand());
 	}
+	
+	FORCEINLINE UItemObject* GetItemObjectAtRightHand() const;
 
 	template<class T>
 	T* GetItemObjectAtRightHand() const
@@ -192,7 +201,6 @@ public:
 	}
 
 	FORCEINLINE AItemActor* GetItemActorAtLeftHand() const;
-	FORCEINLINE AItemActor* GetItemActorAtRightHand() const;
 	
 	template<class T>
 	T* GetItemActorAtLeftHand() const
@@ -200,11 +208,16 @@ public:
 		return Cast<T>(GetItemActorAtLeftHand());
 	}
 	
+	FORCEINLINE AItemActor* GetItemActorAtRightHand() const;
+	
 	template<class T>
 	T* GetItemActorAtRightHand() const
 	{
 		return Cast<T>(GetItemActorAtRightHand());
 	}
+	
+	FORCEINLINE bool IsLeftItemObjectValid() const;
+	FORCEINLINE bool IsRightItemObjectValid() const;
 	
 	FORCEINLINE bool IsLeftItemActorValid() const;
 	FORCEINLINE bool IsRightItemActorValid() const;

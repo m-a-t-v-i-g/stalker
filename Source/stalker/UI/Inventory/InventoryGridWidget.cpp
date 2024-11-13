@@ -239,7 +239,7 @@ void UInventoryGridWidget::OnItemMouseLeave()
 void UInventoryGridWidget::OnItemDoubleClick(UItemObject* ItemObject)
 {
 	ClearRoom(ItemObject->GetItemId());
-	UpdateItemsMap();
+	UpdateGrid();
 	OnItemWidgetDoubleClick.Broadcast(ItemObject);
 	HoveredData.Clear();
 }

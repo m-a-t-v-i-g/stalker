@@ -34,12 +34,14 @@ public:
 	virtual void OnBindItem();
 
 	void UnbindItemObject();
-	virtual void OnUnbindItem();
+	virtual void OnUnbindItem(UItemObject* PrevItemObject);
 	
-	void SetEquipped();
-	void SetGrounded();
-
 	virtual void UpdateItem();
+	
+	virtual void SetEquipped();
+	virtual void SetGrounded();
+
+	bool IsBoundItem() const { return ItemObject != nullptr; }
 	
 	UItemObject* GetItemObject() const { return ItemObject; }
 	
@@ -79,7 +81,7 @@ protected:
 	                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
 	UFUNCTION()
-	void OnRep_ItemObject();
+	void OnRep_ItemObject(UItemObject* PrevItemObject);
 	
 	UFUNCTION()
 	void OnRep_Handed();

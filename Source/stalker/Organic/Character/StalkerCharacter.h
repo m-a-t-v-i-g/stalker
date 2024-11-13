@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseCharacter.h"
+#include "BaseOrganic.h"
 #include "InteractorInterface.h"
 #include "StalkerCharacter.generated.h"
 
 class UAbilitySet;
+class UStalkerCharacterMovementComponent;
 class UCharacterInventoryComponent;
 class UCharacterWeaponComponent;
 class UCharacterStateComponent;
@@ -15,14 +16,15 @@ class UCharacterArmorComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
 
-UCLASS(Blueprintable, BlueprintType)
-class STALKER_API AStalkerCharacter : public ABaseCharacter, public IInteractorInterface
+UCLASS(Abstract)
+class STALKER_API AStalkerCharacter : public ABaseOrganic, public IInteractorInterface
 {
 	GENERATED_BODY()
 
 public:
 	AStalkerCharacter(const FObjectInitializer& ObjectInitializer);
-
+	
+	static FName CharacterMovementName;
 	static FName InventoryComponentName;
 	static FName WeaponComponentName;
 	static FName StateComponentName;
@@ -35,7 +37,17 @@ public:
 
 	virtual bool CheckReloadAbility();
 
+	virtual void SetupCharacterComponents();
 	virtual void SetupCharacterLocally();
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UStalkerCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovementComponent; }
+	
+	template <class T>
+	T* GetCharacterMovement() const
+	{
+		return Cast<T>(GetCharacterMovement());
+	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
@@ -76,10 +88,13 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TObjectPtr<UAbilitySet> AbilitySet;
-	
+
 	virtual void SetCharacterData();
 	
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStalkerCharacterMovementComponent> CharacterMovementComponent;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCharacterInventoryComponent> InventoryComponent;
 	

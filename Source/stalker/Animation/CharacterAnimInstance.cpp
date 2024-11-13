@@ -3,7 +3,6 @@
 #include "Animation/CharacterAnimInstance.h"
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
-#include "Character/BaseCharacter.h"
 #include "Character/CharacterStateComponent.h"
 #include "Character/StalkerCharacter.h"
 #include "Character/StalkerCharacterMovementComponent.h"
@@ -140,7 +139,7 @@ void UCharacterAnimInstance::UpdateViewInfo(float DeltaSeconds)
 		View.AimSweepTime = FMath::GetMappedRangeValueClamped<float, float>({-90.0f, 90.0f}, {1.0f, 0.0f}, View.AimingAngle.Y);
 		View.SpineRotation.Roll = 0.0f;
 		View.SpineRotation.Pitch = 0.0f;
-		View.SpineRotation.Yaw = View.AimingAngle.X / 4.0f;
+		View.SpineRotation.Yaw = View.AimingAngle.X / 6.0f;
 	}
 	else if (Movement.bHasMovementInput)
 	{

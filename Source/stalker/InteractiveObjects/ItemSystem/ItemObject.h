@@ -87,7 +87,6 @@ class STALKER_API UItemInstance : public UObject
 public:
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData);
-	
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
 	
 	UPROPERTY(EditInstanceOnly, Category = "Item")
@@ -152,7 +151,7 @@ public:
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 	
 	void BindItemActor(AItemActor* BindItem);
-	virtual void OnBindItemActor(AItemActor* NewItemActor);
+	virtual void OnBindItemActor();
 
 	void UnbindItemActor();
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor);
