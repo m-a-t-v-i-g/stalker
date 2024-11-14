@@ -60,6 +60,16 @@ void AStalkerCharacter::PostInitializeComponents()
 		}
 	}
 
+	if (GetWeaponComponent())
+	{
+		GetWeaponComponent()->SetupWeaponComponent(this);
+	}
+
+	if (GetStateComponent())
+	{
+		GetStateComponent()->SetupStateComponent(this);
+	}
+
 	if (HasAuthority())
 	{
 		SetCharacterData();
@@ -70,7 +80,7 @@ void AStalkerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	SetupCharacterComponents();
+	InitCharacterComponents();
 	
 	if (IsLocallyControlled())
 	{
@@ -82,7 +92,7 @@ void AStalkerCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 
-	SetupCharacterComponents();
+	InitCharacterComponents();
 	
 	if (IsLocallyControlled())
 	{
@@ -90,7 +100,7 @@ void AStalkerCharacter::OnRep_Controller()
 	}
 }
 
-void AStalkerCharacter::SetupCharacterComponents()
+void AStalkerCharacter::InitCharacterComponents()
 {
 	if (!GetController())
 	{
@@ -102,14 +112,14 @@ void AStalkerCharacter::SetupCharacterComponents()
 		AbilitySystemComp->SetupAbilitySystem(GetController(), this);
 	}
 	
-	if (WeaponComponent)
+	if (GetWeaponComponent())
 	{
-		WeaponComponent->SetupWeaponComponent();
+		GetWeaponComponent()->InitCharacterInfo(GetController());
 	}
 	
-	if (StateComponent)
+	if (GetStateComponent())
 	{
-		StateComponent->SetupStateComponent();
+		GetStateComponent()->InitCharacterInfo(GetController());
 	}
 }
 
@@ -133,9 +143,4 @@ void AStalkerCharacter::SetCharacterData()
 	{
 		AbilitySet->GiveToAbilitySystem(AbilityComp);
 	}
-}
-
-bool AStalkerCharacter::CheckReloadAbility()
-{
-	return true;
 }

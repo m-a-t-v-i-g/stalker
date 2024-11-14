@@ -9,10 +9,6 @@ UWeaponComponent::UWeaponComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UWeaponComponent::SetupWeaponComponent()
-{
-}
-
 void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
 	if (!ItemObject) return;

@@ -10,14 +10,47 @@
 #include "CharacterWeaponComponent.generated.h"
 
 struct FUpdatedSlotData;
-class UWeaponObject;
 class UCharacterInventoryComponent;
+class UCharacterStateComponent;
+class UWeaponObject;
+class AStalkerCharacter;
 
 DECLARE_MULTICAST_DELEGATE(FCharacterFireDelegate);
 DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStartReloadSignature, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
+
+USTRUCT()
+struct FHandedItemData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UItemObject* ItemObject = nullptr;
+
+	AItemActor* ItemActor = nullptr;
+
+	EMouseButtonReaction MouseButtonReaction = EMouseButtonReaction::None;
+	
+	FHandedItemData() = default;
+	
+	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, EMouseButtonReaction MouseReaction) :
+		ItemObject(ItemObj), ItemActor(ItemAct), MouseButtonReaction(MouseReaction)
+	{
+	}
+
+	void Clear()
+	{
+		ItemObject = nullptr;
+		ItemActor = nullptr;
+		MouseButtonReaction = EMouseButtonReaction::None;
+	}
+
+	bool IsValid() const
+	{
+		return ItemObject != nullptr;
+	}
+};
 
 USTRUCT()
 struct FReloadingData
@@ -76,7 +109,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	virtual void SetupWeaponComponent() override;
+	virtual void SetupWeaponComponent(AStalkerCharacter* InCharacter);
+	virtual void InitCharacterInfo(AController* InController);
 
 	virtual bool CanAttack() const override;
 	virtual bool IsArmed() const override;
@@ -86,10 +120,11 @@ protected:
 	TObjectPtr<const UItemBehaviorConfig> WeaponBehaviorConfig;
 
 private:
-	TObjectPtr<class AStalkerCharacter> CharacterRef;
+	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
 	
-	TObjectPtr<UCharacterInventoryComponent> CharacterInventoryRef;
+	TObjectPtr<UCharacterInventoryComponent> InventoryComponentRef;
+	TObjectPtr<UCharacterStateComponent> StateComponentRef;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	TObjectPtr<UItemObject> LeftHandItemObject;

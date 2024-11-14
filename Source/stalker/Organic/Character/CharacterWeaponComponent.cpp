@@ -22,8 +22,8 @@ void UCharacterWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UCharacterWeaponComponent, LeftHandItemActor);
-	DOREPLIFETIME(UCharacterWeaponComponent, RightHandItemActor);
+	DOREPLIFETIME(ThisClass, LeftHandItemActor);
+	DOREPLIFETIME(ThisClass, RightHandItemActor);
 }
 
 void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -35,40 +35,46 @@ void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	{
 		return;
 	}
-
+	
+	/* TODO:
 	if (ReloadingData.bInProgress && !CharacterRef->CheckReloadAbility())
 	{
 		CancelReloadWeapon();
 	}
+	*/
 }
 
-void UCharacterWeaponComponent::SetupWeaponComponent()
+void UCharacterWeaponComponent::SetupWeaponComponent(AStalkerCharacter* InCharacter)
 {
-	if (auto Character = GetOwner<AStalkerCharacter>())
+	CharacterRef = InCharacter;
+
+	if (!CharacterRef)
 	{
-		CharacterRef = Character;
-		
-		if (AController* Controller = Character->GetController())
-		{
-			ControllerRef = Controller;
-		}
+		UE_LOG(LogCharacter, Error, TEXT("Unable to setup the Weapon Component: character ref is null."));
+		return;
 	}
 
+	InventoryComponentRef = CharacterRef->GetInventoryComponent();
+	StateComponentRef = CharacterRef->GetStateComponent();
+}
+
+void UCharacterWeaponComponent::InitCharacterInfo(AController* InController)
+{
+	ControllerRef = InController;
+	
 	if (!CharacterRef || !ControllerRef)
 	{
 		UE_LOG(LogCharacter, Error,
 		       TEXT(
-			       "Unable to setup the Weapon Component: one of the references (character or controller) is null. Character: %s."
-		       ), *CharacterRef->GetName());
+			       "Unable to setup the Weapon Component for character: one of the references (character or controller) is null."
+		       ));
 		return;
 	}
-	
+
 	if (IsAuthority())
 	{
-		if (UCharacterInventoryComponent* CharacterInventoryComp = CharacterRef->GetInventoryComponent())
+		if (InventoryComponentRef)
 		{
-			CharacterInventoryRef = CharacterInventoryComp;
-
 			for (uint8 i = 0; i < WeaponSlots.Num(); i++)
 			{
 				if (WeaponSlots[i].SlotName.IsEmpty())
@@ -76,10 +82,10 @@ void UCharacterWeaponComponent::SetupWeaponComponent()
 					continue;
 				}
 
-				if (UEquipmentSlot* SlotPtr = CharacterInventoryRef->FindEquipmentSlot(WeaponSlots[i].SlotName))
+				if (UEquipmentSlot* SlotPtr = InventoryComponentRef->FindEquipmentSlot(WeaponSlots[i].SlotName))
 				{
 					SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterWeaponComponent::OnSlotEquipped,
-					                                  WeaponSlots[i].SlotName);
+													  WeaponSlots[i].SlotName);
 					OnSlotEquipped(FUpdatedSlotData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()), WeaponSlots[i].SlotName);
 				}
 			}
@@ -315,14 +321,14 @@ void UCharacterWeaponComponent::ServerStopAiming_Implementation()
 
 void UCharacterWeaponComponent::TryReloadWeapon()
 {
-	auto RightItem = GetItemObjectAtRightHand<UWeaponObject>();
-	if (!RightItem || RightItem->IsMagFull() || !HasAmmoForReload())
-	{
-		return;
-	}
-	
 	if (IsAutonomousProxy())
 	{
+		auto RightItem = GetItemObjectAtRightHand<UWeaponObject>();
+		if (!RightItem || RightItem->IsMagFull() || !HasAmmoForReload())
+		{
+			return;
+		}
+
 		ReloadingData.ReloadTime = RightItem->GetWeaponParams().ReloadTime;
 		SetReloadTimer();
 	}
@@ -339,22 +345,16 @@ void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 	}
 
 	UAmmoObject* Ammo = GetAmmoForReload();
-	if (!Ammo)
-	{
-		return;
-	}
-	
+	check(Ammo);
+
 	int AmmoCount = Ammo->GetItemInstance()->Amount;
-	if (AmmoCount > 0)
-	{
-		int RequiredCount = RightWeapon->CalculateRequiredAmmoCount();
-		int AvailableCount = FMath::Min(RequiredCount, AmmoCount);
-		
-		ReloadingData = FReloadingData(RightWeapon, Ammo, AvailableCount, RightWeapon->GetWeaponParams().ReloadTime, true);
-		
-		SetReloadTimer();
-		MulticastReloadWeapon(ReloadingData.ReloadTime);
-	}
+	int RequiredCount = RightWeapon->CalculateRequiredAmmoCount();
+	int AvailableCount = FMath::Min(RequiredCount, AmmoCount);
+
+	ReloadingData = FReloadingData(RightWeapon, Ammo, AvailableCount, RightWeapon->GetWeaponParams().ReloadTime, true);
+
+	SetReloadTimer();
+	MulticastReloadWeapon(ReloadingData.ReloadTime);
 }
 
 void UCharacterWeaponComponent::MulticastReloadWeapon_Implementation(float ReloadTime)
@@ -368,7 +368,7 @@ void UCharacterWeaponComponent::MulticastReloadWeapon_Implementation(float Reloa
 
 void UCharacterWeaponComponent::CompleteReloadWeapon()
 {
-	if (GetOwner()->HasAuthority())
+	if (IsAuthority())
 	{
 		if (!ReloadingData.IsValid())
 		{
@@ -416,8 +416,7 @@ bool UCharacterWeaponComponent::HasAmmoForReload() const
 {
 	if (UAmmoObject* Ammo = GetAmmoForReload())
 	{
-		int AmmoCount = Ammo->GetItemInstance()->Amount;
-		return AmmoCount > 0;
+		return Ammo->GetItemInstance()->Amount > 0;
 	}
 	return false;
 }
@@ -451,7 +450,7 @@ void UCharacterWeaponComponent::EquipOrUnEquipSlot(const FString& SlotName, UIte
 	{
 		return;
 	}
-	
+
 	const FItemBehavior* WeaponConfig = WeaponBehaviorConfig->ItemsMap.Find(IncomingItem->GetScriptName());
 	if (!WeaponConfig)
 	{

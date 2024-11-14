@@ -35,9 +35,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 
-	virtual bool CheckReloadAbility();
-
-	virtual void SetupCharacterComponents();
+	virtual void InitCharacterComponents();
 	virtual void SetupCharacterLocally();
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")

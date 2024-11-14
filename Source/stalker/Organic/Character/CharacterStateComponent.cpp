@@ -29,29 +29,32 @@ void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME_CONDITION(ThisClass, OverlayState,	COND_SimulatedOnly);
 }
 
-void UCharacterStateComponent::SetupStateComponent()
+void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacter)
 {
-	if (auto Character = GetOwner<AStalkerCharacter>())
-	{
-		CharacterRef = Character;
-		
-		if (AController* Controller = Character->GetController())
-		{
-			ControllerRef = Controller;
-		}
-	}
+	CharacterRef = InCharacter;
 
+	if (!CharacterRef)
+	{
+		UE_LOG(LogCharacter, Error, TEXT("Unable to setup the State Component: character ref is null."));
+		return;
+	}
+	
+	MovementComponentRef = CharacterRef->GetCharacterMovement();
+	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
+	WeaponComponentRef = CharacterRef->GetWeaponComponent<UCharacterWeaponComponent>();
+}
+
+void UCharacterStateComponent::InitCharacterInfo(AController* InController)
+{
+	ControllerRef = InController;
+	
 	if (!CharacterRef || !ControllerRef)
 	{
 		UE_LOG(LogCharacter, Error,
 		       TEXT(
-			       "Unable to setup the State Component: one of the references (character or controller) is null. Character: %s."
-		       ), *CharacterRef->GetName());
+			       "Unable to setup the State Component for character: one of the references (character or controller) is null."
+		       ));
 	}
-
-	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
-	MovementComponentRef = CharacterRef->GetCharacterMovement();
-	WeaponComponentRef = CharacterRef->GetWeaponComponent<UCharacterWeaponComponent>();
 
 	if (AbilityComponentRef)
 	{
@@ -59,7 +62,11 @@ void UCharacterStateComponent::SetupStateComponent()
 			AbilityComponentRef->GetAttributeSet(UHealthAttributeSet::StaticClass())))
 		{
 			HealthAttributeSet = HealthAttribute;
-			
+
+			FOnGameplayAttributeValueChange& MaxHealthDelegate = AbilityComponentRef->
+				GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetMaxHealthAttribute());
+			MaxHealthDelegate.AddUObject(this, &UCharacterStateComponent::OnMaxHealthChange);
+
 			FOnGameplayAttributeValueChange& HealthDelegate = AbilityComponentRef->
 				GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetHealthAttribute());
 			HealthDelegate.AddUObject(this, &UCharacterStateComponent::OnHealthChange);
@@ -136,6 +143,8 @@ void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState Previo
 		case ECharacterHealthState::Injured:
 			MovementComponentRef->SetMovementModel(InjuredMovementModel);
 			break;
+		case ECharacterHealthState::Dead:
+			break;
 		default: break;
 		}
 	}
@@ -186,22 +195,36 @@ bool UCharacterStateComponent::IsSimulatedProxy() const
 	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
 }
 
+void UCharacterStateComponent::OnMaxHealthChange(const FOnAttributeChangeData& HealthChangeData)
+{
+	if (!HealthAttributeSet)
+	{
+		return;
+	}
+}
+
 void UCharacterStateComponent::SetupHealth()
 {
-	if (!HealthAttributeSet || !MovementComponentRef)
+	if (!HealthAttributeSet)
 	{
 		return;
 	}
 
 	float CurrentHealth = HealthAttributeSet->GetHealth();
-	float HealthPercentage = CurrentHealth / HealthAttributeSet->GetMaxHealth() * 100.0f;
-	if (HealthPercentage > 10.0f)
+	if (FMath::IsNearlyZero(CurrentHealth))
 	{
-		SetHealthState(ECharacterHealthState::Normal);
+		SetHealthState(ECharacterHealthState::Dead);
 	}
 	else
 	{
-		SetHealthState(ECharacterHealthState::Injured);
+		if (CurrentHealth > NormalHealthStateLimit)
+		{
+			SetHealthState(ECharacterHealthState::Normal);
+		}
+		else
+		{
+			SetHealthState(ECharacterHealthState::Injured);
+		}
 	}
 }
 
@@ -283,7 +306,7 @@ void UCharacterStateComponent::SetRelaxTimer()
 			GetWorld()->GetTimerManager().ClearTimer(CombatStateTimer);
 		});
 
-		GetWorld()->GetTimerManager().SetTimer(CombatStateTimer, TimerDelegate, StateTransitionTime, false);
+		GetWorld()->GetTimerManager().SetTimer(CombatStateTimer, TimerDelegate, CombatStateTransitionTime, false);
 	}
 }
 

@@ -43,8 +43,6 @@ class STALKER_API UWeaponComponent : public UActorComponent
 public:
 	UWeaponComponent();
 
-	virtual void SetupWeaponComponent();
-
 protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<FWeaponSlot> WeaponSlots;

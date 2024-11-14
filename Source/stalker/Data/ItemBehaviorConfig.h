@@ -9,6 +9,7 @@
 UENUM(BlueprintType)
 enum class EMouseButtonReaction : uint8
 {
+	None,
 	Attack,
 	Alternative,
 	Aiming,

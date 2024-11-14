@@ -183,7 +183,7 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = "Character Movement|Gait")
 	FCharacterGaitType Gait = ECharacterGaitType::Run;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Character Movement|Movement")
+	UPROPERTY(VisibleInstanceOnly, Category = "Character Movement|Gait")
 	ECharacterGaitType AllowedGait = ECharacterGaitType::Walk;
 
 #pragma endregion Gait

@@ -25,8 +25,9 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	void SetupStateComponent();
+
+	void SetupStateComponent(AStalkerCharacter* InCharacter);
+	void InitCharacterInfo(AController* InController);
 
 	void SetMovementAction(ECharacterMovementAction NewAction, bool bForce = false);
 	FORCEINLINE ECharacterMovementAction GetMovementAction() const { return MovementAction; }
@@ -66,7 +67,10 @@ protected:
 	ECharacterCombatState CombatState = ECharacterCombatState::Relaxed;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character State")
-	float StateTransitionTime = 3.0f;
+	float CombatStateTransitionTime = 3.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character State")
+	float NormalHealthStateLimit = 10.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
 	TObjectPtr<const UMovementModelConfig> NormalMovementModel;
@@ -75,6 +79,7 @@ protected:
 	TObjectPtr<const UMovementModelConfig> InjuredMovementModel;
 
 	void SetupHealth();
+	void OnMaxHealthChange(const FOnAttributeChangeData& HealthChangeData);
 	void OnHealthChange(const FOnAttributeChangeData& HealthChangeData);
 	
 	void OnFireStart();
@@ -95,8 +100,8 @@ private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
 
-	TObjectPtr<UOrganicAbilityComponent> AbilityComponentRef;
 	TObjectPtr<UStalkerCharacterMovementComponent> MovementComponentRef;
+	TObjectPtr<UOrganicAbilityComponent> AbilityComponentRef;
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponentRef;
 
 	TObjectPtr<const UHealthAttributeSet> HealthAttributeSet;
