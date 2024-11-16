@@ -19,13 +19,31 @@ class STALKER_API AWeaponActor : public AItemActor
 public:
 	AWeaponActor();
 
-private:
-	const FWeaponParams* WeaponParams = nullptr;
-	
-public:
 	FOnWeaponAttackDelegate OnWeaponStartAttack;
 	FOnWeaponAttackDelegate OnWeaponStopAttack;
 
+	virtual void OnBindItem() override;
+	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;
+
+	UFUNCTION()
+	void OnStartAttack();
+
+	virtual void MakeAttackVisual();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastMakeAttackVisual();
+
+	UFUNCTION()
+	void OnStopAttack();
+
+	UFUNCTION()
+	virtual void OnStartAlternative();
+
+	UFUNCTION()
+	virtual void OnStopAlternative();
+	
+protected:
+	
 private:
 	FTimerHandle CanAttackTimer;
 	FTimerHandle RepeatAttackTimer;
@@ -34,29 +52,4 @@ private:
 	bool bInFireRate = true;
 
 	bool bHoldTrigger = false;
-	
-public:
-	virtual void OnBindItem() override;
-
-	void StartAttack();
-	void CallAttack();
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastMakeAttackVisual();
-	
-	void StopAttack();
-
-	virtual void StartAlternative();
-	virtual void StopAlternative();
-	
-	virtual bool CheckAttackAvailability() const;
-	
-	bool IsAmmoAvailable(const UClass* AmmoClass) const;
-
-protected:
-	void SetSingleFireTimer();
-	void SetRepetitiveFireTimer();
-
-	float GetDefaultFireRate() const;
-	virtual float CalculateFireRate() const;
 };

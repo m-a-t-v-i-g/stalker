@@ -8,6 +8,8 @@
 
 class AWeaponActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
+
 UCLASS()
 class STALKER_API UWeaponDefinition : public UItemDefinition
 {
@@ -48,16 +50,12 @@ class STALKER_API UWeaponInstance : public UItemInstance
 {
 	GENERATED_BODY()
 
-public:
-	virtual bool IsSupportedForNetworking() const override { return true; }
-	
-	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
-	                             const UItemPredictedData* PredictedData) override;
-	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
-	                             const UItemInstance* Instance) override;
-	
+public:	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
+	int MagSize = 0;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0"))
 	int Rounds = 0;
@@ -70,6 +68,12 @@ public:
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	bool bAutomatic = false;
+	
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+	                             const UItemPredictedData* PredictedData) override;
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+	                             const UItemInstance* Instance) override;
 };
 
 UCLASS()
@@ -77,10 +81,10 @@ class STALKER_API UWeaponObject : public UItemObject
 {
 	GENERATED_BODY()
 
-protected:
-	virtual void Use_Implementation(UObject* Source) override;
-
 public:
+	FOnWeaponAttackSignature OnAttackStart;
+	FOnWeaponAttackSignature OnAttackStop;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void OnBindItemActor() override;
@@ -88,26 +92,20 @@ public:
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const override;
 	
-protected:
-	UPROPERTY(Replicated)
-	FWeaponParams WeaponParams;
-
 	void StartAttack();
+	void CallAttack();
 	void StopAttack();
+
+	void StartAlternative();
+	void StopAlternative();
 	
-	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnWeaponAttackStart();
-	
-	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnWeaponAttackStop();
-	
-public:
 	virtual void ReloadAmmo();
 	
 	virtual void IncreaseAmmo(int Amount);
 	virtual void DecreaseAmmo();
 
 	virtual int CalculateRequiredAmmoCount() const;
+	virtual float CalculateFireRate() const;
 	
 	FORCEINLINE bool IsAutomatic() const;
 	FORCEINLINE bool IsMagFull() const;
@@ -115,6 +113,27 @@ public:
 	FORCEINLINE bool CanAttack() const;
 	
 	FORCEINLINE int GetMagSize() const;
+	FORCEINLINE float GetReloadTime() const;
+	FORCEINLINE float GetDefaultFireRate() const;
 	
-	FORCEINLINE const FWeaponParams& GetWeaponParams() const;
+protected:
+	virtual void Use_Implementation(UObject* Source) override;
+
+	void SetSingleFireTimer();
+	void SetRepetitiveFireTimer();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnAttack();
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnStopAttack();
+	
+private:
+	FTimerHandle CanAttackTimer;
+	FTimerHandle RepeatAttackTimer;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
+	bool bInFireRate = true;
+
+	bool bHoldTrigger = false;
 };

@@ -29,14 +29,23 @@ struct FItemBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	EOccupiedHand OccupiedHand = EOccupiedHand::Right;
-	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))
-	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::Attack;
-	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))
-	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::Aiming;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
+		meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))
+	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
+		meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))
+	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::None;
+
+	void Clear()
+	{
+		OccupiedHand = EOccupiedHand::Left;
+		LeftMouseReaction = EMouseButtonReaction::None;
+		RightMouseReaction = EMouseButtonReaction::None;
+	}
 };
 
 UCLASS()

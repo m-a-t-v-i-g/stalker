@@ -11,7 +11,10 @@ UWeaponComponent::UWeaponComponent()
 
 void UWeaponComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (!ItemObject) return;
+	if (!ItemObject)
+	{
+		return;
+	}
 
 	if (auto Slot = FindWeaponSlot(SlotName))
 	{
@@ -23,7 +26,10 @@ void UWeaponComponent::DisarmSlot(const FString& SlotName)
 {
 	if (auto Slot = FindWeaponSlot(SlotName))
 	{
-		if (!Slot->IsArmed()) return;
+		if (!Slot->IsArmed())
+		{
+			return;
+		}
 		Slot->ArmedObject = nullptr;
 	}
 }

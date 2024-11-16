@@ -45,6 +45,12 @@ public:
 	
 	UItemObject* GetItemObject() const { return ItemObject; }
 	
+	template <class T>
+	T* GetItemObject() const
+	{
+		return Cast<T>(ItemObject);
+	}
+	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Starting Data")
 	bool bUsePredictedData = false;
@@ -85,12 +91,6 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_Handed();
-	
-	template <class T>
-	T* GetItemObject() const
-	{
-		return Cast<T>(ItemObject);
-	}
 	
 private:
 	UPROPERTY(ReplicatedUsing = "OnRep_Handed")

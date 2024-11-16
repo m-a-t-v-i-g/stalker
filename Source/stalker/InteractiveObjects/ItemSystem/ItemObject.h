@@ -22,13 +22,13 @@ public:
 	FGameplayTag Tag;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
-	TSubclassOf<class AItemActor> ActorClass;
+	TSubclassOf<class AItemActor> ItemActorClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Class")
 	TSubclassOf<class UItemInstance> ItemInstanceClass;
 
 	UPROPERTY(EditAnywhere, Category = "Class")
-	TSubclassOf<class UItemObject> ObjectClass;
+	TSubclassOf<class UItemObject> ItemObjectClass;
 
 	UPROPERTY(EditAnywhere, Category = "Description")
 	FText Name;
@@ -165,15 +165,14 @@ public:
 	void RemoveAmount(uint32 Amount) const;
 
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
-
 	virtual bool IsGrounded() const;
 	virtual bool IsCollected() const;
 	virtual bool IsEquipped() const;
-
-	FORCEINLINE FName GetScriptName() const;
-
+	virtual bool HasBoundActor() const;
+	
 	FORCEINLINE uint32 GetItemId() const;
 	
+	FORCEINLINE FName GetScriptName() const;
 	FORCEINLINE FGameplayTag GetItemTag() const;
 	FORCEINLINE UClass* GetActorClass() const;
 	FORCEINLINE UClass* GetObjectClass() const;
@@ -207,7 +206,9 @@ public:
 
 	virtual bool CanCollected() const;
 	virtual bool CanStackItem(const UItemObject* OtherItem) const;
-
+	
+	FTimerManager& GetWorldTimerManager() const;
+	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;

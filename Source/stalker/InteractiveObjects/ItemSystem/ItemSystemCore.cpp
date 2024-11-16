@@ -25,7 +25,7 @@ UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemDefin
 	UItemObject* ItemObject = nullptr;
 	if (Definition)
 	{
-		ItemObject = NewObject<UItemObject>(World, Definition->ObjectClass);
+		ItemObject = NewObject<UItemObject>(World, Definition->ItemObjectClass);
 		if (ItemObject)
 		{
 			LastItemId++;

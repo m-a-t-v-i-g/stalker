@@ -16,119 +16,57 @@ void AWeaponActor::OnBindItem()
 
 	if (auto WeaponObject = GetItemObject<UWeaponObject>())
 	{
-		WeaponParams = &WeaponObject->GetWeaponParams();
+		WeaponObject->OnAttackStart.AddDynamic(this, &AWeaponActor::OnStartAttack);
+		WeaponObject->OnAttackStop.AddDynamic(this, &AWeaponActor::OnStopAttack);
 	}
 }
 
-void AWeaponActor::StartAttack()
+void AWeaponActor::OnUnbindItem(UItemObject* PrevItemObject)
 {
-	if (bHoldTrigger)
-	{
-		return;
-	}
+	Super::OnUnbindItem(PrevItemObject);
 
-	if (bInFireRate)
+	if (auto WeaponObject = Cast<UWeaponObject>(PrevItemObject))
 	{
-		CallAttack();
-		WeaponParams->bAutomatic ? SetRepetitiveFireTimer() : SetSingleFireTimer();
+		WeaponObject->OnAttackStart.RemoveAll(this);
+		WeaponObject->OnAttackStop.RemoveAll(this);
+	}
+}
+
+void AWeaponActor::OnStartAttack()
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		MakeAttackVisual();
 	}
 	
-	bHoldTrigger = true;
-}
-
-void AWeaponActor::CallAttack()
-{
-	if (!CheckAttackAvailability())
+	if (HasAuthority())
 	{
-		StopAttack();
-	}
-	else if (bInFireRate)
-	{
-		OnWeaponStartAttack.ExecuteIfBound();
-		
-		if (HasAuthority())
-		{
-			MulticastMakeAttackVisual();
-		}
-		
-		bInFireRate = false;
+		MulticastMakeAttackVisual();
 	}
 }
 
-void AWeaponActor::MulticastMakeAttackVisual_Implementation()
+void AWeaponActor::MakeAttackVisual()
 {
 	UKismetSystemLibrary::PrintString(this, FString("ATTACK"), true, false, FLinearColor::Green);
 }
 
-void AWeaponActor::StopAttack()
+void AWeaponActor::MulticastMakeAttackVisual_Implementation()
 {
-	if (!bHoldTrigger)
+	if (GetLocalRole() != ROLE_AutonomousProxy)
 	{
-		return;
-	}
-
-	OnWeaponStopAttack.ExecuteIfBound();
-	
-	if (WeaponParams->bAutomatic)
-	{
-		GetWorldTimerManager().ClearTimer(RepeatAttackTimer);
-		SetSingleFireTimer();
-	}
-	
-	bHoldTrigger = false;
-}
-
-void AWeaponActor::StartAlternative()
-{
-}
-
-void AWeaponActor::StopAlternative()
-{
-}
-
-bool AWeaponActor::CheckAttackAvailability() const
-{
-	return GetItemObject<UWeaponObject>()->CanAttack();
-}
-
-bool AWeaponActor::IsAmmoAvailable(const UClass* AmmoClass) const
-{
-	return WeaponParams->AmmoClasses.Contains(AmmoClass);
-}
-
-void AWeaponActor::SetSingleFireTimer()
-{
-	if (!CanAttackTimer.IsValid())
-	{
-		FTimerDelegate CanAttackDelegate;
-		CanAttackDelegate.BindLambda([&, this]
-		{
-			bInFireRate = true;
-			GetWorldTimerManager().ClearTimer(CanAttackTimer);
-		});
-		
-		GetWorldTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, CalculateFireRate(), false);
+		MakeAttackVisual();
 	}
 }
 
-void AWeaponActor::SetRepetitiveFireTimer()
+void AWeaponActor::OnStopAttack()
 {
-	FTimerDelegate RepeatAttackDelegate;
-	RepeatAttackDelegate.BindLambda([&, this]
-	{
-		bInFireRate = true;
-		CallAttack();
-	});
 	
-	GetWorldTimerManager().SetTimer(RepeatAttackTimer, RepeatAttackDelegate, CalculateFireRate(), true);
 }
 
-float AWeaponActor::GetDefaultFireRate() const
+void AWeaponActor::OnStartAlternative()
 {
-	return 1.0f / (WeaponParams->FireRate / 60.0f);
 }
 
-float AWeaponActor::CalculateFireRate() const
+void AWeaponActor::OnStopAlternative()
 {
-	return GetDefaultFireRate();
 }

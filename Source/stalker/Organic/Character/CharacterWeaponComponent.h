@@ -25,17 +25,20 @@ USTRUCT()
 struct FHandedItemData
 {
 	GENERATED_USTRUCT_BODY()
-	
-	UItemObject* ItemObject = nullptr;
 
-	AItemActor* ItemActor = nullptr;
+	UPROPERTY(EditInstanceOnly)
+	TObjectPtr<UItemObject> ItemObject;
 
-	EMouseButtonReaction MouseButtonReaction = EMouseButtonReaction::None;
+	UPROPERTY(EditInstanceOnly)
+	TObjectPtr<AItemActor> ItemActor;
+
+	UPROPERTY(VisibleInstanceOnly)
+	FItemBehavior ItemBehavior;
 	
-	FHandedItemData() = default;
+	FHandedItemData() {}
 	
-	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, EMouseButtonReaction MouseReaction) :
-		ItemObject(ItemObj), ItemActor(ItemAct), MouseButtonReaction(MouseReaction)
+	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, const FItemBehavior& ItemBeh) : ItemObject(ItemObj),
+		ItemActor(ItemAct), ItemBehavior(ItemBeh)
 	{
 	}
 
@@ -43,12 +46,12 @@ struct FHandedItemData
 	{
 		ItemObject = nullptr;
 		ItemActor = nullptr;
-		MouseButtonReaction = EMouseButtonReaction::None;
+		ItemBehavior.Clear();
 	}
 
 	bool IsValid() const
 	{
-		return ItemObject != nullptr;
+		return ItemObject != nullptr && ItemActor != nullptr;
 	}
 };
 
@@ -67,7 +70,7 @@ struct FReloadingData
 
 	bool bInProgress = false;
 	
-	FReloadingData() = default;
+	FReloadingData() {}
 	
 	FReloadingData(UWeaponObject* WeaponObj, UAmmoObject* AmmoObj, uint16 AmmoAmount, float TimeToReload,
 	               bool bProcessReload) : WeaponObject(WeaponObj), AmmoObject(AmmoObj), AmmoCount(AmmoAmount),
@@ -127,10 +130,10 @@ private:
 	TObjectPtr<UCharacterStateComponent> StateComponentRef;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<UItemObject> LeftHandItemObject;
+	FHandedItemData LeftHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<UItemObject> RightHandItemObject;
+	FHandedItemData RightHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	TObjectPtr<AItemActor> LeftHandItemActor;
@@ -140,7 +143,7 @@ private:
 
 	FReloadingData ReloadingData;
 
-	FTimerHandle ReloadTimer;
+	FTimerHandle ReloadTimerHandle;
 	
 public:
 	UFUNCTION(Server, Reliable)
@@ -206,7 +209,7 @@ public:
 	UAmmoObject* GetAmmoForReload() const;
 	
 protected:
-	void EquipOrUnEquipSlot(const FString& SlotName, UItemObject* IncomingItem);
+	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);
 	void UnEquipSlot(const FString& SlotName);
 	
 	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
@@ -250,6 +253,8 @@ public:
 	{
 		return Cast<T>(GetItemActorAtRightHand());
 	}
+
+	const FItemBehavior* GetItemBehavior(const FName& ItemScriptName) const;
 	
 	FORCEINLINE bool IsLeftItemObjectValid() const;
 	FORCEINLINE bool IsRightItemObjectValid() const;

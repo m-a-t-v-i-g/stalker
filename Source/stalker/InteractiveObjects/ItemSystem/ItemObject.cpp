@@ -195,14 +195,19 @@ bool UItemObject::IsEquipped() const
 	return ItemInstance->Mode == EItemMode::Equipped;
 }
 
-FName UItemObject::GetScriptName() const
+bool UItemObject::HasBoundActor() const
 {
-	return ItemDefinition->ScriptName;
+	return IsValid(BoundItemActor);
 }
 
 uint32 UItemObject::GetItemId() const
 {
 	return ItemInstance->ItemId;
+}
+
+FName UItemObject::GetScriptName() const
+{
+	return ItemDefinition->ScriptName;
 }
 
 FGameplayTag UItemObject::GetItemTag() const
@@ -212,12 +217,12 @@ FGameplayTag UItemObject::GetItemTag() const
 
 UClass* UItemObject::GetActorClass() const
 {
-	return ItemDefinition->ActorClass;
+	return ItemDefinition->ItemActorClass;
 }
 
 UClass* UItemObject::GetObjectClass() const
 {
-	return ItemDefinition->ObjectClass;
+	return ItemDefinition->ItemObjectClass;
 }
 
 FText UItemObject::GetItemName() const
@@ -268,4 +273,9 @@ bool UItemObject::CanCollected() const
 bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
 {
 	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
+}
+
+FTimerManager& UItemObject::GetWorldTimerManager() const
+{
+	return GetWorld()->GetTimerManager();
 }

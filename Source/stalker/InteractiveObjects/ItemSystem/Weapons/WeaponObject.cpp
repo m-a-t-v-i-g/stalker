@@ -13,6 +13,7 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		Super::SetupProperties(NewItemId, Definition, PredictedData);
 
 		AmmoClasses = WeaponDefinition->AmmoClasses;
+		MagSize = WeaponDefinition->MagSize;
 		Rounds = WeaponDefinition->MagSize;
 		FireRate = WeaponDefinition->FireRate;
 		ReloadTime = WeaponDefinition->ReloadTime;
@@ -32,6 +33,7 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		Super::SetupProperties(NewItemId, Definition, Instance);
 
 		AmmoClasses = WeaponInstance->AmmoClasses;
+		MagSize = WeaponInstance->MagSize;
 		Rounds = WeaponInstance->Rounds;
 		FireRate = WeaponInstance->FireRate;
 		ReloadTime = WeaponInstance->ReloadTime;
@@ -49,11 +51,33 @@ void UWeaponObject::Use_Implementation(UObject* Source)
 	}
 }
 
+void UWeaponObject::SetSingleFireTimer()
+{
+	FTimerDelegate CanAttackDelegate;
+	CanAttackDelegate.BindLambda([&, this]
+	{
+		bInFireRate = true;
+		GetWorldTimerManager().ClearTimer(CanAttackTimer);
+	});
+		
+	GetWorldTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, CalculateFireRate(), false);
+}
+
+void UWeaponObject::SetRepetitiveFireTimer()
+{
+	FTimerDelegate RepeatAttackDelegate;
+	RepeatAttackDelegate.BindLambda([&, this]
+	{
+		bInFireRate = true;
+		CallAttack();
+	});
+	
+	GetWorldTimerManager().SetTimer(RepeatAttackTimer, RepeatAttackDelegate, CalculateFireRate(), true);
+}
+
 void UWeaponObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UWeaponObject, WeaponParams, COND_OwnerOnly);
 }
 
 void UWeaponObject::OnBindItemActor()
@@ -62,8 +86,8 @@ void UWeaponObject::OnBindItemActor()
 
 	if (auto BindWeapon = GetBoundItem<AWeaponActor>())
 	{
-		BindWeapon->OnWeaponStartAttack.BindUObject(this, &UWeaponObject::OnWeaponAttackStart);
-		BindWeapon->OnWeaponStopAttack.BindUObject(this, &UWeaponObject::OnWeaponAttackStop);
+		BindWeapon->OnWeaponStartAttack.BindUObject(this, &UWeaponObject::OnAttack);
+		BindWeapon->OnWeaponStopAttack.BindUObject(this, &UWeaponObject::OnStopAttack);
 	}
 }
 
@@ -76,6 +100,66 @@ void UWeaponObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 		PrevBoundWeapon->OnWeaponStartAttack.Unbind();
 		PrevBoundWeapon->OnWeaponStopAttack.Unbind();
 	}
+}
+
+void UWeaponObject::StartAttack()
+{
+	if (!CanAttack() || bHoldTrigger)
+	{
+		return;
+	}
+
+	if (bInFireRate)
+	{
+		CallAttack();
+		IsAutomatic() ? SetRepetitiveFireTimer() : SetSingleFireTimer();
+	}
+
+	bHoldTrigger = true;
+}
+
+void UWeaponObject::CallAttack()
+{
+	if (!CanAttack())
+	{
+		StopAttack();
+	}
+	else if (bInFireRate)
+	{
+		DecreaseAmmo();
+		OnAttack();
+		OnAttackStart.Broadcast();
+		bInFireRate = false;
+	}
+}
+
+void UWeaponObject::StopAttack()
+{
+	if (!bHoldTrigger)
+	{
+		return;
+	}
+
+	OnAttackStop.Broadcast();
+
+	if (IsAutomatic())
+	{
+		GetWorldTimerManager().ClearTimer(RepeatAttackTimer);
+		SetSingleFireTimer();
+	}
+
+	bHoldTrigger = false;
+	OnStopAttack();
+}
+
+void UWeaponObject::StartAlternative()
+{
+	
+}
+
+void UWeaponObject::StopAlternative()
+{
+	
 }
 
 bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
@@ -103,74 +187,78 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
-void UWeaponObject::StartAttack()
-{
-	DecreaseAmmo();
-
-	OnWeaponAttackStart();
-}
-
-void UWeaponObject::StopAttack()
-{
-	OnWeaponAttackStop();
-}
-
-void UWeaponObject::OnWeaponAttackStart_Implementation()
+void UWeaponObject::OnAttack_Implementation()
 {
 
 }
 
-void UWeaponObject::OnWeaponAttackStop_Implementation()
+void UWeaponObject::OnStopAttack_Implementation()
 {
 	
 }
 
 void UWeaponObject::ReloadAmmo()
 {
-	WeaponParams.Rounds = GetMagSize();
+	GetItemInstance<UWeaponInstance>()->Rounds = GetMagSize();
 }
 
 void UWeaponObject::IncreaseAmmo(int Amount)
 {
-	WeaponParams.Rounds = FMath::Clamp(WeaponParams.Rounds + Amount, 0, GetMagSize());
+	int OldRounds = GetItemInstance<UWeaponInstance>()->Rounds;
+	GetItemInstance<UWeaponInstance>()->Rounds = FMath::Clamp(OldRounds + Amount, 0, GetMagSize());
 }
 
 void UWeaponObject::DecreaseAmmo()
 {
-	WeaponParams.Rounds = FMath::Clamp(WeaponParams.Rounds - 1, 0, GetMagSize());
+	int OldRounds = GetItemInstance<UWeaponInstance>()->Rounds;
+	GetItemInstance<UWeaponInstance>()->Rounds = FMath::Clamp(OldRounds - 1, 0, GetMagSize());
 }
 
 int UWeaponObject::CalculateRequiredAmmoCount() const
 {
-	return FMath::Clamp(GetMagSize() - WeaponParams.Rounds, 0, GetMagSize());
+	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
+	return FMath::Clamp(GetMagSize() - Rounds, 0, GetMagSize());
+}
+
+float UWeaponObject::CalculateFireRate() const
+{
+	return GetDefaultFireRate();
+}
+
+float UWeaponObject::GetReloadTime() const
+{
+	return GetItemInstance<UWeaponInstance>()->ReloadTime;
+}
+
+float UWeaponObject::GetDefaultFireRate() const
+{
+	int FireRate = GetItemInstance<UWeaponInstance>()->FireRate;
+	return 1.0f / (FireRate / 60.0f);
 }
 
 bool UWeaponObject::IsAutomatic() const
 {
-	return WeaponParams.bAutomatic;
+	return GetItemInstance<UWeaponInstance>()->bAutomatic;
 }
 
 bool UWeaponObject::IsMagFull() const
 {
-	return WeaponParams.Rounds >= GetMagSize();
+	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
+	return Rounds == GetMagSize();
 }
 
 bool UWeaponObject::IsMagEmpty() const
 {
-	return WeaponParams.Rounds <= 0;
+	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
+	return Rounds == 0;
 }
 
 bool UWeaponObject::CanAttack() const
 {
-	return !IsMagEmpty();
+	return HasBoundActor() && !IsMagEmpty();
 }
 
 int UWeaponObject::GetMagSize() const
 {
-	return 0; // TODO;
-}
-
-const FWeaponParams& UWeaponObject::GetWeaponParams() const
-{
-	return WeaponParams;
+	return GetItemInstance<UWeaponInstance>()->MagSize;
 }
