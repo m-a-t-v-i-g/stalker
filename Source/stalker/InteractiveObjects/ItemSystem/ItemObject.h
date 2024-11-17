@@ -9,6 +9,14 @@
 #include "UObject/Object.h"
 #include "ItemObject.generated.h"
 
+UENUM()
+enum class EItemMode : uint8
+{
+	Grounded,
+	Collected,
+	Equipped
+};
+
 UCLASS()
 class STALKER_API UItemDefinition : public UPrimaryDataAsset
 {
@@ -71,24 +79,12 @@ public:
 	float Endurance = 100.0f;
 };
 
-UENUM()
-enum class EItemMode : uint8
-{
-	Grounded,
-	Collected,
-	Equipped
-};
-
 UCLASS()
 class STALKER_API UItemInstance : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
-	                             const UItemPredictedData* PredictedData);
-	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
-	
 	UPROPERTY(EditInstanceOnly, Category = "Item")
 	uint32 ItemId = 1;
 	
@@ -100,6 +96,11 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category = "Item")
 	EItemMode Mode = EItemMode::Grounded;
+	
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+								 const UItemPredictedData* PredictedData);
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
 	
 protected:
 	UPROPERTY(EditInstanceOnly, Category = "Item")
@@ -171,24 +172,26 @@ public:
 	virtual bool HasBoundActor() const;
 	
 	FORCEINLINE uint32 GetItemId() const;
+	FORCEINLINE uint16 GetAmount() const;
+
+#pragma region Static Data
 	
 	FORCEINLINE FName GetScriptName() const;
 	FORCEINLINE FGameplayTag GetItemTag() const;
 	FORCEINLINE UClass* GetActorClass() const;
 	FORCEINLINE UClass* GetObjectClass() const;
-
 	FORCEINLINE FText GetItemName() const;
 	FORCEINLINE FText GetItemDesc() const;
 	FORCEINLINE UTexture2D* GetThumbnail() const;
-	
 	FORCEINLINE FIntPoint GetItemSize() const;
-
 	FORCEINLINE bool IsUsable() const;
 	FORCEINLINE bool IsDroppable() const;
 	FORCEINLINE bool IsStackable() const;
 	FORCEINLINE uint32 GetStackAmount() const;
+
+#pragma endregion Static Data
 	
-	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItemActor.Get(); }
+	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItemActor; }
 
 	template <class T>
 	T* GetBoundItem() const
@@ -196,7 +199,7 @@ public:
 		return Cast<T>(GetBoundItem());
 	}
 
-	FORCEINLINE UItemInstance* GetItemInstance() const { return ItemInstance.Get(); }
+	FORCEINLINE UItemInstance* GetItemInstance() const { return ItemInstance; }
 
 	template <class T>
 	T* GetItemInstance() const

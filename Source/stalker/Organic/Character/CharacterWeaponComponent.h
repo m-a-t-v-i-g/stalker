@@ -136,10 +136,10 @@ private:
 	FHandedItemData RightHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<AItemActor> LeftHandItemActor;
+	AItemActor* LeftHandItemActor;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	TObjectPtr<AItemActor> RightHandItemActor;
+	AItemActor* RightHandItemActor;
 
 	FReloadingData ReloadingData;
 
@@ -191,6 +191,7 @@ public:
 	UFUNCTION(Server, Unreliable)
 	void ServerStopAiming();
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void TryReloadWeapon();
 	
 	UFUNCTION(Server, Reliable)
@@ -212,10 +213,13 @@ protected:
 	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);
 	void UnEquipSlot(const FString& SlotName);
 	
-	bool ArmLeftHand(const FString& SlotName, UItemObject* ItemObject);
-	bool ArmRightHand(const FString& SlotName, UItemObject* ItemObject);
+	bool ArmLeftHand(UItemObject* ItemObject);
+	bool ArmRightHand(UItemObject* ItemObject);
 	void DisarmLeftHand();
 	void DisarmRightHand();
+	
+	void ArmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName, UItemObject* ItemObject);
+	void DisarmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor);
 	
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName) const;
 	

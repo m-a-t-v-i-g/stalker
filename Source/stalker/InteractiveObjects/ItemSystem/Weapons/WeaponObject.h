@@ -6,7 +6,20 @@
 #include "ItemObject.h"
 #include "WeaponObject.generated.h"
 
+class UAmmoDefinition;
 class AWeaponActor;
+
+USTRUCT()
+struct FAmmoStartingData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Rounds")
+	TObjectPtr<const UAmmoDefinition> Definition;
+	
+	UPROPERTY(EditAnywhere, Category = "Rounds", meta = (ClampMin = "0"))
+	int Count = 0;
+};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
 
@@ -20,7 +33,7 @@ public:
 	bool bMelee = false;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee"))
-	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;
+	TArray<const UAmmoDefinition*> AmmoClasses;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "1"))
 	int MagSize = 0;
@@ -41,8 +54,8 @@ class STALKER_API UWeaponPredictedData : public UItemPredictedData
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0"))
-	int Rounds = 0;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TArray<FAmmoStartingData> Ammo;
 };
 
 UCLASS()
@@ -52,13 +65,13 @@ class STALKER_API UWeaponInstance : public UItemInstance
 
 public:	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<TSubclassOf<UAmmoObject>> AmmoClasses;
-	
+	TArray<const UAmmoDefinition*> AmmoClasses;
+
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
 	int MagSize = 0;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0"))
-	int Rounds = 0;
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TArray<UAmmoObject*> Rounds;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
@@ -69,7 +82,6 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	bool bAutomatic = false;
 	
-	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData) override;
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
@@ -99,9 +111,7 @@ public:
 	void StartAlternative();
 	void StopAlternative();
 	
-	virtual void ReloadAmmo();
-	
-	virtual void IncreaseAmmo(int Amount);
+	virtual void IncreaseAmmo(UAmmoObject* AmmoObject, int Amount);
 	virtual void DecreaseAmmo();
 
 	virtual int CalculateRequiredAmmoCount() const;
@@ -116,6 +126,8 @@ public:
 	FORCEINLINE float GetReloadTime() const;
 	FORCEINLINE float GetDefaultFireRate() const;
 	
+	FORCEINLINE UWeaponInstance* GetWeaponInstance() const { return GetItemInstance<UWeaponInstance>(); }
+
 protected:
 	virtual void Use_Implementation(UObject* Source) override;
 

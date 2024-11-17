@@ -7,6 +7,34 @@
 #include "AmmoObject.generated.h"
 
 UCLASS()
+class STALKER_API UAmmoDefinition : public UItemDefinition
+{
+	GENERATED_BODY()
+
+public:
+};
+
+UCLASS(EditInlineNew, DefaultToInstanced)
+class STALKER_API UAmmoPredictedData : public UItemPredictedData
+{
+	GENERATED_BODY()
+
+public:
+};
+
+UCLASS()
+class STALKER_API UAmmoInstance : public UItemInstance
+{
+	GENERATED_BODY()
+
+public:
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+								 const UItemPredictedData* PredictedData) override;
+	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
+								 const UItemInstance* Instance) override;
+};
+
+UCLASS(EditInlineNew)
 class STALKER_API UAmmoObject : public UItemObject
 {
 	GENERATED_BODY()

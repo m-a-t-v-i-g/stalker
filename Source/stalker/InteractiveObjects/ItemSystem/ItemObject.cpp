@@ -205,6 +205,11 @@ uint32 UItemObject::GetItemId() const
 	return ItemInstance->ItemId;
 }
 
+uint16 UItemObject::GetAmount() const
+{
+	return ItemInstance->Amount;
+}
+
 FName UItemObject::GetScriptName() const
 {
 	return ItemDefinition->ScriptName;

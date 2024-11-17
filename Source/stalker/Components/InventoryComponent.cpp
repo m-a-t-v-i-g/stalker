@@ -147,6 +147,24 @@ bool UInventoryComponent::CanAddItem(const UItemDefinition* ItemDefinition) cons
 	return false;
 }
 
+UItemObject* UInventoryComponent::FindItemById(uint32 ItemId) const
+{
+	if (ItemsContainerRef)
+	{
+		return ItemsContainerRef->FindItemById(ItemId);
+	}
+	return nullptr;
+}
+
+UItemObject* UInventoryComponent::FindItemByDefinition(const UItemDefinition* Definition) const
+{
+	if (ItemsContainerRef)
+	{
+		return ItemsContainerRef->FindItemByDefinition(Definition);
+	}
+	return nullptr;
+}
+
 UItemObject* UInventoryComponent::GetItemObjectById(uint32 ItemId) const
 {
 	return UItemSystemCore::GetItemObjectById(GetWorld(), ItemId);

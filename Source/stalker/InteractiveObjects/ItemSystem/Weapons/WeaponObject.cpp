@@ -1,37 +1,52 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WeaponObject.h"
+#include "ItemSystemCore.h"
 #include "WeaponActor.h"
+#include "Ammo/AmmoObject.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
 void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                       const UItemPredictedData* PredictedData)
 {
+	Super::SetupProperties(NewItemId, Definition, PredictedData);
+
 	if (auto WeaponDefinition = Cast<UWeaponDefinition>(Definition))
 	{
-		Super::SetupProperties(NewItemId, Definition, PredictedData);
-
 		AmmoClasses = WeaponDefinition->AmmoClasses;
 		MagSize = WeaponDefinition->MagSize;
-		Rounds = WeaponDefinition->MagSize;
 		FireRate = WeaponDefinition->FireRate;
 		ReloadTime = WeaponDefinition->ReloadTime;
 		bAutomatic = WeaponDefinition->bAutomatic;
 
+		Rounds.Empty();
+		
 		if (auto WeaponPredictedData = Cast<UWeaponPredictedData>(PredictedData))
 		{
-			Rounds = FMath::Clamp(Rounds, 0, WeaponPredictedData->Rounds);
+			
+		}
+		else
+		{
+			if (AmmoClasses.IsValidIndex(0))
+			{
+				if (UAmmoObject* AmmoObject = Cast<UAmmoObject>(
+					UItemSystemCore::GenerateItemObject(GetWorld(), AmmoClasses[0], nullptr)))
+				{
+					AmmoObject->SetAmount(MagSize);
+					Rounds.Add(AmmoObject);
+				}
+			}
 		}
 	}
 }
 
 void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
 {
+	Super::SetupProperties(NewItemId, Definition, Instance);
+	
 	if (auto WeaponInstance = Cast<UWeaponInstance>(Instance))
 	{
-		Super::SetupProperties(NewItemId, Definition, Instance);
-
 		AmmoClasses = WeaponInstance->AmmoClasses;
 		MagSize = WeaponInstance->MagSize;
 		Rounds = WeaponInstance->Rounds;
@@ -179,7 +194,8 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 			{
 				if (auto MyWeaponInstance = GetItemInstance<UWeaponInstance>())
 				{
-					bResult &= MyWeaponInstance->Rounds == OtherWeaponInstance->Rounds;
+					// TODO:
+					//bResult &= MyWeaponInstance->Rounds == OtherWeaponInstance->Rounds;
 				}
 			}
 		}
@@ -197,27 +213,43 @@ void UWeaponObject::OnStopAttack_Implementation()
 	
 }
 
-void UWeaponObject::ReloadAmmo()
+void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
 {
-	GetItemInstance<UWeaponInstance>()->Rounds = GetMagSize();
-}
-
-void UWeaponObject::IncreaseAmmo(int Amount)
-{
-	int OldRounds = GetItemInstance<UWeaponInstance>()->Rounds;
-	GetItemInstance<UWeaponInstance>()->Rounds = FMath::Clamp(OldRounds + Amount, 0, GetMagSize());
+	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
+	
+	if (UAmmoObject* NewAmmoObject = Cast<UAmmoObject>(UItemSystemCore::GenerateItemObject(GetWorld(), AmmoObject)))
+	{
+		NewAmmoObject->SetAmount(Amount);
+		AmmoData.Add(NewAmmoObject);
+	}
 }
 
 void UWeaponObject::DecreaseAmmo()
 {
-	int OldRounds = GetItemInstance<UWeaponInstance>()->Rounds;
-	GetItemInstance<UWeaponInstance>()->Rounds = FMath::Clamp(OldRounds - 1, 0, GetMagSize());
+	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
+
+	if (!AmmoData.IsEmpty() && AmmoData.IsValidIndex(0))
+	{
+		AmmoData[0]->RemoveAmount(1);
+		
+		if (AmmoData[0]->GetAmount() == 0)
+		{
+			AmmoData.RemoveAt(0);
+		}
+	}
 }
 
 int UWeaponObject::CalculateRequiredAmmoCount() const
 {
-	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
-	return FMath::Clamp(GetMagSize() - Rounds, 0, GetMagSize());
+	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
+	uint16 AmmoCount = 0;
+
+	for (UAmmoObject* Ammo : AmmoData)
+	{
+		AmmoCount += Ammo->GetAmount();
+	}
+	
+	return GetMagSize() - AmmoCount;
 }
 
 float UWeaponObject::CalculateFireRate() const
@@ -227,30 +259,36 @@ float UWeaponObject::CalculateFireRate() const
 
 float UWeaponObject::GetReloadTime() const
 {
-	return GetItemInstance<UWeaponInstance>()->ReloadTime;
+	return GetWeaponInstance()->ReloadTime;
 }
 
 float UWeaponObject::GetDefaultFireRate() const
 {
-	int FireRate = GetItemInstance<UWeaponInstance>()->FireRate;
+	int FireRate = GetWeaponInstance()->FireRate;
 	return 1.0f / (FireRate / 60.0f);
 }
 
 bool UWeaponObject::IsAutomatic() const
 {
-	return GetItemInstance<UWeaponInstance>()->bAutomatic;
+	return GetWeaponInstance()->bAutomatic;
 }
 
 bool UWeaponObject::IsMagFull() const
 {
-	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
-	return Rounds == GetMagSize();
+	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
+	uint16 AmmoCount = 0;
+
+	for (UAmmoObject* Ammo : AmmoData)
+	{
+		AmmoCount += Ammo->GetAmount();
+	}
+	
+	return AmmoCount >= GetMagSize();
 }
 
 bool UWeaponObject::IsMagEmpty() const
 {
-	int Rounds = GetItemInstance<UWeaponInstance>()->Rounds;
-	return Rounds == 0;
+	return GetWeaponInstance()->Rounds.IsEmpty();
 }
 
 bool UWeaponObject::CanAttack() const
@@ -260,5 +298,5 @@ bool UWeaponObject::CanAttack() const
 
 int UWeaponObject::GetMagSize() const
 {
-	return GetItemInstance<UWeaponInstance>()->MagSize;
+	return GetWeaponInstance()->MagSize;
 }

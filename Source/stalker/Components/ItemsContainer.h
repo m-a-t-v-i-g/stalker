@@ -65,6 +65,8 @@ public:
 
 	UItemObject* FindItemById(uint32 ItemId) const;
 
+	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
+
 	TArray<UItemObject*> GetItems() const { return Items; }
 	
 protected:

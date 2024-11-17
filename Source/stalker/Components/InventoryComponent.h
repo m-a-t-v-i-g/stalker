@@ -54,6 +54,10 @@ public:
 	
 	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
 
+	UItemObject* FindItemById(uint32 ItemId) const;
+
+	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
+
 protected:
 	UPROPERTY(EditAnywhere, Instanced, Replicated, Category = "Inventory")
 	TObjectPtr<UItemsContainer> ItemsContainerRef;

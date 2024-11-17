@@ -189,16 +189,26 @@ bool UItemsContainer::Contains(const UItemObject* ItemObject) const
 
 UItemObject* UItemsContainer::FindItemById(uint32 ItemId) const
 {
-	UItemObject* FoundItem = nullptr;
-	for (auto EachItem : Items)
+	for (UItemObject* Item : Items)
 	{
-		if (EachItem->GetItemId() == ItemId)
+		if (Item->GetItemId() == ItemId)
 		{
-			FoundItem = EachItem;
-			break;
+			return Item;
 		}
 	}
-	return FoundItem;
+	return nullptr;
+}
+
+UItemObject* UItemsContainer::FindItemByDefinition(const UItemDefinition* Definition) const
+{
+	for (UItemObject* Item : Items)
+	{
+		if (Item->ItemDefinition == Definition)
+		{
+			return Item;
+		}
+	}
+	return nullptr;
 }
 
 UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) const
