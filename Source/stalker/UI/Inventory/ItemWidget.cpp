@@ -169,7 +169,7 @@ FText UItemWidget::GetAmountText()
 	FText AmountText;
 	if (auto ItemObject = GetBoundObject<UItemObject>())
 	{
-		AmountText = FText::FromString(FString::Printf(TEXT("x%d"), ItemObject->GetItemInstance()->Amount));
+		AmountText = FText::FromString(FString::Printf(TEXT("x%d"), ItemObject->GetAmount()));
 	}
 	return AmountText;
 }

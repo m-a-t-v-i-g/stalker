@@ -4,6 +4,13 @@
 #include "ItemActor.h"
 #include "Net/UnrealNetwork.h"
 
+void UItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, InstanceData, COND_OwnerOnly);
+}
+
 void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                     const UItemPredictedData* PredictedData)
 {
@@ -175,24 +182,24 @@ bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 	bool bResult = ItemDefinition == OtherItemObject->ItemDefinition;
 	if (bResult)
 	{
-		bResult &= ItemInstance->Endurance == OtherItemObject->GetItemInstance()->Endurance;
+		bResult &= GetEndurance() == OtherItemObject->GetEndurance();
 	}
 	return bResult;
 }
 
 bool UItemObject::IsGrounded() const
 {
-	return ItemInstance->Mode == EItemMode::Grounded;
+	return GetItemMode() == EItemMode::Grounded;
 }
 
 bool UItemObject::IsCollected() const
 {
-	return ItemInstance->Mode == EItemMode::Collected;
+	return GetItemMode() == EItemMode::Collected;
 }
 
 bool UItemObject::IsEquipped() const
 {
-	return ItemInstance->Mode == EItemMode::Equipped;
+	return GetItemMode() == EItemMode::Equipped;
 }
 
 bool UItemObject::HasBoundActor() const
@@ -208,6 +215,16 @@ uint32 UItemObject::GetItemId() const
 uint16 UItemObject::GetAmount() const
 {
 	return ItemInstance->Amount;
+}
+
+float UItemObject::GetEndurance() const
+{
+	return ItemInstance->Endurance;
+}
+
+EItemMode UItemObject::GetItemMode() const
+{
+	return ItemInstance->Mode;
 }
 
 FName UItemObject::GetScriptName() const

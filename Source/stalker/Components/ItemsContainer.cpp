@@ -69,14 +69,12 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 	{
 		if (TargetItem->CanStackItem(SourceItem))
 		{
-			TargetItem->AddAmount(SourceItem->GetItemInstance()->Amount);
+			TargetItem->AddAmount(SourceItem->GetAmount());
 		
 			if (Items.Contains(SourceItem))
 			{
 				Items.Remove(SourceItem);
 			}
-
-			UItemSystemCore::DestroyItemObject(SourceItem);
 			return true;
 		}
 	}
@@ -105,7 +103,7 @@ void UItemsContainer::SplitItem(UItemObject* ItemObject)
 		return;
 	}
 
-	if (ItemObject->GetItemInstance()->Amount > 1)
+	if (ItemObject->GetAmount() > 1)
 	{
 		if (auto NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
 		{
@@ -133,7 +131,7 @@ bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amoun
 {
 	if (ItemObject && Amount > 0)
 	{
-		uint16 ItemAmount = ItemObject->GetItemInstance()->Amount;
+		uint16 ItemAmount = ItemObject->GetAmount();
 		if (ItemAmount - Amount > 0)
 		{
 			ItemObject->RemoveAmount(Amount);
@@ -153,7 +151,7 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 		return;
 	}
 	
-	if (ItemObject->GetItemInstance()->Amount > ItemObject->GetStackAmount())
+	if (ItemObject->GetAmount() > ItemObject->GetStackAmount())
 	{
 		if (auto StackableItem = OtherContainer->FindAvailableStack(ItemObject))
 		{

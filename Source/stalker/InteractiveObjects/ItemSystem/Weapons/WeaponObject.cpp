@@ -24,7 +24,51 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		
 		if (auto WeaponPredictedData = Cast<UWeaponPredictedData>(PredictedData))
 		{
-			
+			for (FAmmoStartingData Ammo : WeaponPredictedData->Ammo)
+			{
+				if (Ammo.Count <= 0)
+				{
+					continue;
+				}
+					
+				uint16 AmmoCount = 0;
+
+				for (UAmmoObject* AmmoObj : Rounds)
+				{
+					AmmoCount += AmmoObj->GetAmount();
+				}
+
+				if (AmmoCount < MagSize)
+				{
+					bool bWasStack = false;
+					uint16 AmmoRemain = MagSize - AmmoCount;
+
+					for (UAmmoObject* AmmoObj : Rounds)
+					{
+						if (Ammo.Definition == AmmoObj->ItemDefinition)
+						{
+							AmmoObj->AddAmount(FMath::Clamp(Ammo.Count, 0, AmmoRemain));
+							bWasStack = true;
+							break;
+						}
+					}
+					
+					if (!bWasStack)
+					{
+						if (UAmmoObject* NewAmmoObject = Cast<UAmmoObject>(
+							UItemSystemCore::GenerateItemObject(GetWorld(), Ammo.Definition, nullptr)))
+						{
+							NewAmmoObject->SetAmount(FMath::Clamp(Ammo.Count, 0, AmmoRemain));
+							Rounds.Add(NewAmmoObject);
+						}
+					}
+				}
+			}
+
+			if (!Rounds.IsEmpty())
+			{
+				CurrentAmmoClass = Cast<UAmmoDefinition>(Rounds[0]->ItemDefinition);
+			}
 		}
 		else
 		{
@@ -36,6 +80,8 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 					AmmoObject->SetAmount(MagSize);
 					Rounds.Add(AmmoObject);
 				}
+
+				CurrentAmmoClass = AmmoClasses[0];
 			}
 		}
 	}
@@ -99,7 +145,7 @@ void UWeaponObject::OnBindItemActor()
 {
 	Super::OnBindItemActor();
 
-	if (auto BindWeapon = GetBoundItem<AWeaponActor>())
+	if (auto BindWeapon = GetBoundActor<AWeaponActor>())
 	{
 		BindWeapon->OnWeaponStartAttack.BindUObject(this, &UWeaponObject::OnAttack);
 		BindWeapon->OnWeaponStopAttack.BindUObject(this, &UWeaponObject::OnStopAttack);
@@ -187,15 +233,48 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 		
 		if (OtherWeaponObject)
 		{
-			auto OtherWeaponInstance = OtherWeaponObject->GetItemInstance<UWeaponInstance>();
+			UWeaponInstance* OtherWeaponInstance = OtherWeaponObject->GetWeaponInstance();
 			bResult &= OtherWeaponInstance != nullptr;
 			
 			if (OtherWeaponInstance)
 			{
-				if (auto MyWeaponInstance = GetItemInstance<UWeaponInstance>())
+				if (UWeaponInstance* MyWeaponInstance = GetWeaponInstance())
 				{
-					// TODO:
-					//bResult &= MyWeaponInstance->Rounds == OtherWeaponInstance->Rounds;
+					bResult &= MyWeaponInstance->Rounds.Num() == OtherWeaponInstance->Rounds.Num();
+					
+					uint16 MyAmmoCount = 0;
+					uint16 OtherAmmoCount = 0;
+					
+					for (UAmmoObject* AmmoObj : MyWeaponInstance->Rounds)
+					{
+						MyAmmoCount += AmmoObj->GetAmount();
+					}
+
+					for (UAmmoObject* AmmoObj : OtherWeaponInstance->Rounds)
+					{
+						OtherAmmoCount += AmmoObj->GetAmount();
+					}
+
+					bResult &= MyAmmoCount == OtherAmmoCount;
+
+					if (bResult)
+					{
+						for (uint8 i = 0; i < MyWeaponInstance->Rounds.Num(); i++)
+						{
+							bResult &= OtherWeaponInstance->Rounds.IsValidIndex(i);
+						
+							if (bResult)
+							{
+								bResult &= MyWeaponInstance->Rounds[i]->IsSimilar(OtherWeaponInstance->Rounds[i]);
+								bResult &= MyWeaponInstance->Rounds[i]->GetAmount() == OtherWeaponInstance->Rounds[i]->GetAmount();
+							}
+
+							if (!bResult)
+							{
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -216,18 +295,32 @@ void UWeaponObject::OnStopAttack_Implementation()
 void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
 {
 	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
+
+	if (AmmoData.IsValidIndex(0))
+	{
+		if (AmmoData[0]->IsSimilar(AmmoObject))
+		{
+			AmmoData[0]->AddAmount(Amount);
+			return;
+		}
+	}
 	
 	if (UAmmoObject* NewAmmoObject = Cast<UAmmoObject>(UItemSystemCore::GenerateItemObject(GetWorld(), AmmoObject)))
 	{
 		NewAmmoObject->SetAmount(Amount);
-		AmmoData.Add(NewAmmoObject);
+		AmmoData.Insert(NewAmmoObject, 0);
+	}
+	
+	if (AmmoData.IsValidIndex(0))
+	{
+		GetWeaponInstance()->CurrentAmmoClass = Cast<UAmmoDefinition>(AmmoData[0]->ItemDefinition);
 	}
 }
 
 void UWeaponObject::DecreaseAmmo()
 {
 	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->Rounds;
-
+	
 	if (!AmmoData.IsEmpty() && AmmoData.IsValidIndex(0))
 	{
 		AmmoData[0]->RemoveAmount(1);
@@ -236,6 +329,11 @@ void UWeaponObject::DecreaseAmmo()
 		{
 			AmmoData.RemoveAt(0);
 		}
+	}
+	
+	if (AmmoData.IsValidIndex(0))
+	{
+		GetWeaponInstance()->CurrentAmmoClass = Cast<UAmmoDefinition>(AmmoData[0]->ItemDefinition);
 	}
 }
 
@@ -255,6 +353,11 @@ int UWeaponObject::CalculateRequiredAmmoCount() const
 float UWeaponObject::CalculateFireRate() const
 {
 	return GetDefaultFireRate();
+}
+
+const UAmmoDefinition* UWeaponObject::GetLastAmmoClass() const
+{
+	return GetWeaponInstance()->CurrentAmmoClass.Get();
 }
 
 float UWeaponObject::GetReloadTime() const

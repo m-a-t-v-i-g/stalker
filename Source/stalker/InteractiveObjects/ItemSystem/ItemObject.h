@@ -17,6 +17,24 @@ enum class EItemMode : uint8
 	Equipped
 };
 
+USTRUCT()
+struct FItemInstanceData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY(EditInstanceOnly, Category = "Item")
+	uint32 ItemId = 1;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ClampMin = "1"))
+	uint16 Amount = 1;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ForceUnits = "%"))
+	float Endurance = 100.0f;
+
+	UPROPERTY(EditInstanceOnly, Category = "Item")
+	EItemMode Mode = EItemMode::Grounded;
+};
+
 UCLASS()
 class STALKER_API UItemDefinition : public UPrimaryDataAsset
 {
@@ -97,7 +115,12 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Item")
 	EItemMode Mode = EItemMode::Grounded;
 	
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
+	FItemInstanceData InstanceData;
+	
 	virtual bool IsSupportedForNetworking() const override { return true; }
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 								 const UItemPredictedData* PredictedData);
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
@@ -157,10 +180,14 @@ public:
 	void UnbindItemActor();
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor);
 
+#pragma region Mode
+	
 	virtual void SetGrounded();
 	virtual void SetCollected();
 	virtual void SetEquipped();
 
+#pragma endregion Mode
+	
 	void SetAmount(uint32 Amount) const;
 	void AddAmount(uint32 Amount) const;
 	void RemoveAmount(uint32 Amount) const;
@@ -173,6 +200,8 @@ public:
 	
 	FORCEINLINE uint32 GetItemId() const;
 	FORCEINLINE uint16 GetAmount() const;
+	FORCEINLINE float GetEndurance() const;
+	FORCEINLINE EItemMode GetItemMode() const;
 
 #pragma region Static Data
 	
@@ -191,12 +220,12 @@ public:
 
 #pragma endregion Static Data
 	
-	FORCEINLINE AItemActor* GetBoundItem() const { return BoundItemActor; }
+	FORCEINLINE AItemActor* GetBoundActor() const { return BoundItemActor; }
 
 	template <class T>
-	T* GetBoundItem() const
+	T* GetBoundActor() const
 	{
-		return Cast<T>(GetBoundItem());
+		return Cast<T>(GetBoundActor());
 	}
 
 	FORCEINLINE UItemInstance* GetItemInstance() const { return ItemInstance; }

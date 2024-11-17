@@ -207,7 +207,7 @@ public:
 	void ClearReloadingData(bool bWasSuccessful);
 
 	bool HasAmmoForReload() const;
-	UAmmoObject* GetAmmoForReload() const;
+	UAmmoObject* GetAmmoForReload(const UAmmoDefinition* DesiredAmmo) const;
 	
 protected:
 	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);

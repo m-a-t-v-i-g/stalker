@@ -69,19 +69,22 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
 	int MagSize = 0;
-	
+
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<UAmmoObject*> Rounds;
-	
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
+	TWeakObjectPtr<const UAmmoDefinition> CurrentAmmoClass;
+
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
-	
+
 	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
 	float ReloadTime = 0.0f;
-	
+
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	bool bAutomatic = false;
-	
+
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData) override;
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
@@ -116,6 +119,7 @@ public:
 
 	virtual int CalculateRequiredAmmoCount() const;
 	virtual float CalculateFireRate() const;
+	FORCEINLINE const UAmmoDefinition* GetLastAmmoClass() const;
 	
 	FORCEINLINE bool IsAutomatic() const;
 	FORCEINLINE bool IsMagFull() const;

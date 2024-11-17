@@ -26,7 +26,7 @@ public:
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;
 
 	UFUNCTION()
-	void OnStartAttack();
+	virtual void OnStartAttack();
 
 	virtual void MakeAttackVisual();
 	
@@ -34,7 +34,7 @@ public:
 	void MulticastMakeAttackVisual();
 
 	UFUNCTION()
-	void OnStopAttack();
+	virtual void OnStopAttack();
 
 	UFUNCTION()
 	virtual void OnStartAlternative();

@@ -328,10 +328,10 @@ void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 		return;
 	}
 
-	UAmmoObject* Ammo = GetAmmoForReload();
+	UAmmoObject* Ammo = GetAmmoForReload(RightWeapon->GetLastAmmoClass());
 	check(Ammo);
 
-	int AmmoCount = Ammo->GetItemInstance()->Amount;
+	int AmmoCount = Ammo->GetAmount();
 	int RequiredCount = RightWeapon->CalculateRequiredAmmoCount();
 	int AvailableCount = FMath::Min(RequiredCount, AmmoCount);
 
@@ -402,23 +402,43 @@ void UCharacterWeaponComponent::ClearReloadingData(bool bWasSuccessful)
 
 bool UCharacterWeaponComponent::HasAmmoForReload() const
 {
-	if (UAmmoObject* Ammo = GetAmmoForReload())
+	if (auto RightItem = GetItemObjectAtRightHand<UWeaponObject>())
 	{
-		return Ammo->GetAmount() > 0;
+		if (UWeaponInstance* WeaponInstance = RightItem->GetWeaponInstance())
+		{
+			if (UAmmoObject* Ammo = GetAmmoForReload(WeaponInstance->CurrentAmmoClass.Get()))
+			{
+				return Ammo->GetAmount() > 0;
+			}
+		}
 	}
 	return false;
 }
 
-UAmmoObject* UCharacterWeaponComponent::GetAmmoForReload() const
+UAmmoObject* UCharacterWeaponComponent::GetAmmoForReload(const UAmmoDefinition* DesiredAmmo) const
 {
 	if (auto RightItem = GetItemObjectAtRightHand<UWeaponObject>())
 	{
-		UWeaponInstance* WeaponInstance = RightItem->GetWeaponInstance();
-		for (const UAmmoDefinition* AmmoClass : WeaponInstance->AmmoClasses)
+		if (UWeaponInstance* WeaponInstance = RightItem->GetWeaponInstance())
 		{
-			if (UAmmoObject* ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(AmmoClass)))
+			UAmmoObject* ResultAmmo;
+			
+			if (DesiredAmmo)
 			{
-				return ResultAmmo;
+				ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(DesiredAmmo));
+				if (ResultAmmo)
+				{
+					return ResultAmmo;
+				}
+			}
+			
+			for (const UAmmoDefinition* AmmoClass : WeaponInstance->AmmoClasses)
+			{
+				ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(AmmoClass));
+				if (ResultAmmo)
+				{
+					return ResultAmmo;
+				}
 			}
 		}
 	}

@@ -99,7 +99,7 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 			return;
 		}
 
-		if (EquippingItem->GetItemInstance()->Amount > 1)
+		if (EquippingItem->GetAmount() > 1)
 		{
 			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(GetWorld(), EquippingItem);
 			if (!RemainedItem)
@@ -107,7 +107,7 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 				return;
 			}
 
-			RemainedItem->SetAmount(EquippingItem->GetItemInstance()->Amount - 1);
+			RemainedItem->SetAmount(EquippingItem->GetAmount() - 1);
 			ServerAddItem(RemainedItem->GetItemId());
 
 			EquippingItem->SetAmount(1);
