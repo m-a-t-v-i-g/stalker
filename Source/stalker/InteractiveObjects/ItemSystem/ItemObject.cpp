@@ -2,19 +2,27 @@
 
 #include "ItemObject.h"
 #include "ItemActor.h"
+#include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
 void UItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, InstanceData, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ItemData,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ItemDefinition,	COND_OwnerOnly);
+}
+
+bool UItemInstance::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool bReplicateSomething = false;
+	return bReplicateSomething;
 }
 
 void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                     const UItemPredictedData* PredictedData)
 {
-	ItemId = NewItemId;
+	ItemData.ItemId = NewItemId;
 
 	if (Definition)
 	{
@@ -22,15 +30,15 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 		
 		if (PredictedData)
 		{
-			Amount = PredictedData->Amount;
-			Endurance = PredictedData->Endurance;
+			ItemData.Amount = PredictedData->Amount;
+			ItemData.Endurance = PredictedData->Endurance;
 		}
 	}
 }
 
 void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
 {
-	ItemId = NewItemId;
+	ItemData.ItemId = NewItemId;
 
 	if (Definition)
 	{
@@ -38,8 +46,8 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 		
 		if (Instance)
 		{
-			Amount = Instance->Amount;
-			Endurance = Instance->Endurance;
+			ItemData.Amount = Instance->ItemData.Amount;
+			ItemData.Endurance = Instance->ItemData.Endurance;
 		}
 	}
 }
@@ -48,7 +56,22 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UItemObject, BoundItemActor, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, ItemDefinition,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, ItemInstance,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UItemObject, BoundItemActor,	COND_OwnerOnly);
+}
+
+bool UItemObject::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool bReplicateSomething = false;
+	
+	if (ItemInstance)
+	{
+		bReplicateSomething |= Channel->ReplicateSubobject(ItemInstance, *Bunch, *RepFlags);
+		bReplicateSomething |= ItemInstance->ReplicateSubobjects(Channel, Bunch, RepFlags);
+	}
+	
+	return bReplicateSomething;
 }
 
 void UItemObject::Use_Implementation(UObject* Source)
@@ -59,39 +82,43 @@ void UItemObject::Use_Implementation(UObject* Source)
 void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 {
 	ItemDefinition = ItemObject->ItemDefinition;
+	ensure(ItemDefinition);
 
-	if (!ItemDefinition)
+	if (!GetDefinition())
 	{
 		return;
 	}
 	
-	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, ItemDefinition->ItemInstanceClass);
+	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, GetDefinition()->ItemInstanceClass,
+	                                                          FName(GetScriptName().ToString() + "_instance"));
 	if (!NewItemInstance)
 	{
 		return;
 	}
 	
 	ItemInstance = NewItemInstance;
-	ItemInstance->SetupProperties(ItemId, ItemDefinition, ItemObject->ItemInstance);
+	ItemInstance->SetupProperties(ItemId, GetDefinition(), ItemObject->GetItemInstance());
 }
 
 void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData)
 {
 	ItemDefinition = Definition;
+	ensure(ItemDefinition);
 	
-	if (!ItemDefinition)
+	if (!GetDefinition())
 	{
 		return;
 	}
 
-	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, ItemDefinition->ItemInstanceClass);
+	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, GetDefinition()->ItemInstanceClass,
+	                                                          FName(GetScriptName().ToString() + "_instance"));
 	if (!NewItemInstance)
 	{
 		return;
 	}
 
 	ItemInstance = NewItemInstance;
-	ItemInstance->SetupProperties(ItemId, ItemDefinition, PredictedData);
+	ItemInstance->SetupProperties(ItemId, GetDefinition(), PredictedData);
 }
 
 void UItemObject::BindItemActor(AItemActor* BindItem)
@@ -126,26 +153,11 @@ void UItemObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 {
 }
 
-void UItemObject::SetGrounded()
-{
-	ItemInstance->Mode = EItemMode::Grounded;
-}
-
-void UItemObject::SetCollected()
-{
-	ItemInstance->Mode = EItemMode::Collected;
-}
-
-void UItemObject::SetEquipped()
-{
-	ItemInstance->Mode = EItemMode::Equipped;
-}
-
 void UItemObject::SetAmount(uint32 Amount) const
 {
 	if (ItemInstance)
 	{
-		ItemInstance->Amount = Amount;
+		ItemInstance->ItemData.Amount = Amount;
 	}
 }
 
@@ -153,7 +165,7 @@ void UItemObject::AddAmount(uint32 Amount) const
 {
 	if (ItemInstance)
 	{
-		ItemInstance->Amount += Amount;
+		ItemInstance->ItemData.Amount += Amount;
 	}
 }
 
@@ -161,30 +173,68 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 {
 	if (ItemInstance)
 	{
-		ItemInstance->Amount -= Amount;
+		ItemInstance->ItemData.Amount -= Amount;
 	}
 }
 
-void UItemObject::OnRep_BoundItem(AItemActor* PrevItemActor)
+bool UItemObject::CanCollected() const
 {
-	if (BoundItemActor)
-	{
-		OnBindItemActor();
-	}
-	else
-	{
-		OnUnbindItemActor(PrevItemActor);
-	}
+	return IsGrounded() && !IsCollected() && !IsEquipped();
+}
+
+bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
+{
+	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
 }
 
 bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
 {
-	bool bResult = ItemDefinition == OtherItemObject->ItemDefinition;
+	bool bResult = GetDefinition() == OtherItemObject->GetDefinition();
 	if (bResult)
 	{
 		bResult &= GetEndurance() == OtherItemObject->GetEndurance();
 	}
 	return bResult;
+}
+
+bool UItemObject::HasBoundActor() const
+{
+	return IsValid(BoundItemActor);
+}
+
+uint32 UItemObject::GetItemId() const
+{
+	return ItemInstance->ItemData.ItemId;
+}
+
+uint16 UItemObject::GetAmount() const
+{
+	return ItemInstance->ItemData.Amount;
+}
+
+float UItemObject::GetEndurance() const
+{
+	return ItemInstance->ItemData.Endurance;
+}
+
+EItemMode UItemObject::GetItemMode() const
+{
+	return ItemInstance->ItemData.Mode;
+}
+
+void UItemObject::SetGrounded()
+{
+	ItemInstance->ItemData.Mode = EItemMode::Grounded;
+}
+
+void UItemObject::SetCollected()
+{
+	ItemInstance->ItemData.Mode = EItemMode::Collected;
+}
+
+void UItemObject::SetEquipped()
+{
+	ItemInstance->ItemData.Mode = EItemMode::Equipped;
 }
 
 bool UItemObject::IsGrounded() const
@@ -202,102 +252,94 @@ bool UItemObject::IsEquipped() const
 	return GetItemMode() == EItemMode::Equipped;
 }
 
-bool UItemObject::HasBoundActor() const
+const UItemDefinition* UItemObject::GetDefinition() const
 {
-	return IsValid(BoundItemActor);
-}
-
-uint32 UItemObject::GetItemId() const
-{
-	return ItemInstance->ItemId;
-}
-
-uint16 UItemObject::GetAmount() const
-{
-	return ItemInstance->Amount;
-}
-
-float UItemObject::GetEndurance() const
-{
-	return ItemInstance->Endurance;
-}
-
-EItemMode UItemObject::GetItemMode() const
-{
-	return ItemInstance->Mode;
+	return ItemDefinition;
 }
 
 FName UItemObject::GetScriptName() const
 {
-	return ItemDefinition->ScriptName;
+	return GetDefinition()->ScriptName;
 }
 
 FGameplayTag UItemObject::GetItemTag() const
 {
-	return ItemDefinition->Tag;
+	return GetDefinition()->Tag;
 }
 
 UClass* UItemObject::GetActorClass() const
 {
-	return ItemDefinition->ItemActorClass;
+	return GetDefinition()->ItemActorClass;
 }
 
 UClass* UItemObject::GetObjectClass() const
 {
-	return ItemDefinition->ItemObjectClass;
+	return GetDefinition()->ItemObjectClass;
 }
 
 FText UItemObject::GetItemName() const
 {
-	return ItemDefinition->Name;
+	return GetDefinition()->Name;
 }
 
 FText UItemObject::GetItemDesc() const
 {
-	return ItemDefinition->Description;
+	return GetDefinition()->Description;
 }
 
 UTexture2D* UItemObject::GetThumbnail() const
 {
-	return ItemDefinition->Thumbnail.LoadSynchronous();
+	return GetDefinition()->Thumbnail.LoadSynchronous();
 }
 
 FIntPoint UItemObject::GetItemSize() const
 {
-	return ItemDefinition->Size;
+	return GetDefinition()->Size;
 }
 
 bool UItemObject::IsUsable() const
 {
-	return ItemDefinition->bUsable;
+	return GetDefinition()->bUsable;
 }
 
 bool UItemObject::IsDroppable() const
 {
-	return ItemDefinition->bDroppable;
+	return GetDefinition()->bDroppable;
 }
 
 bool UItemObject::IsStackable() const
 {
-	return ItemDefinition->bStackable;
+	return GetDefinition()->bStackable;
 }
 
 uint32 UItemObject::GetStackAmount() const
 {
-	return ItemDefinition->StackAmount;
+	return GetDefinition()->StackAmount;
 }
 
-bool UItemObject::CanCollected() const
+AItemActor* UItemObject::GetBoundActor() const
 {
-	return IsGrounded() && !IsCollected() && !IsEquipped();
+	return BoundItemActor;
 }
 
-bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
+UItemInstance* UItemObject::GetItemInstance() const
 {
-	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
+	return ItemInstance;
 }
 
 FTimerManager& UItemObject::GetWorldTimerManager() const
 {
 	return GetWorld()->GetTimerManager();
+}
+
+void UItemObject::OnRep_BoundItem(AItemActor* PrevItemActor)
+{
+	if (BoundItemActor)
+	{
+		OnBindItemActor();
+	}
+	else
+	{
+		OnUnbindItemActor(PrevItemActor);
+	}
 }

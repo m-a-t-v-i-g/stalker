@@ -53,6 +53,10 @@ protected:
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
 	virtual bool ContainerInteract(UInventoryComponent* TargetInventory) override;
+	
+	UFUNCTION(Client, Reliable)
+	void ClientContainerInteract(UInventoryComponent* TargetInventory);
+	
 	virtual bool ItemInteract(UItemObject* ItemObject) override;
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

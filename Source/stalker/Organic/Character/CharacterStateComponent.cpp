@@ -25,8 +25,8 @@ void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 
 	DOREPLIFETIME_CONDITION(ThisClass, HealthState,		COND_SimulatedOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, CombatState,		COND_SimulatedOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, MovementAction,	COND_SimulatedOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, OverlayState,	COND_SimulatedOnly);
+	DOREPLIFETIME(ThisClass, MovementAction);
+	DOREPLIFETIME(ThisClass, OverlayState);
 }
 
 void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacter)

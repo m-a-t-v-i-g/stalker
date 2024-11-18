@@ -14,15 +14,25 @@ AStalkerPlayerController::AStalkerPlayerController()
 void AStalkerPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	Stalker = GetPawn<APlayerCharacter>();
-	ConnectHUD();
+
+	if (!bIsControllerInitialized)
+	{
+		Stalker = GetPawn<APlayerCharacter>();
+		ConnectHUD();
+		bIsControllerInitialized = true;
+	}
 }
 
 void AStalkerPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
-	Stalker = GetPawn<APlayerCharacter>();
-	ConnectHUD();
+
+	if (!bIsControllerInitialized)
+	{
+		Stalker = GetPawn<APlayerCharacter>();
+		ConnectHUD();
+		bIsControllerInitialized = true;
+	}
 }
 
 void AStalkerPlayerController::SetupInputComponent()

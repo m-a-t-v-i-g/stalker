@@ -20,8 +20,13 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) 
 
 bool APlayerCharacter::ContainerInteract(UInventoryComponent* TargetInventory)
 {
-	OnContainerInteraction.Broadcast(TargetInventory);
+	ClientContainerInteract(TargetInventory);
 	return true;
+}
+
+void APlayerCharacter::ClientContainerInteract_Implementation(UInventoryComponent* TargetInventory)
+{
+	OnContainerInteraction.Broadcast(TargetInventory);
 }
 
 bool APlayerCharacter::ItemInteract(UItemObject* ItemObject)

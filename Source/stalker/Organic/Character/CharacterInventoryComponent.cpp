@@ -61,7 +61,7 @@ bool UCharacterInventoryComponent::CanEquipItemAtSlot(const FString& SlotName, U
 	{
 		if (Slot->GetBoundObject() != ItemObject)
 		{
-			return Slot->CanEquipItem(ItemObject->ItemDefinition);
+			return Slot->CanEquipItem(ItemObject->GetDefinition());
 		}
 	}
 	return false;
@@ -164,7 +164,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 			continue;
 		}
 
-		if (EquipmentSlot->CanEquipItem(BoundObject->ItemDefinition))
+		if (EquipmentSlot->CanEquipItem(BoundObject->GetDefinition()))
 		{
 			ServerEquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
 			ServerRemoveItem(BoundObject->GetItemId());

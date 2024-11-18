@@ -9,31 +9,35 @@ uint32 UItemSystemCore::LastItemId {0};
 
 UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemObject* ItemObject)
 {
-	UItemObject* NewItemObject = NewObject<UItemObject>(World, ItemObject->GetObjectClass());
-	if (NewItemObject)
+	if (ItemObject)
 	{
-		LastItemId++;
-		AddItemObjectToGameState(NewItemObject);
-		NewItemObject->InitItem(LastItemId, ItemObject);
+		if (UItemObject* NewItemObject = NewObject<UItemObject>(World, ItemObject->GetObjectClass(),
+		                                                        FName(ItemObject->GetScriptName().ToString() + "_object")))
+		{
+			LastItemId++;
+			AddItemObjectToGameState(NewItemObject);
+			NewItemObject->InitItem(LastItemId, ItemObject);
+			return NewItemObject;
+		}
 	}
-	return NewItemObject;
+	return nullptr;
 }
 
 UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
                                                  const UItemPredictedData* PredictedData)
 {
-	UItemObject* ItemObject = nullptr;
 	if (Definition)
 	{
-		ItemObject = NewObject<UItemObject>(World, Definition->ItemObjectClass);
-		if (ItemObject)
+		if (UItemObject* ItemObject = NewObject<UItemObject>(World, Definition->ItemObjectClass,
+		                                                     FName(Definition->ScriptName.ToString() + "_object")))
 		{
 			LastItemId++;
 			AddItemObjectToGameState(ItemObject);
 			ItemObject->InitItem(LastItemId, Definition, PredictedData);
+			return ItemObject;
 		}
 	}
-	return ItemObject;
+	return nullptr;
 }
 
 void UItemSystemCore::DestroyItemObject(const UItemObject* ItemObject)

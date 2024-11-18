@@ -16,10 +16,13 @@ void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 bool UItemsContainer::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
 	bool bReplicateSomething = false;
+	
 	for (UItemObject* EachItem : GetItems())
 	{
 		bReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
+		bReplicateSomething |= EachItem->ReplicateSubobjects(Channel, Bunch, RepFlags);
 	}
+	
 	return bReplicateSomething;
 }
 
@@ -85,7 +88,7 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 {
 	if (ItemObject && !Items.Contains(ItemObject))
 	{
-		if (CanAddItem(ItemObject->ItemDefinition))
+		if (CanAddItem(ItemObject->GetDefinition()))
 		{
 			Items.Add(ItemObject);
 			ItemObject->SetCollected();
@@ -98,7 +101,7 @@ bool UItemsContainer::AddItem(UItemObject* ItemObject)
 
 void UItemsContainer::SplitItem(UItemObject* ItemObject)
 {
-	if (!ItemObject || !CanAddItem(ItemObject->ItemDefinition))
+	if (!ItemObject || !CanAddItem(ItemObject->GetDefinition()))
 	{
 		return;
 	}
@@ -201,7 +204,7 @@ UItemObject* UItemsContainer::FindItemByDefinition(const UItemDefinition* Defini
 {
 	for (UItemObject* Item : Items)
 	{
-		if (Item->ItemDefinition == Definition)
+		if (Item->GetDefinition() == Definition)
 		{
 			return Item;
 		}

@@ -41,7 +41,7 @@ void AStalkerHUD::ToggleTab(EHUDTab Tab, bool bForce)
 	{
 		return;
 	}
-	
+
 	Tab = ActiveTab != Tab || bForce ? Tab : EHUDTab::HUD;
 	ActiveTab = Tab;
 	

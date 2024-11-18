@@ -7,18 +7,34 @@
 #include "WeaponObject.generated.h"
 
 class UAmmoDefinition;
+class UAmmoObject;
 class AWeaponActor;
 
 USTRUCT()
-struct FAmmoStartingData
+struct FWeaponInstanceData
 {
 	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Rounds")
-	TObjectPtr<const UAmmoDefinition> Definition;
 	
-	UPROPERTY(EditAnywhere, Category = "Rounds", meta = (ClampMin = "0"))
-	int Count = 0;
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TArray<const UAmmoDefinition*> AmmoClasses;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
+	int MagSize = 0;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	TArray<UAmmoObject*> Rounds;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
+	TWeakObjectPtr<const UAmmoDefinition> CurrentAmmoClass;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float ReloadTime = 0.0f;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
+	bool bAutomatic = false;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
@@ -48,6 +64,18 @@ public:
 	bool bAutomatic = false;
 };
 
+USTRUCT()
+struct FAmmoStartingData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Rounds")
+	TObjectPtr<const UAmmoDefinition> Definition;
+	
+	UPROPERTY(EditAnywhere, Category = "Rounds", meta = (ClampMin = "0"))
+	int Count = 0;
+};
+
 UCLASS()
 class STALKER_API UWeaponPredictedData : public UItemPredictedData
 {
@@ -63,32 +91,18 @@ class STALKER_API UWeaponInstance : public UItemInstance
 {
 	GENERATED_BODY()
 
-public:	
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<const UAmmoDefinition*> AmmoClasses;
+public:
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
+	FWeaponInstanceData WeaponData;
 
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
-	int MagSize = 0;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<UAmmoObject*> Rounds;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	TWeakObjectPtr<const UAmmoDefinition> CurrentAmmoClass;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
-	float FireRate = 0.0f;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
-	float ReloadTime = 0.0f;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	bool bAutomatic = false;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+	
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemPredictedData* PredictedData) override;
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 	                             const UItemInstance* Instance) override;
+	virtual void SetupRounds(const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 };
 
 UCLASS()
@@ -100,7 +114,15 @@ public:
 	FOnWeaponAttackSignature OnAttackStart;
 	FOnWeaponAttackSignature OnAttackStop;
 
+#pragma region Replication
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+		
+#pragma endregion Replication
+
+#pragma region Behavior
+	
+	virtual void Use_Implementation(UObject* Source) override;
 
 	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
@@ -119,22 +141,25 @@ public:
 
 	virtual int CalculateRequiredAmmoCount() const;
 	virtual float CalculateFireRate() const;
-	FORCEINLINE const UAmmoDefinition* GetLastAmmoClass() const;
 	
-	FORCEINLINE bool IsAutomatic() const;
 	FORCEINLINE bool IsMagFull() const;
 	FORCEINLINE bool IsMagEmpty() const;
 	FORCEINLINE bool CanAttack() const;
 	
+#pragma endregion Behavior
+	
+	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
 	FORCEINLINE int GetMagSize() const;
+	FORCEINLINE TArray<UAmmoObject*> GetRounds() const;
+	FORCEINLINE const UAmmoDefinition* GetCurrentAmmoClass() const;
 	FORCEINLINE float GetReloadTime() const;
 	FORCEINLINE float GetDefaultFireRate() const;
+	FORCEINLINE bool IsAutomatic() const;
 	
-	FORCEINLINE UWeaponInstance* GetWeaponInstance() const { return GetItemInstance<UWeaponInstance>(); }
+	FORCEINLINE AWeaponActor* GetWeaponActor() const;
+	FORCEINLINE UWeaponInstance* GetWeaponInstance() const;
 
 protected:
-	virtual void Use_Implementation(UObject* Source) override;
-
 	void SetSingleFireTimer();
 	void SetRepetitiveFireTimer();
 
@@ -151,5 +176,6 @@ private:
 	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
 	bool bInFireRate = true;
 
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
 	bool bHoldTrigger = false;
 };

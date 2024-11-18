@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "UsableInterface.h"
-#include "Items/ItemsLibrary.h"
 #include "UObject/Object.h"
 #include "ItemObject.generated.h"
 
@@ -103,31 +102,20 @@ class STALKER_API UItemInstance : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditInstanceOnly, Category = "Item")
-	uint32 ItemId = 1;
-	
-	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ClampMin = "1"))
-	uint16 Amount = 1;
-	
-	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ForceUnits = "%"))
-	float Endurance = 100.0f;
-
-	UPROPERTY(EditInstanceOnly, Category = "Item")
-	EItemMode Mode = EItemMode::Grounded;
-	
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
-	FItemInstanceData InstanceData;
+	FItemInstanceData ItemData;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
 	
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 								 const UItemPredictedData* PredictedData);
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
 	
 protected:
-	UPROPERTY(EditInstanceOnly, Category = "Item")
-	TWeakObjectPtr<const UItemDefinition> ItemDefinition;
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
+	TObjectPtr<const UItemDefinition> ItemDefinition;
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -163,14 +151,21 @@ class STALKER_API UItemObject : public UObject, public IUsableInterface
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, Category = "Definition")
+	UPROPERTY(VisibleAnywhere, Replicated, Category = "Definition")
 	TObjectPtr<const UItemDefinition> ItemDefinition;
+
+#pragma region Replication
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
 
-	virtual void Use_Implementation(UObject* Source) override;
+#pragma endregion Replication
 	
+#pragma region Behavior
+	
+	virtual void Use_Implementation(UObject* Source) override;
+
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 	
@@ -179,23 +174,15 @@ public:
 
 	void UnbindItemActor();
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor);
-
-#pragma region Mode
-	
-	virtual void SetGrounded();
-	virtual void SetCollected();
-	virtual void SetEquipped();
-
-#pragma endregion Mode
 	
 	void SetAmount(uint32 Amount) const;
 	void AddAmount(uint32 Amount) const;
 	void RemoveAmount(uint32 Amount) const;
 
+	virtual bool CanCollected() const;
+	virtual bool CanStackItem(const UItemObject* OtherItem) const;
+	
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
-	virtual bool IsGrounded() const;
-	virtual bool IsCollected() const;
-	virtual bool IsEquipped() const;
 	virtual bool HasBoundActor() const;
 	
 	FORCEINLINE uint32 GetItemId() const;
@@ -203,8 +190,22 @@ public:
 	FORCEINLINE float GetEndurance() const;
 	FORCEINLINE EItemMode GetItemMode() const;
 
-#pragma region Static Data
+#pragma endregion Behavior
 	
+#pragma region Mode
+	
+	virtual void SetGrounded();
+	virtual void SetCollected();
+	virtual void SetEquipped();
+	virtual bool IsGrounded() const;
+	virtual bool IsCollected() const;
+	virtual bool IsEquipped() const;
+	
+#pragma endregion Mode
+
+#pragma region Static Data
+
+	FORCEINLINE const UItemDefinition* GetDefinition() const;
 	FORCEINLINE FName GetScriptName() const;
 	FORCEINLINE FGameplayTag GetItemTag() const;
 	FORCEINLINE UClass* GetActorClass() const;
@@ -220,7 +221,7 @@ public:
 
 #pragma endregion Static Data
 	
-	FORCEINLINE AItemActor* GetBoundActor() const { return BoundItemActor; }
+	FORCEINLINE AItemActor* GetBoundActor() const;
 
 	template <class T>
 	T* GetBoundActor() const
@@ -228,7 +229,7 @@ public:
 		return Cast<T>(GetBoundActor());
 	}
 
-	FORCEINLINE UItemInstance* GetItemInstance() const { return ItemInstance; }
+	FORCEINLINE UItemInstance* GetItemInstance() const;
 
 	template <class T>
 	T* GetItemInstance() const
@@ -236,13 +237,10 @@ public:
 		return Cast<T>(GetItemInstance());
 	}
 
-	virtual bool CanCollected() const;
-	virtual bool CanStackItem(const UItemObject* OtherItem) const;
-	
 	FTimerManager& GetWorldTimerManager() const;
 	
 protected:
-	UPROPERTY(EditInstanceOnly, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;
 
 	UFUNCTION()

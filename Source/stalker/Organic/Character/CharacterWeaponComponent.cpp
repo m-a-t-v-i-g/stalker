@@ -328,7 +328,7 @@ void UCharacterWeaponComponent::ServerTryReloadWeapon_Implementation()
 		return;
 	}
 
-	UAmmoObject* Ammo = GetAmmoForReload(RightWeapon->GetLastAmmoClass());
+	UAmmoObject* Ammo = GetAmmoForReload(RightWeapon->GetCurrentAmmoClass());
 	check(Ammo);
 
 	int AmmoCount = Ammo->GetAmount();
@@ -404,12 +404,9 @@ bool UCharacterWeaponComponent::HasAmmoForReload() const
 {
 	if (auto RightItem = GetItemObjectAtRightHand<UWeaponObject>())
 	{
-		if (UWeaponInstance* WeaponInstance = RightItem->GetWeaponInstance())
+		if (UAmmoObject* Ammo = GetAmmoForReload(RightItem->GetCurrentAmmoClass()))
 		{
-			if (UAmmoObject* Ammo = GetAmmoForReload(WeaponInstance->CurrentAmmoClass.Get()))
-			{
-				return Ammo->GetAmount() > 0;
-			}
+			return Ammo->GetAmount() > 0;
 		}
 	}
 	return false;
@@ -419,26 +416,23 @@ UAmmoObject* UCharacterWeaponComponent::GetAmmoForReload(const UAmmoDefinition* 
 {
 	if (auto RightItem = GetItemObjectAtRightHand<UWeaponObject>())
 	{
-		if (UWeaponInstance* WeaponInstance = RightItem->GetWeaponInstance())
+		UAmmoObject* ResultAmmo;
+
+		if (DesiredAmmo)
 		{
-			UAmmoObject* ResultAmmo;
-			
-			if (DesiredAmmo)
+			ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(DesiredAmmo));
+			if (ResultAmmo)
 			{
-				ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(DesiredAmmo));
-				if (ResultAmmo)
-				{
-					return ResultAmmo;
-				}
+				return ResultAmmo;
 			}
-			
-			for (const UAmmoDefinition* AmmoClass : WeaponInstance->AmmoClasses)
+		}
+
+		for (const UAmmoDefinition* AmmoClass : RightItem->GetAmmoClasses())
+		{
+			ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(AmmoClass));
+			if (ResultAmmo)
 			{
-				ResultAmmo = Cast<UAmmoObject>(GetCharacterInventory()->FindItemByDefinition(AmmoClass));
-				if (ResultAmmo)
-				{
-					return ResultAmmo;
-				}
+				return ResultAmmo;
 			}
 		}
 	}

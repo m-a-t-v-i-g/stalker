@@ -21,8 +21,6 @@ void ARifleActor::OnUnbindItem(UItemObject* PrevItemObject)
 void ARifleActor::OnStartAttack()
 {
 	Super::OnStartAttack();
-
-	GetWorld()->SpawnActorDeferred<AProjectileBase>())
 }
 
 void ARifleActor::OnStopAttack()
