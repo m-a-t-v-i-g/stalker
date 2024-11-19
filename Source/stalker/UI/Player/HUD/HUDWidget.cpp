@@ -4,10 +4,10 @@
 #include "Components/HUDInteractionWidget.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/HUDStatsWidget.h"
-#include "Components/InteractionComponent.h"
+#include "Components/PawnInteractionComponent.h"
 #include "Player/StalkerPlayerController.h"
 
-void UHUDWidget::InitializeHUD(const FCharacterInitInfo& CharacterInitInfo)
+void UHUDWidget::InitializeHUD(const FPlayerCharacterInitInfo& CharacterInitInfo)
 {
 	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
 	OwnInteractionComponent = CharacterInitInfo.InteractionComponent;

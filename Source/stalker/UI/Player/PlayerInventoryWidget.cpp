@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerInventoryWidget.h"
-#include "ItemObject.h"
 #include "StalkerHUD.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Components/OrganicAbilityComponent.h"
@@ -10,20 +9,26 @@
 #include "Inventory/EquipmentSlotWidget.h"
 #include "Inventory/InventoryGridWidget.h"
 #include "Inventory/InventoryWidget.h"
+#include "Player/PlayerInventoryManagerComponent.h"
 
 FReply UPlayerInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	return FReply::Handled();
 }
 
-void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp)
+void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp,
+                                           UCharacterInventoryComponent* CharInventoryComp,
+                                           UPlayerInventoryManagerComponent* PlayerInventoryManager)
 {
 	OwnAbilityComponent = AbilityComp;
+	OwnInventoryManager = PlayerInventoryManager;
 	OwnInventoryComponent = CharInventoryComp;
 
-	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
+	check(OwnAbilityComponent.IsValid());
+	check(OwnInventoryManager.IsValid());
+	check(OwnInventoryComponent.IsValid());
 
-	Inventory->SetupInventory(OwnInventoryComponent.Get());
+	Inventory->SetupInventory(OwnInventoryManager.Get(), OwnInventoryComponent->GetItemsContainer());
 	
 	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
 	{
@@ -72,7 +77,7 @@ void UPlayerInventoryWidget::OpenLooting(UInventoryComponent* LootItemsContainer
 	LootingInventory = LootItemsContainer;
 	check(LootingInventory.IsValid());
 
-	Looting->SetupInventory(LootingInventory.Get());
+	Looting->SetupInventory(OwnInventoryManager.Get(), LootingInventory->GetItemsContainer());
 	
 	if (UInventoryGridWidget* LootingGrid = Looting->GetInventoryGridWidget())
 	{
@@ -135,8 +140,7 @@ void UPlayerInventoryWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObje
 		break;
 	case EPlayerInventoryTab::Looting:
 		{
-			OwnInventoryComponent->ServerMoveItemToOtherContainer(ItemObject->GetItemId(),
-			                                                      LootingInventory->GetItemsContainer());
+			OwnInventoryComponent->ServerMoveItemToOtherContainer(ItemObject, LootingInventory->GetItemsContainer());
 		}
 		break;
 	case EPlayerInventoryTab::Upgrading:
@@ -157,6 +161,6 @@ void UPlayerInventoryWidget::OnLootingItemDoubleClick(UItemObject* ItemObject)
 {
 	if (LootingInventory.IsValid())
 	{
-		LootingInventory->ServerMoveItemToOtherContainer(ItemObject->GetItemId(), OwnInventoryComponent->GetItemsContainer());
+		LootingInventory->ServerMoveItemToOtherContainer(ItemObject, OwnInventoryComponent->GetItemsContainer());
 	}
 }

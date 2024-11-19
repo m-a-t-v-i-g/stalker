@@ -22,7 +22,7 @@ struct FItemInstanceData
 	GENERATED_USTRUCT_BODY()
 	
 	UPROPERTY(EditInstanceOnly, Category = "Item")
-	uint32 ItemId = 1;
+	uint32 ItemId = 0;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Item", meta = (ClampMin = "1"))
 	uint16 Amount = 1;
@@ -161,7 +161,7 @@ public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
 
 #pragma endregion Replication
-	
+
 #pragma region Behavior
 	
 	virtual void Use_Implementation(UObject* Source) override;
@@ -191,7 +191,7 @@ public:
 	FORCEINLINE EItemMode GetItemMode() const;
 
 #pragma endregion Behavior
-	
+
 #pragma region Mode
 	
 	virtual void SetGrounded();
@@ -220,7 +220,7 @@ public:
 	FORCEINLINE uint32 GetStackAmount() const;
 
 #pragma endregion Static Data
-	
+
 	FORCEINLINE AItemActor* GetBoundActor() const;
 
 	template <class T>
@@ -238,7 +238,7 @@ public:
 	}
 
 	FTimerManager& GetWorldTimerManager() const;
-	
+
 protected:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;

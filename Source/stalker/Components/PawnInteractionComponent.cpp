@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "InteractionComponent.h"
+#include "PawnInteractionComponent.h"
 #include "InteractableInterface.h"
 
-UInteractionComponent::UInteractionComponent()
+UPawnInteractionComponent::UPawnInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UInteractionComponent::SetupInteractionComponent()
+void UPawnInteractionComponent::SetupInteractionComponent()
 {
 	if (auto Pawn = GetOwner<APawn>())
 	{
@@ -21,7 +21,7 @@ void UInteractionComponent::SetupInteractionComponent()
 	}
 }
 
-void UInteractionComponent::AddPossibleInteraction(AActor* NewActor)
+void UPawnInteractionComponent::AddPossibleInteraction(AActor* NewActor)
 {
 	if (!PawnRef || !ControllerRef)
 	{
@@ -37,7 +37,7 @@ void UInteractionComponent::AddPossibleInteraction(AActor* NewActor)
 	}
 }
 
-void UInteractionComponent::RemovePossibleInteraction(AActor* OldActor)
+void UPawnInteractionComponent::RemovePossibleInteraction(AActor* OldActor)
 {
 	if (!PawnRef || !ControllerRef)
 	{
@@ -53,7 +53,7 @@ void UInteractionComponent::RemovePossibleInteraction(AActor* OldActor)
 	}
 }
 
-void UInteractionComponent::Interact()
+void UPawnInteractionComponent::Interact()
 {
 	if (!bActive)
 	{
@@ -69,7 +69,7 @@ void UInteractionComponent::Interact()
 	}
 }
 
-void UInteractionComponent::ServerInteract_Implementation(AActor* ActorToInteract)
+void UPawnInteractionComponent::ServerInteract_Implementation(AActor* ActorToInteract)
 {
 	if (auto InteractableActor = Cast<IInteractableInterface>(ActorToInteract))
 	{
@@ -77,7 +77,7 @@ void UInteractionComponent::ServerInteract_Implementation(AActor* ActorToInterac
 	}
 }
 
-void UInteractionComponent::UpdateFindActorTimer()
+void UPawnInteractionComponent::UpdateFindActorTimer()
 {
 	FindInteract();
 	
@@ -98,7 +98,7 @@ void UInteractionComponent::UpdateFindActorTimer()
 	}
 }
 
-void UInteractionComponent::FindInteract()
+void UPawnInteractionComponent::FindInteract()
 {
 	if (!bActive)
 	{
@@ -114,7 +114,7 @@ void UInteractionComponent::FindInteract()
 	}
 }
 
-AActor* UInteractionComponent::GetActorUnderLineTrace() const
+AActor* UPawnInteractionComponent::GetActorUnderLineTrace() const
 {
 	if (PawnRef && ControllerRef)
 	{

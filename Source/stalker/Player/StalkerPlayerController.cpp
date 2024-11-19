@@ -74,10 +74,11 @@ void AStalkerPlayerController::ConnectHUD()
 			return;
 		}
 
-		StalkerHUD->InitializePlayerHUD(FCharacterInitInfo(
+		StalkerHUD->InitializePlayerHUD(FPlayerCharacterInitInfo(
 			Stalker,
 			Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
 			Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+			Stalker->GetInventoryManager(),
 			Stalker->GetInteractionComponent()));
 	}
 }

@@ -4,7 +4,7 @@
 #include "InteractorInterface.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
-#include "Components/InteractionComponent.h"
+#include "Components/PawnInteractionComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -144,7 +144,7 @@ void AItemActor::OnInteractionSphereBeginOverlap(UPrimitiveComponent* Overlapped
 {
 	if (OtherActor)
 	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UInteractionComponent>())
+		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
 		{
 			InteractionComp->AddPossibleInteraction(this);
 		}
@@ -156,7 +156,7 @@ void AItemActor::OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedCo
 {
 	if (OtherActor)
 	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UInteractionComponent>())
+		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
 		{
 			InteractionComp->RemovePossibleInteraction(this);
 		}

@@ -25,6 +25,7 @@ public:
 
 	EItemDragDropOperationResult DragDropOperationResult = EItemDragDropOperationResult::Inventory;
 
+	TWeakObjectPtr<const UObject> Source;
 	TWeakObjectPtr<const UObject> Target;
 
 	template <class T>

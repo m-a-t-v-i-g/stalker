@@ -7,10 +7,12 @@
 #include "Components/NamedSlot.h"
 #include "Components/WidgetSwitcher.h"
 #include "HUD/HUDWidget.h"
+#include "Player/PlayerInventoryManagerComponent.h"
 
-void UPlayerMainWidget::InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo)
+void UPlayerMainWidget::InitializeMainWidget(const FPlayerCharacterInitInfo& CharacterInitInfo)
 {
 	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
+	OwnInventoryManager = CharacterInitInfo.InventoryManager;
 	OwnInventoryComponent = CharacterInitInfo.InventoryComponent;
 
 	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
@@ -26,7 +28,7 @@ void UPlayerMainWidget::SetupOwnInventory()
 		
 		if (InventoryWidget)
 		{
-			InventoryWidget->OpenInventory(OwnAbilityComponent.Get(), OwnInventoryComponent.Get());
+			InventoryWidget->OpenInventory(OwnAbilityComponent.Get(), OwnInventoryComponent.Get(), OwnInventoryManager.Get());
 			SlotManager->AddChild(InventoryWidget);
 		}
 	}

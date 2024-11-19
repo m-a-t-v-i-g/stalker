@@ -10,7 +10,7 @@ UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
 UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
 float AStalkerHUD::TileSize {50.0f};
 
-void AStalkerHUD::InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo)
+void AStalkerHUD::InitializePlayerHUD(const FPlayerCharacterInitInfo& CharacterInitInfo)
 {
 	if (APlayerCharacter* PlayerCharacter = CharacterInitInfo.Character)
 	{

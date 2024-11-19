@@ -8,23 +8,24 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/InventoryComponent.h"
 #include "Components/ItemsContainer.h"
+#include "Player/PlayerInventoryManagerComponent.h"
 
-void UInventoryGridWidget::SetupContainerGrid(UInventoryComponent* InventoryComp)
+void UInventoryGridWidget::SetupContainerGrid(UPlayerInventoryManagerComponent* PlayerInventoryManager,
+                                              UItemsContainer* ItemsContainer)
 {
 	ClearContainerGrid();
-	
-	InventoryComponentRef = InventoryComp;
 
-	if (InventoryComponentRef.IsValid())
+	InventoryManagerRef = PlayerInventoryManager;
+
+	if (InventoryManagerRef.IsValid())
 	{
-		ItemsSlots.SetNum(Columns * 50);
-
-		ItemsContainerRef = InventoryComp->GetItemsContainer();
+		ItemsContainerRef = ItemsContainer;
 
 		if (ItemsContainerRef.IsValid())
 		{
+			ItemsSlots.SetNum(Columns * 50);
+
 			for (UItemObject* ItemObject : ItemsContainerRef->GetItems())
 			{
 				OnContainerUpdated(FUpdatedContainerData(ItemObject, nullptr));
@@ -39,9 +40,9 @@ void UInventoryGridWidget::ClearContainerGrid()
 {
 	ClearChildrenItems();
 
-	if (InventoryComponentRef.IsValid())
+	if (InventoryManagerRef.IsValid())
 	{
-		InventoryComponentRef.Reset();
+		InventoryManagerRef.Reset();
 	}
 	
 	if (ItemsContainerRef.IsValid())
@@ -96,20 +97,20 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			if (ItemsContainerRef.IsValid() && InventoryComponentRef.IsValid())
+			if (ItemsContainerRef.IsValid() && InventoryManagerRef.IsValid())
 			{
 				DragDropOperation->Target = ItemsContainerRef;
-				
+
 				const uint32 StackableRoom = IndexFromTile(
 					GetTileFromMousePosition(InGeometry, InDragDropEvent.GetScreenSpacePosition()), Columns);
 				const uint32 PlacedRoom = IndexFromTile(DraggedData.Tile, Columns);
-				
+
 				if (IsStackableRoom(Payload, StackableRoom))
 				{
 					const uint32 ItemId = ItemsSlots[StackableRoom];
-					const UItemObject* RoomItem = ItemsContainerRef->FindItemById(ItemId);
+					UItemObject* RoomItem = ItemsContainerRef->FindItemById(ItemId);
 
-					InventoryComponentRef->ServerStackItem(Payload->GetItemId(), RoomItem->GetItemId());
+					InventoryManagerRef->ServerStackItem(ItemsContainerRef.Get(), Payload, RoomItem);
 
 					DragDropOperation->bWasSuccessful = true;
 				}
@@ -120,7 +121,7 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 					if (!ItemsContainerRef->Contains(Payload))
 					{
-						InventoryComponentRef->ServerAddItem(Payload->GetItemId());
+						InventoryManagerRef->ServerAddItem(ItemsContainerRef.Get(), Payload);
 					}
 					else
 					{
@@ -247,7 +248,7 @@ void UInventoryGridWidget::OnItemDoubleClick(UItemObject* ItemObject)
 void UInventoryGridWidget::OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                       UDragDropOperation* InOperation)
 {
-	if (!ItemsContainerRef.IsValid() || !InventoryComponentRef.IsValid())
+	if (!ItemsContainerRef.IsValid() || !InventoryManagerRef.IsValid())
 	{
 		return;
 	}
@@ -270,7 +271,7 @@ void UInventoryGridWidget::OnDragItem(const FGeometry& InGeometry, const FPointe
 
 void UInventoryGridWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 {
-	if (!ItemsContainerRef.IsValid() || !InventoryComponentRef.IsValid())
+	if (!ItemsContainerRef.IsValid() || !InventoryManagerRef.IsValid())
 	{
 		return;
 	}
@@ -280,7 +281,7 @@ void UInventoryGridWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 
 void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 {
-	if (!ItemsContainerRef.IsValid() || !InventoryComponentRef.IsValid())
+	if (!ItemsContainerRef.IsValid() || !InventoryManagerRef.IsValid())
 	{
 		return;
 	}
@@ -298,7 +299,7 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 				{
 					if (ItemsContainerRef->Contains(Payload))
 					{
-						InventoryComponentRef->ServerRemoveItem(Payload->GetItemId());
+						InventoryManagerRef->ServerRemoveItem(ItemsContainerRef.Get(), Payload);
 					}
 				}
 			}
@@ -330,7 +331,7 @@ UItemWidget* UInventoryGridWidget::CreateItemWidget(UItemObject* ItemObject, con
 	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass);
 	if (ItemWidget)
 	{
-		ItemWidget->InitItemWidget(InventoryComponentRef.Get(), ItemObject, ItemObject->GetItemSize());
+		ItemWidget->InitItemWidget(ItemsContainerRef.Get(), ItemObject, ItemObject->GetItemSize());
 			
 		if (UCanvasPanelSlot* ItemSlot = GridCanvas->AddChildToCanvas(ItemWidget))
 		{

@@ -12,7 +12,9 @@ UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemObjec
 	if (ItemObject)
 	{
 		if (UItemObject* NewItemObject = NewObject<UItemObject>(World, ItemObject->GetObjectClass(),
-		                                                        FName(ItemObject->GetScriptName().ToString() + "_object")))
+		                                                        FName(ItemObject->GetScriptName().ToString() +
+			                                                        FString::Printf(
+				                                                        TEXT("_object%d"), LastItemId + 1))))
 		{
 			LastItemId++;
 			AddItemObjectToGameState(NewItemObject);
@@ -29,7 +31,8 @@ UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemDefin
 	if (Definition)
 	{
 		if (UItemObject* ItemObject = NewObject<UItemObject>(World, Definition->ItemObjectClass,
-		                                                     FName(Definition->ScriptName.ToString() + "_object")))
+		                                                     FName(Definition->ScriptName.ToString() + FString::Printf(
+			                                                     TEXT("_object%d"), LastItemId + 1))))
 		{
 			LastItemId++;
 			AddItemObjectToGameState(ItemObject);
@@ -50,18 +53,24 @@ void UItemSystemCore::DestroyItemObject(const UItemObject* ItemObject)
 
 UItemObject* UItemSystemCore::GetItemObjectById(const UWorld* World, uint32 ItemId)
 {
-	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+	if (ItemId > 0)
 	{
-		return GameState->GetItemObjectById(ItemId);
+		if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+		{
+			return GameState->GetItemObjectById(ItemId);
+		}
 	}
 	return nullptr;
 }
 
 bool UItemSystemCore::IsItemObjectExist(const UWorld* World, uint32 ItemId)
 {
-	if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+	if (ItemId > 0)
 	{
-		return GameState->IsItemObjectExist(ItemId);
+		if (auto GameState = Cast<AStalkerGameState>(World->GetGameState()))
+		{
+			return GameState->IsItemObjectExist(ItemId);
+		}
 	}
 	return false;
 }

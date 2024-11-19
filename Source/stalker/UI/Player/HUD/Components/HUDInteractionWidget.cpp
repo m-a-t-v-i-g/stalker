@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDInteractionWidget.h"
-#include "Components/InteractionComponent.h"
+#include "Components/PawnInteractionComponent.h"
 #include "Components/TextBlock.h"
 
-void UHUDInteractionWidget::SetupInteractionWidget(UInteractionComponent* InteractionComp)
+void UHUDInteractionWidget::SetupInteractionWidget(UPawnInteractionComponent* InteractionComp)
 {
 	OwnInteractionComponent = InteractionComp;
 

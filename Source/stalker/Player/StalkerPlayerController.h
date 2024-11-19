@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "GenPlayerController.h"
 #include "InputMappingContext.h"
+#include "PlayerInventoryManagerComponent.h"
 #include "StalkerPlayerController.generated.h"
 
 class APlayerCharacter;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
-class UInteractionComponent;
+class UPlayerInventoryManagerComponent;
+class UPawnInteractionComponent;
 
 UENUM()
 enum class EHUDTab : uint8
@@ -28,22 +30,26 @@ enum class EInventoryAction : uint8
 };
 
 USTRUCT()
-struct FCharacterInitInfo
+struct FPlayerCharacterInitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
 	APlayerCharacter* Character = nullptr;
 	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
 	UCharacterInventoryComponent* InventoryComponent = nullptr;
-	UInteractionComponent* InteractionComponent = nullptr;
+	UPlayerInventoryManagerComponent* InventoryManager = nullptr;
+	UPawnInteractionComponent* InteractionComponent = nullptr;
 
-	FCharacterInitInfo() {}
+	FPlayerCharacterInitInfo() {}
 
-	FCharacterInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
-	                   UCharacterInventoryComponent* InventoryComp,
-	                   UInteractionComponent* InteractionComp) : Character(Char), AbilitySystemComponent(AbilityComp),
-	                                                             InventoryComponent(InventoryComp),
-	                                                             InteractionComponent(InteractionComp)
+	FPlayerCharacterInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
+	                         UCharacterInventoryComponent* InventoryComp,
+	                         UPlayerInventoryManagerComponent* InventoryMgr,
+	                         UPawnInteractionComponent* InteractionComp) : Character(Char),
+	                                                                       AbilitySystemComponent(AbilityComp),
+	                                                                       InventoryComponent(InventoryComp),
+	                                                                       InventoryManager(InventoryMgr),
+	                                                                       InteractionComponent(InteractionComp)
 	{
 	}
 };

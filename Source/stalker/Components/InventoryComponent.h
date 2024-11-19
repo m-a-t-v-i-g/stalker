@@ -22,44 +22,41 @@ public:
 
 	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFindAvailablePlace(uint32 ItemId);
+	void ServerFindAvailablePlace(UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerStackItem(uint32 SourceItemId, uint32 TargetItemId);
+	void ServerStackItem(UItemObject* SourceItem, UItemObject* TargetItem);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerAddItem(uint32 ItemId);
+	void ServerAddItem(UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSplitItem(uint32 ItemId);
+	void ServerSplitItem(UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRemoveItem(uint32 ItemId);
+	void ServerRemoveItem(UItemObject* ItemObject);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSubtractOrRemoveItem(uint32 ItemId, uint16 Amount);
+	void ServerSubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerMoveItemToOtherContainer(uint32 ItemId, UItemsContainer* OtherContainer);
+	void ServerMoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
 
 	bool HasAuthority() const;
 
 	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
 	
-	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
-
 	UItemObject* FindItemById(uint32 ItemId) const;
 
 	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
 
+	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
+
 protected:
-	UPROPERTY(EditAnywhere, Instanced, Replicated, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Inventory")
 	TObjectPtr<UItemsContainer> ItemsContainerRef;
 
 	UItemObject* GetItemObjectById(uint32 ItemId) const;

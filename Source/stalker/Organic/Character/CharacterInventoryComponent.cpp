@@ -108,7 +108,7 @@ void UCharacterInventoryComponent::ServerEquipSlot_Implementation(const FString&
 			}
 
 			RemainedItem->SetAmount(EquippingItem->GetAmount() - 1);
-			ServerAddItem(RemainedItem->GetItemId());
+			ServerAddItem(RemainedItem);
 
 			EquippingItem->SetAmount(1);
 		}
@@ -145,7 +145,7 @@ void UCharacterInventoryComponent::ServerMoveItemFromSlot_Implementation(const F
 		if (UItemObject* OldBoundObject = Slot->GetBoundObject())
 		{
 			Slot->UnequipSlot();
-			ServerAddItem(OldBoundObject->GetItemId());
+			ServerAddItem(OldBoundObject);
 		}
 	}
 }
@@ -167,7 +167,7 @@ void UCharacterInventoryComponent::TryEquipItem(UItemObject* BoundObject)
 		if (EquipmentSlot->CanEquipItem(BoundObject->GetDefinition()))
 		{
 			ServerEquipSlot(EquipmentSlot->GetSlotName(), BoundObject->GetItemId());
-			ServerRemoveItem(BoundObject->GetItemId());
+			ServerRemoveItem(BoundObject);
 			break;
 		}
 	}

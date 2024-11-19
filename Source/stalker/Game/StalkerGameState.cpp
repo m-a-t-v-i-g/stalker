@@ -44,7 +44,10 @@ bool AStalkerGameState::IsItemObjectExist(uint32 ItemId) const
 {
 	if (UItemObject* ItemObject = WorldItems.FindChecked(ItemId))
 	{
-		return IsValid(ItemObject);
+		if (IsValid(ItemObject))
+		{
+			return ItemObject->GetItemId() == ItemId;
+		}
 	}
 	return false;
 }

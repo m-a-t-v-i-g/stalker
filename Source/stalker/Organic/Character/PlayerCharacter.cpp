@@ -5,21 +5,25 @@
 #include "CharacterInventoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "ItemObject.h"
 #include "StalkerGameplayTags.h"
-#include "Components/InteractionComponent.h"
 #include "Components/OrganicAbilityComponent.h"
+#include "Components/PawnInteractionComponent.h"
 #include "Input/StalkerInputComponent.h"
+#include "Player/PlayerInventoryManagerComponent.h"
 
-FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
+FName APlayerCharacter::InteractionComponentName		{"Interaction Component"};
+FName APlayerCharacter::InventoryManagerComponentName	{"Inventory Manager Component"};
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(InteractionComponentName);
+	InteractionComponent = CreateDefaultSubobject<UPawnInteractionComponent>(InteractionComponentName);
+
+	InventoryManager = CreateDefaultSubobject<UPlayerInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
 bool APlayerCharacter::ContainerInteract(UInventoryComponent* TargetInventory)
 {
+	OnContainerInteraction.Broadcast(TargetInventory);
 	ClientContainerInteract(TargetInventory);
 	return true;
 }
@@ -33,7 +37,7 @@ bool APlayerCharacter::ItemInteract(UItemObject* ItemObject)
 {
 	if (GetInventoryComponent())
 	{
-		GetInventoryComponent()->ServerFindAvailablePlace(ItemObject->GetItemId());
+		GetInventoryComponent()->ServerFindAvailablePlace(ItemObject);
 		OnItemInteraction.Broadcast(ItemObject);
 		return true;
 	}
@@ -52,6 +56,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void APlayerCharacter::InitCharacterComponents()
+{
+	Super::InitCharacterComponents();
+
+	if (InventoryManager)
+	{
+		InventoryManager->SetupInventoryManager(this);
+	}
 }
 
 void APlayerCharacter::SetupCharacterLocally()

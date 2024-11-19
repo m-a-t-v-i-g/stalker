@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractiveActor.h"
-#include "Components/InteractionComponent.h"
+#include "Components/PawnInteractionComponent.h"
 #include "Components/SphereComponent.h"
 
 AInteractiveActor::AInteractiveActor()
@@ -24,7 +24,7 @@ void AInteractiveActor::OnInteractionSphereBeginOverlap(UPrimitiveComponent* Ove
 {
 	if (OtherActor)
 	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UInteractionComponent>())
+		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
 		{
 			InteractionComp->AddPossibleInteraction(this);
 		}
@@ -36,7 +36,7 @@ void AInteractiveActor::OnInteractionSphereEndOverlap(UPrimitiveComponent* Overl
 {
 	if (OtherActor)
 	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UInteractionComponent>())
+		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
 		{
 			InteractionComp->RemovePossibleInteraction(this);
 		}

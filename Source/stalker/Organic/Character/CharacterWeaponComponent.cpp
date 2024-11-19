@@ -363,7 +363,7 @@ void UCharacterWeaponComponent::CompleteReloadWeapon()
 			return;
 		}
 
-		GetCharacterInventory()->ServerSubtractOrRemoveItem(ReloadingData.AmmoObject->GetItemId(), ReloadingData.AmmoCount);
+		GetCharacterInventory()->ServerSubtractOrRemoveItem(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
 		ReloadingData.WeaponObject->IncreaseAmmo(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
 	}
 	

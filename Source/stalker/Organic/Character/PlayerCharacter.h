@@ -11,7 +11,7 @@
 
 class UAbilitySet;
 class UPlayerInputConfig;
-class UInteractionComponent;
+class UPawnInteractionComponent;
 
 DECLARE_MULTICAST_DELEGATE(FOnPlayerToggleInventorySignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerToggleSlotSignature, uint8);
@@ -27,6 +27,7 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName InteractionComponentName;
+	static FName InventoryManagerComponentName;
 
 	FOnPlayerToggleInventorySignature OnPlayerToggleInventory;
 
@@ -37,14 +38,11 @@ public:
 	FOnPlayerPickUpItemSignature OnItemInteraction;
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	FORCEINLINE UInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+	FORCEINLINE UPawnInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
-	template <class T>
-	T* GetInteractionComponent() const
-	{
-		return Cast<T>(GetInteractionComponent());
-	}
-	
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FORCEINLINE UPlayerInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -58,9 +56,10 @@ protected:
 	void ClientContainerInteract(UInventoryComponent* TargetInventory);
 	
 	virtual bool ItemInteract(UItemObject* ItemObject) override;
-	
+
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void InitCharacterComponents() override;
 	virtual void SetupCharacterLocally() override;
 	
 	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
@@ -79,5 +78,8 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInteractionComponent> InteractionComponent;
+	TObjectPtr<UPawnInteractionComponent> InteractionComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UPlayerInventoryManagerComponent> InventoryManager;
 };

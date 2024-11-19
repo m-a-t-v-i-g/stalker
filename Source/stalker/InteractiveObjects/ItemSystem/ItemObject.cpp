@@ -90,7 +90,8 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	}
 	
 	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, GetDefinition()->ItemInstanceClass,
-	                                                          FName(GetScriptName().ToString() + "_instance"));
+	                                                          FName(GetScriptName().ToString() + FString::Printf(
+		                                                          TEXT("_instance%d"), ItemId)));
 	if (!NewItemInstance)
 	{
 		return;
@@ -111,7 +112,8 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 	}
 
 	UItemInstance* NewItemInstance = NewObject<UItemInstance>(this, GetDefinition()->ItemInstanceClass,
-	                                                          FName(GetScriptName().ToString() + "_instance"));
+	                                                          FName(GetScriptName().ToString() + FString::Printf(
+		                                                          TEXT("_instance%d"), ItemId)));
 	if (!NewItemInstance)
 	{
 		return;

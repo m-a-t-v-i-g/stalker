@@ -65,7 +65,7 @@ public:
 };
 
 USTRUCT()
-struct FAmmoStartingData
+struct FWeaponPredictedAmmo
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -83,7 +83,7 @@ class STALKER_API UWeaponPredictedData : public UItemPredictedData
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TArray<FAmmoStartingData> Ammo;
+	TArray<FWeaponPredictedAmmo> Ammo;
 };
 
 UCLASS()

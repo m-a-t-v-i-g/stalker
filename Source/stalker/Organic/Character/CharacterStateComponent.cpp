@@ -97,10 +97,6 @@ void UCharacterStateComponent::SetMovementAction(ECharacterMovementAction NewAct
 
 void UCharacterStateComponent::OnMovementActionChanged(ECharacterMovementAction PreviousAction)
 {
-	if (MovementAction != PreviousAction)
-	{
-		// Logic
-	}
 }
 
 void UCharacterStateComponent::SetOverlayState(ECharacterOverlayState NewState, bool bForce)
@@ -115,10 +111,6 @@ void UCharacterStateComponent::SetOverlayState(ECharacterOverlayState NewState, 
 
 void UCharacterStateComponent::OnOverlayStateChanged(ECharacterOverlayState PreviousState)
 {
-	if (OverlayState != PreviousState)
-	{
-		// Logic
-	}
 }
 
 void UCharacterStateComponent::SetHealthState(ECharacterHealthState NewState, bool bForce)
@@ -133,20 +125,17 @@ void UCharacterStateComponent::SetHealthState(ECharacterHealthState NewState, bo
 
 void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState PreviousState)
 {
-	if (HealthState != PreviousState)
+	switch (HealthState)
 	{
-		switch (HealthState)
-		{
-		case ECharacterHealthState::Normal:
-			MovementComponentRef->SetMovementModel(NormalMovementModel);
-			break;
-		case ECharacterHealthState::Injured:
-			MovementComponentRef->SetMovementModel(InjuredMovementModel);
-			break;
-		case ECharacterHealthState::Dead:
-			break;
-		default: break;
-		}
+	case ECharacterHealthState::Normal:
+		MovementComponentRef->SetMovementModel(NormalMovementModel);
+		break;
+	case ECharacterHealthState::Injured:
+		MovementComponentRef->SetMovementModel(InjuredMovementModel);
+		break;
+	case ECharacterHealthState::Dead:
+		break;
+	default: break;
 	}
 }
 
@@ -162,10 +151,6 @@ void UCharacterStateComponent::SetCombatState(ECharacterCombatState NewState, bo
 
 void UCharacterStateComponent::OnCombatStateChanged(ECharacterCombatState PreviousState)
 {
-	if (CombatState != PreviousState)
-	{
-		// Logic
-	}
 }
 
 bool UCharacterStateComponent::IsAuthority() const
@@ -213,17 +198,17 @@ void UCharacterStateComponent::SetupHealth()
 	float CurrentHealth = HealthAttributeSet->GetHealth();
 	if (FMath::IsNearlyZero(CurrentHealth))
 	{
-		SetHealthState(ECharacterHealthState::Dead);
+		SetHealthState(ECharacterHealthState::Dead, true);
 	}
 	else
 	{
 		if (CurrentHealth > NormalHealthStateLimit)
 		{
-			SetHealthState(ECharacterHealthState::Normal);
+			SetHealthState(ECharacterHealthState::Normal, true);
 		}
 		else
 		{
-			SetHealthState(ECharacterHealthState::Injured);
+			SetHealthState(ECharacterHealthState::Injured, true);
 		}
 	}
 }

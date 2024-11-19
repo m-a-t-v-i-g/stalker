@@ -7,10 +7,11 @@
 #include "Items/ItemsLibrary.h"
 #include "InventoryGridWidget.generated.h"
 
-struct FUpdatedContainerData;
 enum class EDragDropOperationResult : uint8;
-class UItemsContainer;
+struct FUpdatedContainerData;
+class UPlayerInventoryManagerComponent;
 class UInventoryComponent;
+class UItemsContainer;
 class UItemObject;
 class UItemWidget;
 
@@ -65,7 +66,7 @@ class STALKER_API UInventoryGridWidget : public UUserWidget
 public:
 	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
 	
-	void SetupContainerGrid(UInventoryComponent* InventoryComp);
+	void SetupContainerGrid(UPlayerInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer);
 	void ClearContainerGrid();
 	
 protected:
@@ -117,7 +118,7 @@ protected:
 
 	bool IsStackableRoom(const UItemObject* ItemObject, uint32 Index);
 	bool IsAvailableRoom(const UItemObject* ItemObject, uint32 Index);
-	
+
 	bool CheckRoom(const UItemObject* ItemObject, uint32 Index);
 	bool IsRoomValid(const FIntPoint& Tile, const FIntPoint& ItemSize, uint8 Width);
 	bool IsItemSizeValid(const FIntPoint& ItemSize, uint8 Width);
@@ -131,10 +132,10 @@ protected:
 	static FIntPoint GetTileFromMousePosition(const FGeometry& InGeometry, const FVector2D& ScreenSpacePosition);
 	static FIntPoint GetTileFromMousePosition(const FGeometry& InGeometry, const FVector2D& ScreenSpacePosition,
 	                                          const UItemObject* ItemObject);
-	
+
 private:
+	TWeakObjectPtr<UPlayerInventoryManagerComponent> InventoryManagerRef;
 	TWeakObjectPtr<UItemsContainer> ItemsContainerRef;
-	TWeakObjectPtr<UInventoryComponent> InventoryComponentRef;
 
 	const uint8 Columns = 8;
 	

@@ -10,28 +10,6 @@
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
-	SetIsReplicatedByDefault(true);
-}
-
-void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(UInventoryComponent, ItemsContainerRef, COND_OwnerOnly);
-}
-
-bool UInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool bReplicateSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	
-	if (ItemsContainerRef)
-	{
-		bReplicateSomething |= Channel->ReplicateSubobject(ItemsContainerRef, *Bunch, *RepFlags);
-		bReplicateSomething |= ItemsContainerRef->ReplicateSubobjects(Channel, Bunch, RepFlags);
-	}
-	
-	return bReplicateSomething;
 }
 
 void UInventoryComponent::BeginPlay()
@@ -47,95 +25,95 @@ void UInventoryComponent::BeginPlay()
 	}
 }
 
-void UInventoryComponent::ServerFindAvailablePlace_Implementation(uint32 ItemId)
+void UInventoryComponent::ServerFindAvailablePlace_Implementation(UItemObject* ItemObject)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->FindAvailablePlace(GetItemObjectById(ItemId));
+		ItemsContainerRef->FindAvailablePlace(ItemObject);
 	}
 }
 
-bool UInventoryComponent::ServerFindAvailablePlace_Validate(uint32 ItemId)
+bool UInventoryComponent::ServerFindAvailablePlace_Validate(UItemObject* ItemObject)
 {
-	return IsItemObjectValid(ItemId);
+	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UInventoryComponent::ServerStackItem_Implementation(uint32 SourceItemId, uint32 TargetItemId)
+void UInventoryComponent::ServerStackItem_Implementation(UItemObject* SourceItem, UItemObject* TargetItem)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->StackItem(GetItemObjectById(SourceItemId), GetItemObjectById(TargetItemId));
+		ItemsContainerRef->StackItem(SourceItem, TargetItem);
 	}
 }
 
-bool UInventoryComponent::ServerStackItem_Validate(uint32 SourceItemId, uint32 TargetItemId)
+bool UInventoryComponent::ServerStackItem_Validate(UItemObject* SourceItem, UItemObject* TargetItem)
 {
-	return IsItemObjectValid(SourceItemId);
+	return IsItemObjectValid(SourceItem->GetItemId());
 }
 
-void UInventoryComponent::ServerAddItem_Implementation(uint32 ItemId)
+void UInventoryComponent::ServerAddItem_Implementation(UItemObject* ItemObject)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->AddItem(GetItemObjectById(ItemId));
+		ItemsContainerRef->AddItem(ItemObject);
 	}
 }
 
-bool UInventoryComponent::ServerAddItem_Validate(uint32 ItemId)
+bool UInventoryComponent::ServerAddItem_Validate(UItemObject* ItemObject)
 {
-	return IsItemObjectValid(ItemId);
+	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UInventoryComponent::ServerSplitItem_Implementation(uint32 ItemId)
+void UInventoryComponent::ServerSplitItem_Implementation(UItemObject* ItemObject)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->SplitItem(GetItemObjectById(ItemId));
+		ItemsContainerRef->SplitItem(ItemObject);
 	}
 }
 
-bool UInventoryComponent::ServerSplitItem_Validate(uint32 ItemId)
+bool UInventoryComponent::ServerSplitItem_Validate(UItemObject* ItemObject)
 {
-	return IsItemObjectValid(ItemId);
+	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UInventoryComponent::ServerRemoveItem_Implementation(uint32 ItemId)
+void UInventoryComponent::ServerRemoveItem_Implementation(UItemObject* ItemObject)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->RemoveItem(GetItemObjectById(ItemId));
+		ItemsContainerRef->RemoveItem(ItemObject);
 	}
 }
 
-bool UInventoryComponent::ServerRemoveItem_Validate(uint32 ItemId)
+bool UInventoryComponent::ServerRemoveItem_Validate(UItemObject* ItemObject)
 {
-	return IsItemObjectValid(ItemId);
+	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UInventoryComponent::ServerSubtractOrRemoveItem_Implementation(uint32 ItemId, uint16 Amount)
+void UInventoryComponent::ServerSubtractOrRemoveItem_Implementation(UItemObject* ItemObject, uint16 Amount)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->SubtractOrRemoveItem(GetItemObjectById(ItemId), Amount);
+		ItemsContainerRef->SubtractOrRemoveItem(ItemObject, Amount);
 	}
 }
 
-bool UInventoryComponent::ServerSubtractOrRemoveItem_Validate(uint32 ItemId, uint16 Amount)
+bool UInventoryComponent::ServerSubtractOrRemoveItem_Validate(UItemObject* ItemObject, uint16 Amount)
 {
-	return IsItemObjectValid(ItemId);
+	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UInventoryComponent::ServerMoveItemToOtherContainer_Implementation(uint32 ItemId, UItemsContainer* OtherContainer)
+void UInventoryComponent::ServerMoveItemToOtherContainer_Implementation(UItemObject* ItemObject, UItemsContainer* OtherContainer)
 {
 	if (ItemsContainerRef)
 	{
-		ItemsContainerRef->MoveItemToOtherContainer(GetItemObjectById(ItemId), OtherContainer);
+		ItemsContainerRef->MoveItemToOtherContainer(ItemObject, OtherContainer);
 	}
 }
 
-bool UInventoryComponent::ServerMoveItemToOtherContainer_Validate(uint32 ItemId, UItemsContainer* OtherContainer)
+bool UInventoryComponent::ServerMoveItemToOtherContainer_Validate(UItemObject* ItemObject, UItemsContainer* OtherContainer)
 {
-	return IsItemObjectValid(ItemId) && IsValid(OtherContainer);
+	return IsItemObjectValid(ItemObject->GetItemId()) && IsValid(OtherContainer);
 }
 
 bool UInventoryComponent::HasAuthority() const

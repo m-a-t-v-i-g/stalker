@@ -37,13 +37,14 @@ protected:
 
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UPlayerInventoryManagerComponent> OwnInventoryManager;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
 	EPlayerInventoryTab ActiveTab;
 	
 public:
-	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp);
+	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp, UPlayerInventoryManagerComponent* PlayerInventoryManager);
 	void CloseInventory();
 
 	void OpenEmpty();

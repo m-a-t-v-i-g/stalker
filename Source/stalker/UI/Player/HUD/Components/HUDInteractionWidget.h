@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDInteractionWidget.generated.h"
 
-class UInteractionComponent;
+class UPawnInteractionComponent;
 class UTextBlock;
 
 UCLASS()
@@ -15,7 +15,7 @@ class STALKER_API UHUDInteractionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetupInteractionWidget(UInteractionComponent* InteractionComp);
+	void SetupInteractionWidget(UPawnInteractionComponent* InteractionComp);
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -24,5 +24,5 @@ protected:
 	void OnDetectedActorChanged(const AActor* DetectedActor);
 	
 private:
-	TWeakObjectPtr<UInteractionComponent> OwnInteractionComponent;
+	TWeakObjectPtr<UPawnInteractionComponent> OwnInteractionComponent;
 };

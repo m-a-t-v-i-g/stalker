@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "InteractionComponent.generated.h"
+#include "PawnInteractionComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDetectedActorChanged, const AActor*);
 
 UCLASS()
-class STALKER_API UInteractionComponent : public UActorComponent
+class STALKER_API UPawnInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	FOnDetectedActorChanged OnDetectedActorChanged;
 	
-	UInteractionComponent();
+	UPawnInteractionComponent();
 
 	void SetupInteractionComponent();
 

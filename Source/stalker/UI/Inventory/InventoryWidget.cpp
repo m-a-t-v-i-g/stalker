@@ -3,11 +3,12 @@
 #include "InventoryWidget.h"
 #include "InventoryGridWidget.h"
 
-void UInventoryWidget::SetupInventory(UInventoryComponent* InventoryComp)
+void UInventoryWidget::SetupInventory(UPlayerInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer)
 {
-	check(InventoryComp);
+	check(PlayerInventoryManager);
+	check(ItemsContainer);
 	
-	ItemsGrid->SetupContainerGrid(InventoryComp);
+	ItemsGrid->SetupContainerGrid(PlayerInventoryManager, ItemsContainer);
 }
 
 void UInventoryWidget::ClearInventory()

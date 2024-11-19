@@ -16,13 +16,13 @@ void UItemsContainer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 bool UItemsContainer::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
 	bool bReplicateSomething = false;
-	
+
 	for (UItemObject* EachItem : GetItems())
 	{
 		bReplicateSomething |= Channel->ReplicateSubobject(EachItem, *Bunch, *RepFlags);
 		bReplicateSomething |= EachItem->ReplicateSubobjects(Channel, Bunch, RepFlags);
 	}
-	
+
 	return bReplicateSomething;
 }
 

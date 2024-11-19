@@ -65,7 +65,7 @@ void UWeaponInstance::SetupRounds(const UItemDefinition* Definition, const UItem
 {
 	if (auto WeaponPredictedData = Cast<UWeaponPredictedData>(PredictedData))
 	{
-		for (FAmmoStartingData Ammo : WeaponPredictedData->Ammo)
+		for (FWeaponPredictedAmmo Ammo : WeaponPredictedData->Ammo)
 		{
 			if (Ammo.Count <= 0)
 			{

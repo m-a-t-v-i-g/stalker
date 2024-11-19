@@ -31,7 +31,7 @@ public:
 	
 	static float TileSize;
 	
-	void InitializePlayerHUD(const FCharacterInitInfo& CharacterInitInfo);
+	void InitializePlayerHUD(const FPlayerCharacterInitInfo& CharacterInitInfo);
 
 	void OnOpenInventory();
 	void OnContainerInteract(UInventoryComponent* TargetInventory);

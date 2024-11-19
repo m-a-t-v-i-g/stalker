@@ -15,7 +15,7 @@ class STALKER_API UPlayerMainWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void InitializeMainWidget(const FCharacterInitInfo& CharacterInitInfo);
+	void InitializeMainWidget(const FPlayerCharacterInitInfo& CharacterInitInfo);
 	
 	void SetupOwnInventory();
 	void CloseOwnInventory();
@@ -38,6 +38,7 @@ protected:
 	
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UPlayerInventoryManagerComponent> OwnInventoryManager;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 
 	TObjectPtr<class UPlayerInventoryWidget> InventoryWidget;
