@@ -8,11 +8,12 @@
 #include "PlayerInventoryManagerComponent.h"
 #include "StalkerPlayerController.generated.h"
 
-class APlayerCharacter;
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
-class UPlayerInventoryManagerComponent;
 class UPawnInteractionComponent;
+class UPlayerInventoryManagerComponent;
+class UPlayerInputConfig;
+class APlayerCharacter;
 
 UENUM()
 enum class EHUDTab : uint8
@@ -30,26 +31,26 @@ enum class EInventoryAction : uint8
 };
 
 USTRUCT()
-struct FPlayerCharacterInitInfo
+struct FPlayerInitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
 	APlayerCharacter* Character = nullptr;
 	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
 	UCharacterInventoryComponent* InventoryComponent = nullptr;
-	UPlayerInventoryManagerComponent* InventoryManager = nullptr;
 	UPawnInteractionComponent* InteractionComponent = nullptr;
+	UPlayerInventoryManagerComponent* InventoryManager = nullptr;
 
-	FPlayerCharacterInitInfo() {}
+	FPlayerInitInfo() {}
 
-	FPlayerCharacterInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
+	FPlayerInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
 	                         UCharacterInventoryComponent* InventoryComp,
-	                         UPlayerInventoryManagerComponent* InventoryMgr,
-	                         UPawnInteractionComponent* InteractionComp) : Character(Char),
+	                         UPawnInteractionComponent* InteractionComp,
+							 UPlayerInventoryManagerComponent* InventoryMgr) : Character(Char),
 	                                                                       AbilitySystemComponent(AbilityComp),
 	                                                                       InventoryComponent(InventoryComp),
-	                                                                       InventoryManager(InventoryMgr),
-	                                                                       InteractionComponent(InteractionComp)
+	                                                                       InteractionComponent(InteractionComp),
+	                                                                       InventoryManager(InventoryMgr)
 	{
 	}
 };
@@ -61,6 +62,8 @@ class STALKER_API AStalkerPlayerController : public AGenPlayerController
 
 public:
 	AStalkerPlayerController();
+	
+	static FName InventoryManagerComponentName;
 
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnRep_Pawn() override;
@@ -71,6 +74,9 @@ public:
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FORCEINLINE UPlayerInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -79,8 +85,14 @@ protected:
 	
 	TObjectPtr<APlayerCharacter> Stalker;
 
+	void SetupPawn();
 	void ConnectHUD();
+
+	void InitEssentialComponents();
 	
 private:
-	bool bIsControllerInitialized = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UPlayerInventoryManagerComponent> InventoryManager;
+	
+	bool bIsPawnInitialized = false;
 };

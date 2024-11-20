@@ -179,7 +179,7 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 	}
 }
 
-bool UItemObject::CanCollected() const
+bool UItemObject::IsInteractable() const
 {
 	return IsGrounded() && !IsCollected() && !IsEquipped();
 }

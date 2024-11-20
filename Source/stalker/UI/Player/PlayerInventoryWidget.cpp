@@ -21,12 +21,12 @@ void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp
                                            UPlayerInventoryManagerComponent* PlayerInventoryManager)
 {
 	OwnAbilityComponent = AbilityComp;
-	OwnInventoryManager = PlayerInventoryManager;
 	OwnInventoryComponent = CharInventoryComp;
+	OwnInventoryManager = PlayerInventoryManager;
 
 	check(OwnAbilityComponent.IsValid());
-	check(OwnInventoryManager.IsValid());
 	check(OwnInventoryComponent.IsValid());
+	check(OwnInventoryManager.IsValid());
 
 	Inventory->SetupInventory(OwnInventoryManager.Get(), OwnInventoryComponent->GetItemsContainer());
 	
@@ -45,18 +45,17 @@ void UPlayerInventoryWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp
 
 void UPlayerInventoryWidget::CloseInventory()
 {
-	check(OwnAbilityComponent.IsValid() && OwnInventoryComponent.IsValid());
-	
 	OwnAbilityComponent.Reset();
 	OwnInventoryComponent.Reset();
-	
+	OwnInventoryManager.Reset();
+
 	Inventory->ClearInventory();
-	
+
 	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
 	{
 		GridWidget->OnItemWidgetDoubleClick.RemoveAll(this);
 	}
-	
+
 	Equipment->ClearCharacterEquipment();
 	
 	for (UEquipmentSlotWidget* EachSlotWidget : Equipment->GetAllSlots())
@@ -81,7 +80,7 @@ void UPlayerInventoryWidget::OpenLooting(UInventoryComponent* LootItemsContainer
 	
 	if (UInventoryGridWidget* LootingGrid = Looting->GetInventoryGridWidget())
 	{
-		LootingGrid->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerInventoryWidget::OnLootingItemDoubleClick);
+		LootingGrid->OnItemWidgetDoubleClick.AddUObject(this, &UPlayerInventoryWidget::OnLootingInventoryItemDoubleClick);
 	}
 	
 	ActivateTab(EPlayerInventoryTab::Looting);
@@ -140,7 +139,8 @@ void UPlayerInventoryWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObje
 		break;
 	case EPlayerInventoryTab::Looting:
 		{
-			OwnInventoryComponent->ServerMoveItemToOtherContainer(ItemObject, LootingInventory->GetItemsContainer());
+			OwnInventoryManager->ServerMoveItemToOtherContainer(OwnInventoryComponent->GetItemsContainer(),
+			                                                    LootingInventory->GetItemsContainer(), ItemObject);
 		}
 		break;
 	case EPlayerInventoryTab::Upgrading:
@@ -157,10 +157,11 @@ void UPlayerInventoryWidget::OnOwnEquippedItemDoubleClick(const FString& SlotNam
 	}
 }
 
-void UPlayerInventoryWidget::OnLootingItemDoubleClick(UItemObject* ItemObject)
+void UPlayerInventoryWidget::OnLootingInventoryItemDoubleClick(UItemObject* ItemObject)
 {
 	if (LootingInventory.IsValid())
 	{
-		LootingInventory->ServerMoveItemToOtherContainer(ItemObject, OwnInventoryComponent->GetItemsContainer());
+		OwnInventoryManager->ServerMoveItemToOtherContainer(LootingInventory->GetItemsContainer(),
+		                                                    OwnInventoryComponent->GetItemsContainer(), ItemObject);
 	}
 }

@@ -22,13 +22,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
-	virtual void SetupInventoryManager(APlayerCharacter* InCharacter);
-	virtual void InitCharacterInfo(AController* InController);
+	virtual void SetupInventoryManager(AController* InController, APlayerCharacter* InCharacter);
+	virtual void ResetInventoryManager();
 
 	void AddReplicatedContainer(UItemsContainer* Container);
 	void RemoveReplicatedContainer(UItemsContainer* Container);
 
-	void OnContainerInteract(UInventoryComponent* InventoryComponent);
+	void OnLootContainer(UInventoryComponent* InventoryComponent);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
@@ -49,8 +49,12 @@ public:
 	void ServerSubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerMoveItemToOtherContainer(UItemsContainer* Container, UItemObject* ItemObject, UItemsContainer* OtherContainer);
+	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 
+	bool IsAuthority() const;
+	bool IsAutonomousProxy() const;
+	bool IsSimulatedProxy() const;
+	
 protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
 	TArray<UItemsContainer*> Containers;
@@ -62,4 +66,7 @@ protected:
 private:
 	TObjectPtr<APlayerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
+	
+	TObjectPtr<UInventoryComponent> PlayerInventory;
+	TObjectPtr<UItemsContainer> PlayerItemsContainer;
 };

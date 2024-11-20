@@ -9,7 +9,7 @@
 #include "HUD/HUDWidget.h"
 #include "Player/PlayerInventoryManagerComponent.h"
 
-void UPlayerMainWidget::InitializeMainWidget(const FPlayerCharacterInitInfo& CharacterInitInfo)
+void UPlayerMainWidget::InitializeMainWidget(const FPlayerInitInfo& CharacterInitInfo)
 {
 	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
 	OwnInventoryManager = CharacterInitInfo.InventoryManager;

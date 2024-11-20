@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
-struct FPlayerCharacterInitInfo;
+struct FPlayerInitInfo;
 class UOrganicAbilityComponent;
 class UPawnInteractionComponent;
 
@@ -27,5 +27,5 @@ private:
 	TWeakObjectPtr<UPawnInteractionComponent> OwnInteractionComponent;
 	
 public:
-	void InitializeHUD(const FPlayerCharacterInitInfo& CharacterInitInfo);
+	void InitializeHUD(const FPlayerInitInfo& CharacterInitInfo);
 };

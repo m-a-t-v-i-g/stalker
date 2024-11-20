@@ -2,12 +2,10 @@
 
 #include "InteractorInterface.h"
 
-bool IInteractorInterface::ContainerInteract(UInventoryComponent* TargetInventory)
+void IInteractorInterface::InteractWithContainer(UInventoryComponent* TargetInventory)
 {
-	return false;
 }
 
-bool IInteractorInterface::ItemInteract(UItemObject* ItemObject)
+void IInteractorInterface::InteractWithItem(UItemObject* ItemObject)
 {
-	return false;
 }

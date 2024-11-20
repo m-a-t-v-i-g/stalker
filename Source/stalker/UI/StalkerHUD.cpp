@@ -10,17 +10,17 @@ UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
 UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
 float AStalkerHUD::TileSize {50.0f};
 
-void AStalkerHUD::InitializePlayerHUD(const FPlayerCharacterInitInfo& CharacterInitInfo)
+void AStalkerHUD::InitializePlayerHUD(const FPlayerInitInfo& PlayerInitInfo)
 {
-	if (APlayerCharacter* PlayerCharacter = CharacterInitInfo.Character)
+	if (APlayerCharacter* PlayerCharacter = PlayerInitInfo.Character)
 	{
-		PlayerCharacter->OnPlayerToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
-		PlayerCharacter->OnContainerInteraction.AddUObject(this, &AStalkerHUD::OnContainerInteract);
+		PlayerCharacter->OnToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
+		PlayerCharacter->OnLootContainer.AddUObject(this, &AStalkerHUD::OnContainerInteract);
 	}
 
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(CharacterInitInfo);
+		MainWidget->InitializeMainWidget(PlayerInitInfo);
 	}
 }
 

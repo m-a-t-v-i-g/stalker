@@ -105,6 +105,11 @@ bool UCharacterWeaponComponent::IsArmed() const
 	return RightHandItemActor->IsA<UWeaponObject>();
 }
 
+void UCharacterWeaponComponent::TryToggleSlot(int8 SlotIndex)
+{
+	ServerToggleSlot(SlotIndex);
+}
+
 void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 {
 	const FWeaponSlot* SlotPtr = &WeaponSlots[SlotIndex];

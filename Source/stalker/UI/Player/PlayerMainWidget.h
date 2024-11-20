@@ -15,7 +15,7 @@ class STALKER_API UPlayerMainWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void InitializeMainWidget(const FPlayerCharacterInitInfo& CharacterInitInfo);
+	void InitializeMainWidget(const FPlayerInitInfo& CharacterInitInfo);
 	
 	void SetupOwnInventory();
 	void CloseOwnInventory();

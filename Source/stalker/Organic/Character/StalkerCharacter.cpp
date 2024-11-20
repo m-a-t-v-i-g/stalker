@@ -125,10 +125,6 @@ void AStalkerCharacter::InitCharacterComponents()
 
 void AStalkerCharacter::SetupCharacterLocally()
 {
-	if (!GetController())
-	{
-		return;
-	}
 }
 
 void AStalkerCharacter::SetCharacterData()

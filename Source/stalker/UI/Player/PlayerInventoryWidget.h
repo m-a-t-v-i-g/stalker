@@ -37,8 +37,8 @@ protected:
 
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<UPlayerInventoryManagerComponent> OwnInventoryManager;
 	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UPlayerInventoryManagerComponent> OwnInventoryManager;
 	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
 	EPlayerInventoryTab ActiveTab;
@@ -58,5 +58,5 @@ public:
 protected:
 	void OnOwnInventoryItemDoubleClick(UItemObject* ItemObject);
 	void OnOwnEquippedItemDoubleClick(const FString& SlotName);
-	void OnLootingItemDoubleClick(UItemObject* ItemObject);
+	void OnLootingInventoryItemDoubleClick(UItemObject* ItemObject);
 };

@@ -3,36 +3,27 @@
 #include "Player/StalkerPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerHUD.h"
-#include "AbilitySystem/Components/OrganicAbilityComponent.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Character/PlayerCharacter.h"
+#include "Components/OrganicAbilityComponent.h"
+
+FName AStalkerPlayerController::InventoryManagerComponentName {"Inventory Manager Component"};
 
 AStalkerPlayerController::AStalkerPlayerController()
 {
+	InventoryManager = CreateDefaultSubobject<UPlayerInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
 void AStalkerPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	if (!bIsControllerInitialized)
-	{
-		Stalker = GetPawn<APlayerCharacter>();
-		ConnectHUD();
-		bIsControllerInitialized = true;
-	}
+	SetupPawn();
 }
 
 void AStalkerPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
-
-	if (!bIsControllerInitialized)
-	{
-		Stalker = GetPawn<APlayerCharacter>();
-		ConnectHUD();
-		bIsControllerInitialized = true;
-	}
+	SetupPawn();
 }
 
 void AStalkerPlayerController::SetupInputComponent()
@@ -45,7 +36,7 @@ void AStalkerPlayerController::SetupInputComponent()
 		
 		Subsystem->AddMappingContext(InputMappingContext, 2, Options);
 	}
-
+	
 	Super::SetupInputComponent();
 }
 
@@ -65,20 +56,45 @@ void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const boo
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
+void AStalkerPlayerController::SetupPawn()
+{
+	if (!bIsPawnInitialized)
+	{
+		Stalker = GetPawn<APlayerCharacter>();
+
+		if (Stalker)
+		{
+			InitEssentialComponents();
+			
+			if (IsLocalController())
+			{
+				ConnectHUD();
+			}
+			
+			bIsPawnInitialized = true;
+		}
+	}
+}
+
 void AStalkerPlayerController::ConnectHUD()
 {
-	if (IsLocalController())
+	if (!Stalker || !StalkerHUD)
 	{
-		if (!Stalker || !StalkerHUD)
-		{
-			return;
-		}
+		return;
+	}
 
-		StalkerHUD->InitializePlayerHUD(FPlayerCharacterInitInfo(
-			Stalker,
-			Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-			Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
-			Stalker->GetInventoryManager(),
-			Stalker->GetInteractionComponent()));
+	StalkerHUD->InitializePlayerHUD(FPlayerInitInfo(
+		Stalker,
+		Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
+		Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+		Stalker->GetInteractionComponent(),
+		InventoryManager));
+}
+
+void AStalkerPlayerController::InitEssentialComponents()
+{
+	if (InventoryManager)
+	{
+		InventoryManager->SetupInventoryManager(this, Stalker);
 	}
 }

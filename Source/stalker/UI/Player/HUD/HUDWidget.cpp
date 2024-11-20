@@ -7,7 +7,7 @@
 #include "Components/PawnInteractionComponent.h"
 #include "Player/StalkerPlayerController.h"
 
-void UHUDWidget::InitializeHUD(const FPlayerCharacterInitInfo& CharacterInitInfo)
+void UHUDWidget::InitializeHUD(const FPlayerInitInfo& CharacterInitInfo)
 {
 	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
 	OwnInteractionComponent = CharacterInitInfo.InteractionComponent;

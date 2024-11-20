@@ -47,15 +47,12 @@ bool AItemActor::OnInteract(AActor* Interactor)
 {
 	check(Interactor);
 	
-	if (ItemObject && ItemObject->CanCollected())
+	if (ItemObject && ItemObject->IsInteractable())
 	{
 		if (auto InteractorInterface = Cast<IInteractorInterface>(Interactor))
 		{
-			if (InteractorInterface->ItemInteract(ItemObject))
-			{
-				Destroy();
-				return true;
-			}
+			InteractorInterface->InteractWithItem(ItemObject);
+			return true;
 		}
 	}
 	return false;

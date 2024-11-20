@@ -19,10 +19,8 @@ bool AContainerActor::OnInteract(AActor* Interactor)
 	{
 		if (auto InteractorInterface = Cast<IInteractorInterface>(Interactor))
 		{
-			if (InteractorInterface->ContainerInteract(InventoryComponent))
-			{
-				return true;
-			}
+			InteractorInterface->InteractWithContainer(InventoryComponent);
+			return true;
 		}
 	}
 	return false;

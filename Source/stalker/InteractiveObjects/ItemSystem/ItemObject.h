@@ -179,7 +179,7 @@ public:
 	void AddAmount(uint32 Amount) const;
 	void RemoveAmount(uint32 Amount) const;
 
-	virtual bool CanCollected() const;
+	virtual bool IsInteractable() const;
 	virtual bool CanStackItem(const UItemObject* OtherItem) const;
 	
 	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;

@@ -20,7 +20,6 @@ class STALKER_API IInteractorInterface
 	GENERATED_BODY()
 
 public:
-	virtual bool ContainerInteract(UInventoryComponent* TargetInventory);
-
-	virtual bool ItemInteract(UItemObject* ItemObject);
+	virtual void InteractWithContainer(UInventoryComponent* TargetInventory);
+	virtual void InteractWithItem(UItemObject* ItemObject);
 };

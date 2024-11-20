@@ -36,19 +36,54 @@ bool UPlayerInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channe
 	return bReplicateSomething;
 }
 
-void UPlayerInventoryManagerComponent::SetupInventoryManager(APlayerCharacter* InCharacter)
+void UPlayerInventoryManagerComponent::SetupInventoryManager(AController* InController, APlayerCharacter* InCharacter)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	CharacterRef = InCharacter;
+	ControllerRef = InController;
+
+	if (CharacterRef)
 	{
-		Containers.AddUnique(InCharacter->GetInventoryComponent()->GetItemsContainer());
-		
-		InCharacter->OnContainerInteraction.AddUObject(this, &UPlayerInventoryManagerComponent::OnContainerInteract);
+		CharacterRef->OnLootContainer.AddUObject(this, &UPlayerInventoryManagerComponent::OnLootContainer);
+
+		if (UInventoryComponent* CharInventoryComponent = CharacterRef->GetInventoryComponent())
+		{
+			PlayerInventory = CharInventoryComponent;
+			
+			if (UItemsContainer* CharContainer = CharInventoryComponent->GetItemsContainer())
+			{
+				PlayerItemsContainer = CharContainer;
+				
+				if (IsAuthority())
+				{
+					if (!Containers.Contains(CharContainer))
+					{
+						Containers.AddUnique(CharContainer);
+					}
+				}
+			}
+		}
 	}
 }
 
-void UPlayerInventoryManagerComponent::InitCharacterInfo(AController* InController)
+void UPlayerInventoryManagerComponent::ResetInventoryManager()
 {
+	if (CharacterRef)
+	{
+		CharacterRef->OnLootContainer.RemoveAll(this);
+
+		if (IsAuthority())
+		{
+			if (PlayerItemsContainer && Containers.Contains(PlayerItemsContainer))
+			{
+				Containers.Remove(PlayerItemsContainer);
+			}
+		}
+	}
 	
+	CharacterRef = nullptr;
+	ControllerRef = nullptr;
+	PlayerInventory = nullptr;
+	PlayerItemsContainer = nullptr;
 }
 
 void UPlayerInventoryManagerComponent::AddReplicatedContainer(UItemsContainer* Container)
@@ -67,9 +102,12 @@ void UPlayerInventoryManagerComponent::RemoveReplicatedContainer(UItemsContainer
 	}
 }
 
-void UPlayerInventoryManagerComponent::OnContainerInteract(UInventoryComponent* InventoryComponent)
+void UPlayerInventoryManagerComponent::OnLootContainer(UInventoryComponent* InventoryComponent)
 {
-	AddReplicatedContainer(InventoryComponent->GetItemsContainer());
+	if (UItemsContainer* Container = InventoryComponent->GetItemsContainer())
+	{
+		AddReplicatedContainer(Container);
+	}
 }
 
 void UPlayerInventoryManagerComponent::ServerFindAvailablePlace_Implementation(UItemsContainer* Container, UItemObject* ItemObject)
@@ -152,17 +190,44 @@ bool UPlayerInventoryManagerComponent::ServerSubtractOrRemoveItem_Validate(UItem
 	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
-void UPlayerInventoryManagerComponent::ServerMoveItemToOtherContainer_Implementation(UItemsContainer* Container, UItemObject* ItemObject, UItemsContainer* OtherContainer)
+void UPlayerInventoryManagerComponent::ServerMoveItemToOtherContainer_Implementation(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject)
 {
-	if (Container)
+	if (FromContainer)
 	{
-		Container->MoveItemToOtherContainer(ItemObject, OtherContainer);
+		FromContainer->MoveItemToOtherContainer(ItemObject, ToContainer);
 	}
 }
 
-bool UPlayerInventoryManagerComponent::ServerMoveItemToOtherContainer_Validate(UItemsContainer* Container, UItemObject* ItemObject, UItemsContainer* OtherContainer)
+bool UPlayerInventoryManagerComponent::ServerMoveItemToOtherContainer_Validate(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject)
 {
-	return IsItemObjectValid(ItemObject->GetItemId()) && IsValid(OtherContainer);
+	return IsItemObjectValid(ItemObject->GetItemId()) && IsValid(ToContainer);
+}
+
+bool UPlayerInventoryManagerComponent::IsAuthority() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->HasAuthority();
+}
+
+bool UPlayerInventoryManagerComponent::IsAutonomousProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_AutonomousProxy;
+}
+
+bool UPlayerInventoryManagerComponent::IsSimulatedProxy() const
+{
+	if (!GetOwner())
+	{
+		return false;
+	}
+	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
 }
 
 UItemObject* UPlayerInventoryManagerComponent::GetItemObjectById(uint32 ItemId) const

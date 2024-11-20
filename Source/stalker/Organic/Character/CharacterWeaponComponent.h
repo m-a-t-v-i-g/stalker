@@ -146,6 +146,8 @@ private:
 	FTimerHandle ReloadTimerHandle;
 	
 public:
+	void TryToggleSlot(int8 SlotIndex);
+	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
 

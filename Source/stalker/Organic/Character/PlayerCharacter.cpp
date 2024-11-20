@@ -2,46 +2,39 @@
 
 #include "PlayerCharacter.h"
 #include "AbilitySystemComponent.h"
-#include "CharacterInventoryComponent.h"
+#include "CharacterWeaponComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StalkerGameplayTags.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/PawnInteractionComponent.h"
 #include "Input/StalkerInputComponent.h"
-#include "Player/PlayerInventoryManagerComponent.h"
 
-FName APlayerCharacter::InteractionComponentName		{"Interaction Component"};
-FName APlayerCharacter::InventoryManagerComponentName	{"Inventory Manager Component"};
+FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	InteractionComponent = CreateDefaultSubobject<UPawnInteractionComponent>(InteractionComponentName);
-
-	InventoryManager = CreateDefaultSubobject<UPlayerInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
-bool APlayerCharacter::ContainerInteract(UInventoryComponent* TargetInventory)
+void APlayerCharacter::InitCharacterComponents()
 {
-	OnContainerInteraction.Broadcast(TargetInventory);
-	ClientContainerInteract(TargetInventory);
-	return true;
-}
-
-void APlayerCharacter::ClientContainerInteract_Implementation(UInventoryComponent* TargetInventory)
-{
-	OnContainerInteraction.Broadcast(TargetInventory);
-}
-
-bool APlayerCharacter::ItemInteract(UItemObject* ItemObject)
-{
-	if (GetInventoryComponent())
+	Super::InitCharacterComponents();
+	
+	if (InteractionComponent)
 	{
-		GetInventoryComponent()->ServerFindAvailablePlace(ItemObject);
-		OnItemInteraction.Broadcast(ItemObject);
-		return true;
+		InteractionComponent->SetupInteractionComponent();
 	}
-	return false;
+}
+
+void APlayerCharacter::InteractWithContainer(UInventoryComponent* TargetInventory)
+{
+	OnLootContainer.Broadcast(TargetInventory);
+}
+
+void APlayerCharacter::InteractWithItem(UItemObject* ItemObject)
+{
+	OnPickUpItem.Broadcast(ItemObject);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -56,26 +49,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
-void APlayerCharacter::InitCharacterComponents()
-{
-	Super::InitCharacterComponents();
-
-	if (InventoryManager)
-	{
-		InventoryManager->SetupInventoryManager(this);
-	}
-}
-
-void APlayerCharacter::SetupCharacterLocally()
-{
-	Super::SetupCharacterLocally();
-
-	if (InteractionComponent)
-	{
-		InteractionComponent->SetupInteractionComponent();
-	}
 }
 
 void APlayerCharacter::BindDirectionalInput(UInputComponent* PlayerInputComponent)
@@ -125,7 +98,7 @@ void APlayerCharacter::IA_View(const FInputActionValue& Value)
 
 void APlayerCharacter::IA_Inventory(const FInputActionValue& Value)
 {
-	OnPlayerToggleInventory.Broadcast();
+	OnToggleInventory.Broadcast();
 }
 
 void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
@@ -134,6 +107,7 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 		GetController<APlayerController>()->GetLocalPlayer()))
 	{
 		TArray<FKey> Keys = Subsystem->QueryKeysMappedToAction(InputAction.GetSourceAction());
+		
 		const FKey* PressedKey = Keys.FindByPredicate([&](const FKey& Key)
 		{
 			return GetController<APlayerController>()->IsInputKeyDown(Key);
@@ -143,8 +117,9 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 		{
 			return;
 		}
-		
+
 		const TArray<FEnhancedActionKeyMapping>& Mappings = InputMappingContext->GetMappings();
+		
 		for (uint8 i = 0, a = 0; i < Mappings.Num(); i++)
 		{
 			if (Mappings[i].Action != InputAction.GetSourceAction())
@@ -154,9 +129,11 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 
 			if (Mappings[i].Key == *PressedKey)
 			{
-				OnPlayerToggleSlot.Broadcast(i);
+				GetWeaponComponent()->TryToggleSlot(a);
+				OnToggleSlot.Broadcast(a);
 				break;
 			}
+			
 			a++;
 		}
 	}

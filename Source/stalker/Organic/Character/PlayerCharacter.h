@@ -27,21 +27,16 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName InteractionComponentName;
-	static FName InventoryManagerComponentName;
-
-	FOnPlayerToggleInventorySignature OnPlayerToggleInventory;
-
-	FOnPlayerToggleSlotSignature OnPlayerToggleSlot;
 	
-	FOnPlayerLootContainerSignature OnContainerInteraction;
-	
-	FOnPlayerPickUpItemSignature OnItemInteraction;
+	FOnPlayerToggleInventorySignature OnToggleInventory;
+	FOnPlayerToggleSlotSignature OnToggleSlot;
+	FOnPlayerLootContainerSignature OnLootContainer;
+	FOnPlayerPickUpItemSignature OnPickUpItem;
+
+	virtual void InitCharacterComponents() override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE UPawnInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	FORCEINLINE UPlayerInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -50,18 +45,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
-	virtual bool ContainerInteract(UInventoryComponent* TargetInventory) override;
-	
-	UFUNCTION(Client, Reliable)
-	void ClientContainerInteract(UInventoryComponent* TargetInventory);
-	
-	virtual bool ItemInteract(UItemObject* ItemObject) override;
+	virtual void InteractWithContainer(UInventoryComponent* TargetInventory) override;
+	virtual void InteractWithItem(UItemObject* ItemObject) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-	virtual void InitCharacterComponents() override;
-	virtual void SetupCharacterLocally() override;
-	
 	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindViewInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
@@ -70,7 +57,6 @@ protected:
 	void IA_View(const FInputActionValue& Value);
 	
 	void IA_Inventory(const FInputActionValue& Value);
-
 	void IA_Slot(const FInputActionInstance& InputAction);
 
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
@@ -79,7 +65,4 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPawnInteractionComponent> InteractionComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UPlayerInventoryManagerComponent> InventoryManager;
 };
