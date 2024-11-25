@@ -18,7 +18,8 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 
 	if (auto AmmoDefinition = Cast<UAmmoDefinition>(Definition))
 	{
-		// Data
+		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
+		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
 		
 		if (auto AmmoPredictedData = Cast<UAmmoPredictedData>(PredictedData))
 		{
@@ -33,7 +34,8 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 
 	if (auto AmmoInstance = Cast<UAmmoInstance>(Instance))
 	{
-		// Data
+		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
+		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
 	}
 }
 
@@ -45,4 +47,14 @@ const UAmmoDefinition* UAmmoObject::GetAmmoDefinition() const
 UClass* UAmmoObject::GetProjectileClass() const
 {
 	return GetAmmoDefinition()->ProjectileClass;
+}
+
+FAmmoDamageData UAmmoObject::GetDamageData() const
+{
+	return GetAmmoDefinition()->DamageData;
+}
+
+UClass* UAmmoObject::GetDamageType() const
+{
+	return GetAmmoDefinition()->DamageData.DamageType;
 }

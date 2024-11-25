@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Weapons/WeaponObject.h"
 #include "ProjectileBase.generated.h"
 
 class UAmmoObject;
@@ -25,8 +26,11 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
+	virtual void SetupProjectile(const UWeaponObject* Weapon, const UAmmoObject* Ammo);
+
 protected:
-	TWeakObjectPtr<UAmmoObject> AmmoObjectRef;
+	TWeakObjectPtr<const UWeaponObject> WeaponObjectRef;
+	TWeakObjectPtr<const UAmmoObject> AmmoObjectRef;
 
 	UFUNCTION()
 	void OnBulletBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

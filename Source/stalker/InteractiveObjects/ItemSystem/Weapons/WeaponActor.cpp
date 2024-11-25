@@ -94,6 +94,7 @@ AProjectileBase* AWeaponActor::SpawnProjectile()
 					CurrentAmmo->GetProjectileClass(), SpawnTransform, this, GetInstigator(),
 					ESpawnActorCollisionHandlingMethod::AlwaysSpawn))
 				{
+					Projectile->SetupProjectile(GetWeaponObject(), CurrentAmmo);
 					OnSetupProjectile(Projectile);
 					
 					Projectile->FinishSpawning(SpawnTransform);
@@ -107,7 +108,7 @@ AProjectileBase* AWeaponActor::SpawnProjectile()
 
 void AWeaponActor::OnSetupProjectile(AProjectileBase* Projectile)
 {
-	TArray<AActor*> ActorsToIgnore {GetOwner(), GetInstigator()};
+	TArray<AActor*> ActorsToIgnore {this, GetOwner()};
 	Projectile->ActorsToIgnore = ActorsToIgnore;
 }
 

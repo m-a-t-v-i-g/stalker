@@ -18,6 +18,11 @@ AItemActor::AItemActor()
 	Mesh->SetupAttachment(GetRootComponent());
 	Mesh->CanCharacterStepUpOn = ECB_No;
 	Mesh->SetCollisionProfileName("Item");
+
+	if (GetInteractionSphere())
+	{
+		GetInteractionSphere()->SetupAttachment(GetRootComponent());
+	}
 	
 	SetReplicates(true);
 	SetReplicatingMovement(true);

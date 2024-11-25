@@ -1,7 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ProjectileBase.h"
+#include "Ammo/AmmoObject.h"
 #include "Components/SphereComponent.h"
+#include "DamageSystem/DamageSystemCore.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
@@ -25,6 +27,9 @@ AProjectileBase::AProjectileBase()
 		ProjectileMovement->UpdatedComponent = GetRootComponent();
 	}
 
+	SetReplicates(true);
+	SetReplicatingMovement(true);
+	
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -33,6 +38,12 @@ void AProjectileBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	PhysicsRoot->OnComponentBeginOverlap.AddDynamic(this, &AProjectileBase::OnBulletBeginOverlap);
+}
+
+void AProjectileBase::SetupProjectile(const UWeaponObject* Weapon, const UAmmoObject* Ammo)
+{
+	WeaponObjectRef = Weapon;
+	AmmoObjectRef = Ammo;
 }
 
 void AProjectileBase::OnBulletBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -44,7 +55,16 @@ void AProjectileBase::OnBulletBeginOverlap(UPrimitiveComponent* OverlappedCompon
 		return;
 	}
 
-	OtherActor->TakeDamage(0.0f, FDamageEvent(), GetInstigatorController(), this);
-	
-	Destroy();
+	if (HasAuthority())
+	{
+		float Damage = UDamageSystemCore::CalculateProjectileDamage(AmmoObjectRef->GetDamageData().BaseDamage,
+		                                                            WeaponObjectRef->GetDamageData().DamageMultiplier);
+		FVector ShotDirection = GetActorLocation() - GetInstigator()->GetActorLocation();
+		
+		OtherActor->TakeDamage(
+			Damage, FPointDamageEvent(Damage, SweepResult, ShotDirection.GetSafeNormal(), AmmoObjectRef->GetDamageType()),
+			GetInstigatorController(), this);
+		
+		Destroy();
+	}
 }

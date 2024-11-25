@@ -42,6 +42,8 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		WeaponData.ReloadTime = WeaponDefinition->ReloadTime;
 		WeaponData.bAutomatic = WeaponDefinition->bAutomatic;
 		
+		DamageData = WeaponDefinition->DamageData;
+		
 		SetupRounds(Definition, PredictedData);
 	}
 }
@@ -58,6 +60,8 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		WeaponData.FireRate = WeaponInstance->WeaponData.FireRate;
 		WeaponData.ReloadTime = WeaponInstance->WeaponData.ReloadTime;
 		WeaponData.bAutomatic = WeaponInstance->WeaponData.bAutomatic;
+
+		DamageData = WeaponInstance->DamageData;
 	}
 }
 
@@ -172,12 +176,12 @@ bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 		auto OtherWeaponObject = Cast<UWeaponObject>(OtherItemObject);
 		bResult &= OtherWeaponObject != nullptr;
 		
-		if (OtherWeaponObject)
+		if (bResult && OtherWeaponObject)
 		{
 			UWeaponInstance* OtherWeaponInstance = OtherWeaponObject->GetWeaponInstance();
 			bResult &= OtherWeaponInstance != nullptr;
 			
-			if (OtherWeaponInstance)
+			if (bResult && OtherWeaponInstance)
 			{
 				if (UWeaponInstance* MyWeaponInstance = GetWeaponInstance())
 				{
@@ -217,6 +221,8 @@ bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 								break;
 							}
 						}
+
+						bResult &= MyWeaponInstance->DamageData == OtherWeaponInstance->DamageData;
 					}
 				}
 			}
@@ -400,6 +406,11 @@ float UWeaponObject::GetDefaultFireRate() const
 {
 	int FireRate = GetWeaponInstance()->WeaponData.FireRate;
 	return 1.0f / (FireRate / 60.0f);
+}
+
+FWeaponDamageData UWeaponObject::GetDamageData() const
+{
+	return GetWeaponInstance()->DamageData;
 }
 
 bool UWeaponObject::IsAutomatic() const

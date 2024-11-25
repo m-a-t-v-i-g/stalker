@@ -37,6 +37,20 @@ struct FWeaponInstanceData
 	bool bAutomatic = false;
 };
 
+USTRUCT()
+struct FWeaponDamageData
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0"))
+	float DamageMultiplier = 0.0f;
+
+	bool operator==(const FWeaponDamageData& OtherDamageData) const
+	{
+		return FMath::IsNearlyEqual(DamageMultiplier, OtherDamageData.DamageMultiplier, 0.01f);
+	}
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
 
 UCLASS()
@@ -62,6 +76,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	bool bAutomatic = false;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ShowOnlyInnerProperties))
+	FWeaponDamageData DamageData;
 };
 
 USTRUCT()
@@ -95,6 +112,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	FWeaponInstanceData WeaponData;
 
+	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon", meta = (ShowOnlyInnerProperties))
+	FWeaponDamageData DamageData;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
@@ -154,6 +174,7 @@ public:
 	FORCEINLINE const UAmmoDefinition* GetCurrentAmmoClass() const;
 	FORCEINLINE float GetReloadTime() const;
 	FORCEINLINE float GetDefaultFireRate() const;
+	FORCEINLINE FWeaponDamageData GetDamageData() const;
 	FORCEINLINE bool IsAutomatic() const;
 	
 	FORCEINLINE AWeaponActor* GetWeaponActor() const;

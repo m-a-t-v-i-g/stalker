@@ -20,7 +20,11 @@ public:
 	
 	virtual bool OnInteract(AActor* Interactor) override;
 
+	virtual void PostInitializeComponents() override;
+
 protected:
+	UFUNCTION()
+	void OnTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser );
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Container", meta = (AllowPrivateAccess = "true"))
