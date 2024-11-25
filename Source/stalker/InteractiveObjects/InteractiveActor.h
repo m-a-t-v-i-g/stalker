@@ -28,9 +28,12 @@ public:
 	void OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 									   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
-protected:
-	UPROPERTY(EditAnywhere, Category = "Item")
-	TObjectPtr<USphereComponent> InteractionSphere;
+	USphereComponent* GetInteractionSphere() const { return InteractionSphere; }
 	
+protected:
 	virtual void PostInitializeComponents() override;
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USphereComponent> InteractionSphere;
 };

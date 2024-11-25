@@ -32,6 +32,12 @@ struct FItemBehavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	EOccupiedHand OccupiedHand = EOccupiedHand::Right;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	FVector InHandOffset;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	FRotator InHandRotation;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
 		meta = (EditCondition = "OccupiedHand == ECharacterSlotHand::Right"))
 	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::None;

@@ -164,9 +164,9 @@ void UWeaponObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 	}
 }
 
-bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
+bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 {
-	bool bResult = Super::IsSimilar(OtherItemObject);
+	bool bResult = Super::IsCorrespondsTo(OtherItemObject);
 	if (bResult)
 	{
 		auto OtherWeaponObject = Cast<UWeaponObject>(OtherItemObject);
@@ -206,7 +206,7 @@ bool UWeaponObject::IsSimilar(const UItemObject* OtherItemObject) const
 						
 							if (bResult)
 							{
-								bResult &= MyWeaponInstance->WeaponData.Rounds[i]->IsSimilar(OtherWeaponInstance->
+								bResult &= MyWeaponInstance->WeaponData.Rounds[i]->IsCorrespondsTo(OtherWeaponInstance->
 									WeaponData.Rounds[i]);
 								bResult &= MyWeaponInstance->WeaponData.Rounds[i]->GetAmount() == OtherWeaponInstance->
 									WeaponData.Rounds[i]->GetAmount();
@@ -249,9 +249,9 @@ void UWeaponObject::CallAttack()
 	}
 	else if (bInFireRate)
 	{
+		OnAttackStart.Broadcast();
 		DecreaseAmmo();
 		OnAttack();
-		OnAttackStart.Broadcast();
 		bInFireRate = false;
 	}
 }
@@ -291,7 +291,7 @@ void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
 
 	if (AmmoData.IsValidIndex(0))
 	{
-		if (AmmoData[0]->IsSimilar(AmmoObject))
+		if (AmmoData[0]->IsCorrespondsTo(AmmoObject))
 		{
 			AmmoData[0]->AddAmount(Amount);
 			return;

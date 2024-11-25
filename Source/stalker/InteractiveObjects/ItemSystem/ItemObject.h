@@ -182,7 +182,7 @@ public:
 	virtual bool IsInteractable() const;
 	virtual bool CanStackItem(const UItemObject* OtherItem) const;
 	
-	virtual bool IsSimilar(const UItemObject* OtherItemObject) const;
+	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const;
 	virtual bool HasBoundActor() const;
 	
 	FORCEINLINE uint32 GetItemId() const;

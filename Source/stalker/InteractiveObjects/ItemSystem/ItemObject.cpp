@@ -147,6 +147,7 @@ void UItemObject::UnbindItemActor()
 	}
 
 	AItemActor* PrevItemActor = BoundItemActor;
+	BoundItemActor->UnbindItemObject();
 	BoundItemActor = nullptr;
 	OnUnbindItemActor(PrevItemActor);
 }
@@ -186,10 +187,10 @@ bool UItemObject::IsInteractable() const
 
 bool UItemObject::CanStackItem(const UItemObject* OtherItem) const
 {
-	return this != OtherItem && IsStackable() && IsSimilar(OtherItem);
+	return this != OtherItem && IsStackable() && IsCorrespondsTo(OtherItem);
 }
 
-bool UItemObject::IsSimilar(const UItemObject* OtherItemObject) const
+bool UItemObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 {
 	bool bResult = GetDefinition() == OtherItemObject->GetDefinition();
 	if (bResult)

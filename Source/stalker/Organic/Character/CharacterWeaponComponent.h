@@ -117,6 +117,8 @@ public:
 
 	virtual bool CanAttack() const override;
 	virtual bool IsArmed() const override;
+
+	FVector GetFireLocation() const;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")

@@ -1,6 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AmmoObject.h"
+#include "Net/UnrealNetwork.h"
+#include "PhysicalObjects/ProjectileBase.h"
+
+void UAmmoInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(ThisClass, AmmoData, COND_OwnerOnly);
+}
 
 void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                     const UItemPredictedData* PredictedData)
@@ -26,4 +35,14 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		// Data
 	}
+}
+
+const UAmmoDefinition* UAmmoObject::GetAmmoDefinition() const
+{
+	return Cast<UAmmoDefinition>(GetDefinition());
+}
+
+UClass* UAmmoObject::GetProjectileClass() const
+{
+	return GetAmmoDefinition()->ProjectileClass;
 }

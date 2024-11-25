@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "ItemActor.h"
+#include "WeaponObject.h"
 #include "WeaponActor.generated.h"
 
 struct FWeaponParams;
 class UWeaponObject;
+class AProjectileBase;
 
 DECLARE_DELEGATE(FOnWeaponAttackDelegate);
 
@@ -41,10 +43,22 @@ public:
 
 	UFUNCTION()
 	virtual void OnStopAlternative();
+
+	UWeaponObject* GetWeaponObject() const { return Cast<UWeaponObject>(GetItemObject()); }
 	
 protected:
-	
+	virtual AProjectileBase* SpawnProjectile();
+
+	virtual void OnSetupProjectile(AProjectileBase* Projectile);
+
+	virtual FVector GetFireLocation();
+
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> Muzzle;
+
+	TObjectPtr<AController> InstigatorController;
+	
 	FTimerHandle CanAttackTimer;
 	FTimerHandle RepeatAttackTimer;
 

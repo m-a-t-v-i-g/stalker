@@ -127,7 +127,7 @@ public:
 	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
-	virtual bool IsSimilar(const UItemObject* OtherItemObject) const override;
+	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
 	
 	void StartAttack();
 	void CallAttack();

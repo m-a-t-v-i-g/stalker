@@ -4,28 +4,22 @@
 #include "InteractorInterface.h"
 #include "ItemObject.h"
 #include "ItemSystemCore.h"
-#include "Components/PawnInteractionComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
-FName AItemActor::PhysicCollisionName {"Physic Collision"};
-FName AItemActor::InteractionSphereName {"Interaction Sphere"};
-
 AItemActor::AItemActor()
 {
-	PhysicCollision = CreateDefaultSubobject<USphereComponent>(PhysicCollisionName);
-	SetRootComponent(PhysicCollision);
-	PhysicCollision->SetCollisionEnabled(ECollisionEnabled::Type::ProbeOnly);
+	PhysicsRoot = CreateDefaultSubobject<USphereComponent>("Physics Root");
+	SetRootComponent(PhysicsRoot);
+	PhysicsRoot->CanCharacterStepUpOn = ECB_No;
+	PhysicsRoot->SetCollisionProfileName("OverlapAllDynamic");
 
-	InteractionSphere = CreateDefaultSubobject<USphereComponent>(InteractionSphereName);
-	InteractionSphere->SetupAttachment(GetRootComponent());
-	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
-	
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
 	Mesh->SetupAttachment(GetRootComponent());
+	Mesh->CanCharacterStepUpOn = ECB_No;
+	Mesh->SetCollisionProfileName("Item");
 	
-	PrimaryActorTick.bCanEverTick = false;
-	bReplicates = true;
+	SetReplicates(true);
 	SetReplicatingMovement(true);
 }
 
@@ -33,8 +27,7 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, ItemObject,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, bHanded,		COND_OwnerOnly)
+	DOREPLIFETIME_CONDITION(ThisClass, ItemObject, COND_OwnerOnly);
 }
 
 void AItemActor::Destroyed()
@@ -95,26 +88,14 @@ void AItemActor::UpdateItem()
 {
 }
 
-void AItemActor::SetEquipped()
-{
-	bHanded = true;
-	PhysicCollision->SetSimulatePhysics(false);
-	//InteractionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
-
 void AItemActor::SetGrounded()
 {
-	bHanded = false;
-	PhysicCollision->SetSimulatePhysics(true);
-	//InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	PhysicsRoot->SetSimulatePhysics(true);
 }
 
-void AItemActor::PostInitializeComponents()
+void AItemActor::SetEquipped()
 {
-	Super::PostInitializeComponents();
-
-	InteractionSphere->OnComponentBeginOverlap.AddDynamic(this, &AItemActor::OnInteractionSphereBeginOverlap);
-	InteractionSphere->OnComponentEndOverlap.AddDynamic(this, &AItemActor::OnInteractionSphereEndOverlap);
+	PhysicsRoot->SetSimulatePhysics(false);
 }
 
 void AItemActor::BeginPlay()
@@ -135,31 +116,6 @@ void AItemActor::BeginPlay()
 	}
 }
 
-void AItemActor::OnInteractionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                                 const FHitResult& SweepResult)
-{
-	if (OtherActor)
-	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
-		{
-			InteractionComp->AddPossibleInteraction(this);
-		}
-	}
-}
-
-void AItemActor::OnInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		if (auto InteractionComp = OtherActor->GetComponentByClass<UPawnInteractionComponent>())
-		{
-			InteractionComp->RemovePossibleInteraction(this);
-		}
-	}
-}
-
 void AItemActor::OnRep_ItemObject(UItemObject* PrevItemObject)
 {
 	if (ItemObject)
@@ -170,9 +126,4 @@ void AItemActor::OnRep_ItemObject(UItemObject* PrevItemObject)
 	{
 		OnUnbindItem(PrevItemObject);
 	}
-}
-
-void AItemActor::OnRep_Handed()
-{
-	bHanded ? SetEquipped() : SetGrounded();
 }

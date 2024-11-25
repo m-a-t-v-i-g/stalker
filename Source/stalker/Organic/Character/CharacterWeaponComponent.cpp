@@ -105,6 +105,27 @@ bool UCharacterWeaponComponent::IsArmed() const
 	return RightHandItemActor->IsA<UWeaponObject>();
 }
 
+FVector UCharacterWeaponComponent::GetFireLocation() const
+{
+	FVector HitLocation;
+
+	if (ControllerRef)
+	{
+		FHitResult HitResult;
+		FVector ViewPoint;
+		FRotator ViewRotation;
+	
+		ControllerRef->GetPlayerViewPoint(ViewPoint, ViewRotation);
+		
+		FVector StartPoint = ViewPoint;
+		FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility);
+		HitLocation = bHit ? HitResult.Location : HitResult.TraceEnd;
+	}
+	return HitLocation;
+}
+
 void UCharacterWeaponComponent::TryToggleSlot(int8 SlotIndex)
 {
 	ServerToggleSlot(SlotIndex);

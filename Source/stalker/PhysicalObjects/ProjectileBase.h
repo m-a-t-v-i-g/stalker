@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "ProjectileBase.generated.h"
 
+class UAmmoObject;
+class USphereComponent;
+class UProjectileMovementComponent;
+
 UCLASS()
 class STALKER_API AProjectileBase : public AActor
 {
@@ -13,4 +17,29 @@ class STALKER_API AProjectileBase : public AActor
 
 public:
 	AProjectileBase();
+
+	static FName ProjectileMovementComponentName;
+
+	UPROPERTY()
+	TArray<AActor*> ActorsToIgnore;
+
+	virtual void PostInitializeComponents() override;
+
+protected:
+	TWeakObjectPtr<UAmmoObject> AmmoObjectRef;
+
+	UFUNCTION()
+	void OnBulletBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	                          UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                          const FHitResult& SweepResult);
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USphereComponent> PhysicsRoot;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> Mesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 };

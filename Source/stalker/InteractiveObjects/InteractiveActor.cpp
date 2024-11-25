@@ -8,7 +8,8 @@ AInteractiveActor::AInteractiveActor()
 {
 	InteractionSphere = CreateDefaultSubobject<USphereComponent>("Interaction Sphere");
 	InteractionSphere->SetupAttachment(GetRootComponent());
-	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+	InteractionSphere->CanCharacterStepUpOn = ECB_No;
+	InteractionSphere->SetCollisionProfileName("InteractionZone");
 	
 	PrimaryActorTick.bCanEverTick = false;
 }

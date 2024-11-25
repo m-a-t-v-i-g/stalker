@@ -125,7 +125,7 @@ void UPlayerInventoryWidget::ActivateTab(EPlayerInventoryTab TabToActivate)
 
 void UPlayerInventoryWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObject)
 {
-	if (!OwnInventoryComponent.IsValid())
+	if (!OwnInventoryManager.IsValid())
 	{
 		return;
 	}

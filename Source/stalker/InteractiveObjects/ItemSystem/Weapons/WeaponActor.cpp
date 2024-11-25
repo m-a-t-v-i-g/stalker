@@ -4,10 +4,12 @@
 #include "WeaponObject.h"
 #include "Ammo/AmmoObject.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PhysicalObjects/ProjectileBase.h"
 
 AWeaponActor::AWeaponActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	Muzzle = CreateDefaultSubobject<USceneComponent>("Muzzle");
+	Muzzle->SetupAttachment(GetMesh());
 }
 
 void AWeaponActor::OnBindItem()
@@ -41,6 +43,7 @@ void AWeaponActor::OnStartAttack()
 	
 	if (HasAuthority())
 	{
+		SpawnProjectile();
 		MulticastMakeAttackVisual();
 	}
 }
@@ -69,4 +72,60 @@ void AWeaponActor::OnStartAlternative()
 
 void AWeaponActor::OnStopAlternative()
 {
+}
+
+AProjectileBase* AWeaponActor::SpawnProjectile()
+{
+	if (UWeaponObject* WeaponObject = GetWeaponObject())
+	{
+		TArray<UAmmoObject*> Cartridge = WeaponObject->GetRounds();
+
+		if (!Cartridge.IsEmpty())
+		{
+			if (UAmmoObject* CurrentAmmo = Cartridge[0])
+			{
+				check(Muzzle);
+
+				FRotator BulletRotation = FRotationMatrix::MakeFromX(GetFireLocation() - Muzzle->GetComponentLocation()).Rotator();
+				FTransform SpawnTransform = Muzzle->GetComponentTransform();
+				SpawnTransform.SetRotation(FQuat(BulletRotation));
+				
+				if (AProjectileBase* Projectile = GetWorld()->SpawnActorDeferred<AProjectileBase>(
+					CurrentAmmo->GetProjectileClass(), SpawnTransform, this, GetInstigator(),
+					ESpawnActorCollisionHandlingMethod::AlwaysSpawn))
+				{
+					OnSetupProjectile(Projectile);
+					
+					Projectile->FinishSpawning(SpawnTransform);
+					return Projectile;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+
+void AWeaponActor::OnSetupProjectile(AProjectileBase* Projectile)
+{
+	TArray<AActor*> ActorsToIgnore {GetOwner(), GetInstigator()};
+	Projectile->ActorsToIgnore = ActorsToIgnore;
+}
+
+FVector AWeaponActor::GetFireLocation()
+{
+	if (AController* Controller = GetInstigatorController())
+	{
+		FHitResult HitResult;
+		FVector ViewPoint;
+		FRotator ViewRotation;
+
+		Controller->GetPlayerViewPoint(ViewPoint, ViewRotation);
+		
+		FVector StartPoint = ViewPoint;
+		FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility);
+		return bHit ? HitResult.Location : HitResult.TraceEnd;
+	}
+	return FVector();
 }
