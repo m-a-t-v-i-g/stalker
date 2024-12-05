@@ -2,7 +2,7 @@
 
 #include "AmmoObject.h"
 #include "Net/UnrealNetwork.h"
-#include "PhysicalObjects/ProjectileBase.h"
+#include "PhysicalObjects/BulletBase.h"
 
 void UAmmoInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -20,6 +20,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
+		DamageData.DamageEffects = AmmoDefinition->DamageData.DamageEffects;
 		
 		if (auto AmmoPredictedData = Cast<UAmmoPredictedData>(PredictedData))
 		{
@@ -36,6 +37,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
+		DamageData.DamageEffects = AmmoInstance->DamageData.DamageEffects;
 	}
 }
 
@@ -44,9 +46,9 @@ const UAmmoDefinition* UAmmoObject::GetAmmoDefinition() const
 	return Cast<UAmmoDefinition>(GetDefinition());
 }
 
-UClass* UAmmoObject::GetProjectileClass() const
+UClass* UAmmoObject::GetBulletClass() const
 {
-	return GetAmmoDefinition()->ProjectileClass;
+	return GetAmmoDefinition()->BulletClass;
 }
 
 FAmmoDamageData UAmmoObject::GetDamageData() const
@@ -57,4 +59,9 @@ FAmmoDamageData UAmmoObject::GetDamageData() const
 UClass* UAmmoObject::GetDamageType() const
 {
 	return GetAmmoDefinition()->DamageData.DamageType;
+}
+
+TArray<TSubclassOf<UGameplayEffect>> UAmmoObject::GetDamageEffects() const
+{
+	return GetAmmoDefinition()->DamageData.DamageEffects;
 }

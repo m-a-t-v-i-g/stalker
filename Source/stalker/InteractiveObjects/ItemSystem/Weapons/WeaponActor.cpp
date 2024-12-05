@@ -4,7 +4,7 @@
 #include "WeaponObject.h"
 #include "Ammo/AmmoObject.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "PhysicalObjects/ProjectileBase.h"
+#include "PhysicalObjects/BulletBase.h"
 
 AWeaponActor::AWeaponActor()
 {
@@ -43,7 +43,7 @@ void AWeaponActor::OnStartAttack()
 	
 	if (HasAuthority())
 	{
-		SpawnProjectile();
+		SpawnBullet();
 		MulticastMakeAttackVisual();
 	}
 }
@@ -74,7 +74,7 @@ void AWeaponActor::OnStopAlternative()
 {
 }
 
-AProjectileBase* AWeaponActor::SpawnProjectile()
+ABulletBase* AWeaponActor::SpawnBullet()
 {
 	if (UWeaponObject* WeaponObject = GetWeaponObject())
 	{
@@ -90,15 +90,15 @@ AProjectileBase* AWeaponActor::SpawnProjectile()
 				FTransform SpawnTransform = Muzzle->GetComponentTransform();
 				SpawnTransform.SetRotation(FQuat(BulletRotation));
 				
-				if (AProjectileBase* Projectile = GetWorld()->SpawnActorDeferred<AProjectileBase>(
-					CurrentAmmo->GetProjectileClass(), SpawnTransform, this, GetInstigator(),
+				if (ABulletBase* Bullet = GetWorld()->SpawnActorDeferred<ABulletBase>(
+					CurrentAmmo->GetBulletClass(), SpawnTransform, this, GetInstigator(),
 					ESpawnActorCollisionHandlingMethod::AlwaysSpawn))
 				{
-					Projectile->SetupProjectile(GetWeaponObject(), CurrentAmmo);
-					OnSetupProjectile(Projectile);
+					Bullet->SetupBullet(GetWeaponObject(), CurrentAmmo);
+					OnSetupBullet(Bullet);
 					
-					Projectile->FinishSpawning(SpawnTransform);
-					return Projectile;
+					Bullet->FinishSpawning(SpawnTransform);
+					return Bullet;
 				}
 			}
 		}
@@ -106,10 +106,10 @@ AProjectileBase* AWeaponActor::SpawnProjectile()
 	return nullptr;
 }
 
-void AWeaponActor::OnSetupProjectile(AProjectileBase* Projectile)
+void AWeaponActor::OnSetupBullet(ABulletBase* Bullet)
 {
 	TArray<AActor*> ActorsToIgnore {this, GetOwner()};
-	Projectile->ActorsToIgnore = ActorsToIgnore;
+	Bullet->ActorsToIgnore = ActorsToIgnore;
 }
 
 FVector AWeaponActor::GetFireLocation()

@@ -9,7 +9,7 @@
 
 struct FWeaponParams;
 class UWeaponObject;
-class AProjectileBase;
+class ABulletBase;
 
 DECLARE_DELEGATE(FOnWeaponAttackDelegate);
 
@@ -47,9 +47,9 @@ public:
 	UWeaponObject* GetWeaponObject() const { return Cast<UWeaponObject>(GetItemObject()); }
 	
 protected:
-	virtual AProjectileBase* SpawnProjectile();
+	virtual ABulletBase* SpawnBullet();
 
-	virtual void OnSetupProjectile(AProjectileBase* Projectile);
+	virtual void OnSetupBullet(ABulletBase* Bullet);
 
 	virtual FVector GetFireLocation();
 

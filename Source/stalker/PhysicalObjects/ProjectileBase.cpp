@@ -1,10 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ProjectileBase.h"
-#include "Ammo/AmmoObject.h"
 #include "Components/SphereComponent.h"
-#include "DamageSystem/DamageSystemCore.h"
-#include "Engine/DamageEvents.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 FName AProjectileBase::ProjectileMovementComponentName {"Projectile Movement"};
@@ -14,7 +11,7 @@ AProjectileBase::AProjectileBase()
 	PhysicsRoot = CreateDefaultSubobject<USphereComponent>("Physics Root");
 	SetRootComponent(PhysicsRoot);
 	PhysicsRoot->CanCharacterStepUpOn = ECB_No;
-	PhysicsRoot->SetCollisionProfileName("Bullet");
+	PhysicsRoot->SetCollisionProfileName("Projectile");
 	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetupAttachment(GetRootComponent());
@@ -27,44 +24,36 @@ AProjectileBase::AProjectileBase()
 		ProjectileMovement->UpdatedComponent = GetRootComponent();
 	}
 
-	SetReplicates(true);
-	SetReplicatingMovement(true);
-	
-	PrimaryActorTick.bCanEverTick = true;
+	SetCanBeDamaged(false);
+	AActor::SetLifeSpan(3.0f);
 }
 
 void AProjectileBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	PhysicsRoot->OnComponentBeginOverlap.AddDynamic(this, &AProjectileBase::OnBulletBeginOverlap);
+	PhysicsRoot->OnComponentBeginOverlap.AddDynamic(this, &AProjectileBase::OnProjectileOverlapTarget);
 }
 
-void AProjectileBase::SetupProjectile(const UWeaponObject* Weapon, const UAmmoObject* Ammo)
-{
-	WeaponObjectRef = Weapon;
-	AmmoObjectRef = Ammo;
-}
-
-void AProjectileBase::OnBulletBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                           const FHitResult& SweepResult)
+void AProjectileBase::OnProjectileOverlapTarget(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                               const FHitResult& SweepResult)
 {
 	if (!IsValid(OtherActor) || ActorsToIgnore.Contains(OtherActor))
 	{
 		return;
 	}
 
-	if (HasAuthority())
-	{
-		float Damage = UDamageSystemCore::CalculateProjectileDamage(AmmoObjectRef->GetDamageData().BaseDamage,
-		                                                            WeaponObjectRef->GetDamageData().DamageMultiplier);
-		FVector ShotDirection = GetActorLocation() - GetInstigator()->GetActorLocation();
-		
-		OtherActor->TakeDamage(
-			Damage, FPointDamageEvent(Damage, SweepResult, ShotDirection.GetSafeNormal(), AmmoObjectRef->GetDamageType()),
-			GetInstigatorController(), this);
-		
-		Destroy();
-	}
+	HitLogic(OverlappedComponent, OtherActor, SweepResult);
+	OnProjectileHit(OverlappedComponent, OtherActor, SweepResult);
+}
+
+void AProjectileBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                              const FHitResult& SweepResult)
+{
+}
+
+void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                     const FHitResult& SweepResult)
+{
 }

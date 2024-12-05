@@ -6,7 +6,8 @@
 #include "ItemObject.h"
 #include "AmmoObject.generated.h"
 
-class AProjectileBase;
+class UGameplayEffect;
+class ABulletBase;
 
 USTRUCT()
 struct FAmmoInstanceData
@@ -25,6 +26,9 @@ struct FAmmoDamageData
 	/** Basic bullet damage without any multiplying values or effects. */
 	UPROPERTY(EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0"))
 	float BaseDamage = 0.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Damage")
+	TArray<TSubclassOf<UGameplayEffect>> DamageEffects;
 };
 
 UCLASS()
@@ -34,7 +38,7 @@ class STALKER_API UAmmoDefinition : public UItemDefinition
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Ammo")
-	TSubclassOf<AProjectileBase> ProjectileClass;
+	TSubclassOf<ABulletBase> BulletClass;
 
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ShowOnlyInnerProperties))
 	FAmmoDamageData DamageData;
@@ -73,7 +77,8 @@ class STALKER_API UAmmoObject : public UItemObject
 
 public:
 	FORCEINLINE const UAmmoDefinition* GetAmmoDefinition() const;
-	FORCEINLINE UClass* GetProjectileClass() const;
+	FORCEINLINE UClass* GetBulletClass() const;
 	FORCEINLINE FAmmoDamageData GetDamageData() const;
 	FORCEINLINE UClass* GetDamageType() const;
+	FORCEINLINE TArray<TSubclassOf<UGameplayEffect>> GetDamageEffects() const;
 };

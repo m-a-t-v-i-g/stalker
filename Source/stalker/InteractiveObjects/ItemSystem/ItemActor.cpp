@@ -24,7 +24,7 @@ AItemActor::AItemActor()
 		GetInteractionSphere()->SetupAttachment(GetRootComponent());
 	}
 	
-	SetReplicates(true);
+	bReplicates = true;
 	SetReplicatingMovement(true);
 }
 
