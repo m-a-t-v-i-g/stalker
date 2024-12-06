@@ -76,7 +76,6 @@ bool UItemObject::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, 
 
 void UItemObject::Use_Implementation(UObject* Source)
 {
-	IUsableInterface::Use_Implementation(Source);
 }
 
 void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)

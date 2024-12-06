@@ -221,6 +221,8 @@ void UInventoryGridWidget::OnContainerUpdated(const FUpdatedContainerData& Updat
 			UpdateGrid();
 		}
 	}
+
+	HoveredData.Clear();
 }
 
 void UInventoryGridWidget::OnItemMouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent,
@@ -239,10 +241,7 @@ void UInventoryGridWidget::OnItemMouseLeave()
 
 void UInventoryGridWidget::OnItemDoubleClick(UItemObject* ItemObject)
 {
-	ClearRoom(ItemObject->GetItemId());
-	UpdateGrid();
 	OnItemWidgetDoubleClick.Broadcast(ItemObject);
-	HoveredData.Clear();
 }
 
 void UInventoryGridWidget::OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,

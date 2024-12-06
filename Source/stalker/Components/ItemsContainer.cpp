@@ -156,7 +156,7 @@ void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsCo
 	
 	if (ItemObject->GetAmount() > ItemObject->GetStackAmount())
 	{
-		if (auto StackableItem = OtherContainer->FindAvailableStack(ItemObject))
+		if (UItemObject* StackableItem = OtherContainer->FindAvailableStack(ItemObject))
 		{
 			StackableItem->AddAmount(ItemObject->GetStackAmount());
 		}

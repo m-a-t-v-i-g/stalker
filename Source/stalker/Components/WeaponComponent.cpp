@@ -58,9 +58,9 @@ bool UWeaponComponent::IsArmed() const
 	return true;
 }
 
-FWeaponSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)
+FOutfitSlot* UWeaponComponent::FindWeaponSlot(const FString& SlotName)
 {
-	for (FWeaponSlot& Slot : WeaponSlots)
+	for (FOutfitSlot& Slot : WeaponSlots)
 	{
 		if (Slot.SlotName == SlotName)
 		{

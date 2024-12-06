@@ -51,6 +51,18 @@ struct FWeaponDamageData
 	}
 };
 
+USTRUCT()
+struct FWeaponPredictedAmmo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Rounds")
+	TObjectPtr<const UAmmoDefinition> Definition;
+	
+	UPROPERTY(EditAnywhere, Category = "Rounds", meta = (ClampMin = "0"))
+	int Count = 0;
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
 
 UCLASS()
@@ -79,18 +91,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ShowOnlyInnerProperties))
 	FWeaponDamageData DamageData;
-};
-
-USTRUCT()
-struct FWeaponPredictedAmmo
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Rounds")
-	TObjectPtr<const UAmmoDefinition> Definition;
-	
-	UPROPERTY(EditAnywhere, Category = "Rounds", meta = (ClampMin = "0"))
-	int Count = 0;
 };
 
 UCLASS()

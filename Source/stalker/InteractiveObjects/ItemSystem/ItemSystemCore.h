@@ -10,6 +10,32 @@ class UItemDefinition;
 class UItemPredictedData;
 class UItemObject;
 
+USTRUCT(Blueprintable)
+struct FOutfitSlot
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
+	FString SlotName = "Default";
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon Slot")
+	UItemObject* ArmedObject = nullptr;
+	
+	FOutfitSlot()
+	{
+	}
+
+	const FString& GetSlotName() const
+	{
+		return SlotName;
+	}
+	
+	bool IsArmed() const
+	{
+		return ArmedObject != nullptr;
+	}
+};
+
 UCLASS()
 class STALKER_API UItemSystemCore : public UBlueprintFunctionLibrary
 {

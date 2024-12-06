@@ -138,10 +138,10 @@ private:
 	FHandedItemData RightHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	AItemActor* LeftHandItemActor;
+	AItemActor* LeftHandItemActor = nullptr;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	AItemActor* RightHandItemActor;
+	AItemActor* RightHandItemActor = nullptr;
 
 	FReloadingData ReloadingData;
 

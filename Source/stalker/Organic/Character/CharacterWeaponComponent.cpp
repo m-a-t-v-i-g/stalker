@@ -133,7 +133,7 @@ void UCharacterWeaponComponent::TryToggleSlot(int8 SlotIndex)
 
 void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 {
-	const FWeaponSlot* SlotPtr = &WeaponSlots[SlotIndex];
+	const FOutfitSlot* SlotPtr = &WeaponSlots[SlotIndex];
 	if (!SlotPtr)
 	{
 		return;
@@ -590,7 +590,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 
 void UCharacterWeaponComponent::UnEquipSlot(const FString& SlotName)
 {
-	const FWeaponSlot* SlotPtr = FindWeaponSlot(SlotName);
+	const FOutfitSlot* SlotPtr = FindWeaponSlot(SlotName);
 	if (!SlotPtr)
 	{
 		return;

@@ -3,37 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemSystemCore.h"
 #include "Components/ActorComponent.h"
 #include "WeaponComponent.generated.h"
 
 class UItemObject;
 class AItemActor;
-
-USTRUCT(Blueprintable)
-struct FWeaponSlot
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
-	FString SlotName = "Default";
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon Slot")
-	UItemObject* ArmedObject = nullptr;
-	
-	FWeaponSlot()
-	{
-	}
-
-	const FString& GetSlotName() const
-	{
-		return SlotName;
-	}
-	
-	bool IsArmed() const
-	{
-		return ArmedObject != nullptr;
-	}
-};
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UWeaponComponent : public UActorComponent
@@ -45,7 +20,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TArray<FWeaponSlot> WeaponSlots;
+	TArray<FOutfitSlot> WeaponSlots;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bAllowUnarmedAttack = false;
@@ -60,7 +35,7 @@ public:
 	virtual bool CanAttack() const;
 	virtual bool IsArmed() const;
 	
-	FORCEINLINE FWeaponSlot* FindWeaponSlot(const FString& SlotName);
+	FORCEINLINE FOutfitSlot* FindWeaponSlot(const FString& SlotName);
 
 	bool IsAuthority() const;
 	bool IsAutonomousProxy() const;

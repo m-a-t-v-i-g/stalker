@@ -70,6 +70,11 @@ void AStalkerCharacter::PostInitializeComponents()
 		GetStateComponent()->SetupStateComponent(this);
 	}
 
+	if (GetArmorComponent())
+	{
+		GetArmorComponent()->SetupArmorComponent(this);
+	}
+
 	if (HasAuthority())
 	{
 		SetCharacterData();
@@ -120,6 +125,11 @@ void AStalkerCharacter::InitCharacterComponents()
 	if (GetStateComponent())
 	{
 		GetStateComponent()->InitCharacterInfo(GetController());
+	}
+	
+	if (GetArmorComponent())
+	{
+		GetArmorComponent()->InitCharacterInfo(GetController());
 	}
 }
 
