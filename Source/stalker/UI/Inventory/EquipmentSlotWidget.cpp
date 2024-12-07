@@ -2,11 +2,11 @@
 
 #include "EquipmentSlotWidget.h"
 #include "ItemObject.h"
-#include "StalkerHUD.h"
-#include "Character/CharacterInventoryComponent.h"
+#include "SlotContainerInterface.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/EquipmentSlot.h"
+#include "HUD/StalkerHUD.h"
 #include "Inventory/ItemDragDropOperation.h"
 #include "Inventory/ItemWidget.h"
 

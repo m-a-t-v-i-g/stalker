@@ -2,16 +2,16 @@
 
 #include "Player/StalkerPlayerController.h"
 #include "EnhancedInputSubsystems.h"
-#include "StalkerHUD.h"
 #include "Character/CharacterInventoryComponent.h"
 #include "Character/PlayerCharacter.h"
 #include "Components/OrganicAbilityComponent.h"
+#include "HUD/StalkerHUD.h"
 
 FName AStalkerPlayerController::InventoryManagerComponentName {"Inventory Manager Component"};
 
 AStalkerPlayerController::AStalkerPlayerController()
 {
-	InventoryManager = CreateDefaultSubobject<UPlayerInventoryManagerComponent>(InventoryManagerComponentName);
+	InventoryManager = CreateDefaultSubobject<UInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
 void AStalkerPlayerController::OnPossess(APawn* InPawn)

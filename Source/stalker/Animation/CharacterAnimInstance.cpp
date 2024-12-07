@@ -645,7 +645,7 @@ void UCharacterAnimInstance::SetFootLockOffsets(float DeltaSeconds, FVector& Loc
 	{
 		if (RotationMode == ECharacterRotationMode::ControlDirection)
 		{
-			RotationDifference = CharacterMovement->GetRootCollisionRotation() - CharacterMovement->GetLastPawnRotation();
+			RotationDifference = CharacterMovement->GetRootCollisionRotation() - CharacterMovement->GetLastCharacterRotation();
 		}
 		else if (RotationMode == ECharacterRotationMode::LookingDirection)
 		{

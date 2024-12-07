@@ -6,8 +6,8 @@
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "HUD/StalkerHUD.h"
 #include "InteractiveObjects/ItemSystem/ItemObject.h"
-#include "StalkerHUD.h"
 
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -143,7 +143,8 @@ void UItemWidget::DoubleClick()
 	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
 }
 
-void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation)
+void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+                                     UDragDropOperation* InOperation)
 {
 	RemoveFromParent();
 	OnDragItem.ExecuteIfBound(InGeometry, InMouseEvent, InOperation);

@@ -3,7 +3,7 @@
 #include "InventoryWidget.h"
 #include "InventoryGridWidget.h"
 
-void UInventoryWidget::SetupInventory(UPlayerInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer)
+void UInventoryWidget::SetupInventory(UInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer)
 {
 	check(PlayerInventoryManager);
 	check(ItemsContainer);

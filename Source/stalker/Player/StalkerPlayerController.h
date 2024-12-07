@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "GenPlayerController.h"
 #include "InputMappingContext.h"
-#include "PlayerInventoryManagerComponent.h"
+#include "InventoryManagerComponent.h"
 #include "StalkerPlayerController.generated.h"
 
 class UOrganicAbilityComponent;
 class UCharacterInventoryComponent;
 class UPawnInteractionComponent;
-class UPlayerInventoryManagerComponent;
+class UInventoryManagerComponent;
 class UPlayerInputConfig;
 class APlayerCharacter;
 
@@ -39,14 +39,14 @@ struct FPlayerInitInfo
 	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
 	UCharacterInventoryComponent* InventoryComponent = nullptr;
 	UPawnInteractionComponent* InteractionComponent = nullptr;
-	UPlayerInventoryManagerComponent* InventoryManager = nullptr;
+	UInventoryManagerComponent* InventoryManager = nullptr;
 
 	FPlayerInitInfo() {}
 
 	FPlayerInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
 	                         UCharacterInventoryComponent* InventoryComp,
 	                         UPawnInteractionComponent* InteractionComp,
-							 UPlayerInventoryManagerComponent* InventoryMgr) : Character(Char),
+							 UInventoryManagerComponent* InventoryMgr) : Character(Char),
 	                                                                       AbilitySystemComponent(AbilityComp),
 	                                                                       InventoryComponent(InventoryComp),
 	                                                                       InteractionComponent(InteractionComp),
@@ -75,7 +75,7 @@ public:
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	FORCEINLINE UPlayerInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
+	FORCEINLINE UInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -92,7 +92,7 @@ protected:
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UPlayerInventoryManagerComponent> InventoryManager;
+	TObjectPtr<UInventoryManagerComponent> InventoryManager;
 	
 	bool bIsPawnInitialized = false;
 };

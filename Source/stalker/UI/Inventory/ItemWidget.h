@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Library/Items/ItemsLibrary.h"
 #include "ItemWidget.generated.h"
 
 class UItemObject;

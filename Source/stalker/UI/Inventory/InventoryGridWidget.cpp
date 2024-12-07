@@ -4,14 +4,14 @@
 #include "ItemDragDropOperation.h"
 #include "ItemObject.h"
 #include "ItemWidget.h"
-#include "StalkerHUD.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/ItemsContainer.h"
-#include "Player/PlayerInventoryManagerComponent.h"
+#include "HUD/StalkerHUD.h"
+#include "Player/InventoryManagerComponent.h"
 
-void UInventoryGridWidget::SetupContainerGrid(UPlayerInventoryManagerComponent* PlayerInventoryManager,
+void UInventoryGridWidget::SetupContainerGrid(UInventoryManagerComponent* PlayerInventoryManager,
                                               UItemsContainer* ItemsContainer)
 {
 	ClearContainerGrid();

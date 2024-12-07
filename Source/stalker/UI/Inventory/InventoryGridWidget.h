@@ -9,7 +9,7 @@
 
 enum class EDragDropOperationResult : uint8;
 struct FUpdatedContainerData;
-class UPlayerInventoryManagerComponent;
+class UInventoryManagerComponent;
 class UInventoryComponent;
 class UItemsContainer;
 class UItemObject;
@@ -66,7 +66,7 @@ class STALKER_API UInventoryGridWidget : public UUserWidget
 public:
 	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
 	
-	void SetupContainerGrid(UPlayerInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer);
+	void SetupContainerGrid(UInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer);
 	void ClearContainerGrid();
 	
 protected:
@@ -134,7 +134,7 @@ protected:
 	                                          const UItemObject* ItemObject);
 
 private:
-	TWeakObjectPtr<UPlayerInventoryManagerComponent> InventoryManagerRef;
+	TWeakObjectPtr<UInventoryManagerComponent> InventoryManagerRef;
 	TWeakObjectPtr<UItemsContainer> ItemsContainerRef;
 
 	const uint8 Columns = 8;

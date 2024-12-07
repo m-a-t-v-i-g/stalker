@@ -5,14 +5,13 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GenPawn.h"
-#include "OrganicActorInterface.h"
 #include "BaseOrganic.generated.h"
 
 class UCapsuleComponent;
 class UOrganicAbilityComponent;
 
 UCLASS()
-class STALKER_API ABaseOrganic : public AGenPawn, public IOrganicActorInterface, public IAbilitySystemInterface
+class STALKER_API ABaseOrganic : public AGenPawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
