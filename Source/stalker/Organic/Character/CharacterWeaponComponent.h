@@ -6,7 +6,7 @@
 #include "CharacterLibrary.h"
 #include "Ammo/AmmoObject.h"
 #include "Components/WeaponComponent.h"
-#include "Data/ItemBehaviorConfig.h"
+#include "Data/HandBehaviorConfig.h"
 #include "CharacterWeaponComponent.generated.h"
 
 struct FUpdatedSlotData;
@@ -33,11 +33,11 @@ struct FHandedItemData
 	TObjectPtr<AItemActor> ItemActor;
 
 	UPROPERTY(VisibleInstanceOnly)
-	FItemBehavior ItemBehavior;
+	FHandBehavior ItemBehavior;
 	
 	FHandedItemData() {}
 	
-	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, const FItemBehavior& ItemBeh) : ItemObject(ItemObj),
+	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, const FHandBehavior& ItemBeh) : ItemObject(ItemObj),
 		ItemActor(ItemAct), ItemBehavior(ItemBeh)
 	{
 	}
@@ -122,7 +122,7 @@ public:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TObjectPtr<const UItemBehaviorConfig> WeaponBehaviorConfig;
+	TObjectPtr<const UHandBehaviorConfig> HandBehaviorConfig;
 
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
@@ -215,7 +215,7 @@ public:
 	
 protected:
 	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);
-	void UnEquipSlot(const FString& SlotName);
+	void UnequipSlot(const FString& SlotName);
 	
 	bool ArmLeftHand(UItemObject* ItemObject);
 	bool ArmRightHand(UItemObject* ItemObject);
@@ -262,7 +262,7 @@ public:
 		return Cast<T>(GetItemActorAtRightHand());
 	}
 
-	const FItemBehavior* GetItemBehavior(const FName& ItemScriptName) const;
+	const FHandBehavior* GetHandBehavior(const FName& ItemScriptName) const;
 	
 	FORCEINLINE bool IsLeftItemObjectValid() const;
 	FORCEINLINE bool IsRightItemObjectValid() const;

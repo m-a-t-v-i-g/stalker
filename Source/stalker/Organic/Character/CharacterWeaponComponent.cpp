@@ -7,7 +7,7 @@
 #include "Character/CharacterInventoryComponent.h"
 #include "Character/StalkerCharacter.h"
 #include "Components/EquipmentSlot.h"
-#include "Data/ItemBehaviorConfig.h"
+#include "Data/HandBehaviorConfig.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponObject.h"
@@ -188,7 +188,7 @@ void UCharacterWeaponComponent::PlayAlternativeAction()
 		return;
 	}
 
-	const FItemBehavior* RightItemBeh = WeaponBehaviorConfig->GetItemBehavior(RightItem->GetScriptName());
+	const FHandBehavior* RightItemBeh = HandBehaviorConfig->GetHandBehavior(RightItem->GetScriptName());
 	if (!RightItemBeh)
 	{
 		return;
@@ -215,7 +215,7 @@ void UCharacterWeaponComponent::StopAlternativeAction()
 		return;
 	}
 
-	const FItemBehavior* RightItemBeh = WeaponBehaviorConfig->ItemsMap.Find(RightItem->GetScriptName());
+	const FHandBehavior* RightItemBeh = HandBehaviorConfig->ItemsMap.Find(RightItem->GetScriptName());
 	if (!RightItemBeh)
 	{
 		return;
@@ -472,8 +472,8 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 		return;
 	}
 
-	const FItemBehavior* WeaponConfig = GetItemBehavior(IncomingItem->GetScriptName());
-	if (!WeaponConfig)
+	const FHandBehavior* HandBehConfig = GetHandBehavior(IncomingItem->GetScriptName());
+	if (!HandBehConfig)
 	{
 		UKismetSystemLibrary::PrintString(
 			this, FString::Printf(TEXT("Behavior for item '%s' not found!"), *IncomingItem->GetScriptName().ToString()),
@@ -486,13 +486,13 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 	const UItemObject* LeftItem = GetItemObjectAtLeftHand();
 	const UItemObject* RightItem = GetItemObjectAtRightHand();
 	
-	const FItemBehavior* RightItemBeh = nullptr;
+	const FHandBehavior* RightHandBeh = nullptr;
 	if (RightItem)
 	{
-		RightItemBeh = GetItemBehavior(RightItem->GetScriptName());
+		RightHandBeh = GetHandBehavior(RightItem->GetScriptName());
 	}
 
-	switch (WeaponConfig->OccupiedHand)
+	switch (HandBehConfig->OccupiedHand)
 	{
 	case EOccupiedHand::Left:
 		{
@@ -500,9 +500,9 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 			{
 				if (IsRightItemObjectValid())
 				{
-					if (RightItemBeh)
+					if (RightHandBeh)
 					{
-						switch (RightItemBeh->OccupiedHand)
+						switch (RightHandBeh->OccupiedHand)
 						{
 						case EOccupiedHand::Right:
 							TargetOverlay = ECharacterOverlayState::LeftAndRightHand;
@@ -521,7 +521,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 			{
 				if (IsRightItemObjectValid())
 				{
-					if (!RightItemBeh)
+					if (!RightHandBeh)
 					{
 						return;
 					}
@@ -588,7 +588,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 	OnOverlayChanged.Broadcast(TargetOverlay);
 }
 
-void UCharacterWeaponComponent::UnEquipSlot(const FString& SlotName)
+void UCharacterWeaponComponent::UnequipSlot(const FString& SlotName)
 {
 	const FOutfitSlot* SlotPtr = FindWeaponSlot(SlotName);
 	if (!SlotPtr)
@@ -621,7 +621,7 @@ bool UCharacterWeaponComponent::ArmLeftHand(UItemObject* ItemObject)
 	LeftHandItemData.ItemObject = ItemObject;
 	LeftHandItemData.ItemActor = SpawnWeapon(CharacterRef->GetMesh(), ItemObject, FCharacterSocketName::NAME_LeftHand);
 	
-	if (const FItemBehavior* ItemBeh = GetItemBehavior(LeftHandItemData.ItemObject->GetScriptName()))
+	if (const FHandBehavior* ItemBeh = GetHandBehavior(LeftHandItemData.ItemObject->GetScriptName()))
 	{
 		LeftHandItemData.ItemBehavior = *ItemBeh;
 	}
@@ -648,7 +648,7 @@ bool UCharacterWeaponComponent::ArmRightHand(UItemObject* ItemObject)
 	RightHandItemData.ItemObject = ItemObject;
 	RightHandItemData.ItemActor = SpawnWeapon(CharacterRef->GetMesh(), ItemObject, FCharacterSocketName::NAME_RightHand);
 	
-	if (const FItemBehavior* ItemBeh = GetItemBehavior(RightHandItemData.ItemObject->GetScriptName()))
+	if (const FHandBehavior* ItemBeh = GetHandBehavior(RightHandItemData.ItemObject->GetScriptName()))
 	{
 		RightHandItemData.ItemBehavior = *ItemBeh;
 	}
@@ -696,7 +696,7 @@ void UCharacterWeaponComponent::ArmHand(FHandedItemData& HandedItemData, AItemAc
 	HandedItemData.ItemObject = ItemObject;
 	HandedItemData.ItemActor = SpawnWeapon(CharacterRef->GetMesh(), ItemObject, SocketName);
 	
-	if (const FItemBehavior* ItemBeh = GetItemBehavior(HandedItemData.ItemObject->GetScriptName()))
+	if (const FHandBehavior* ItemBeh = GetHandBehavior(HandedItemData.ItemObject->GetScriptName()))
 	{
 		HandedItemData.ItemBehavior = *ItemBeh;
 	}
@@ -761,7 +761,7 @@ void UCharacterWeaponComponent::OnSlotEquipped(const FUpdatedSlotData& SlotData,
 	}
 	else
 	{
-		UnEquipSlot(SlotName);
+		UnequipSlot(SlotName);
 		DisarmSlot(SlotName);
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot unequipped!"), *SlotName), true, false);
 	}
@@ -787,11 +787,11 @@ AItemActor* UCharacterWeaponComponent::GetItemActorAtRightHand() const
 	return RightHandItemData.ItemActor;
 }
 
-const FItemBehavior* UCharacterWeaponComponent::GetItemBehavior(const FName& ItemScriptName) const
+const FHandBehavior* UCharacterWeaponComponent::GetHandBehavior(const FName& ItemScriptName) const
 {
-	if (WeaponBehaviorConfig)
+	if (HandBehaviorConfig)
 	{
-		if (const FItemBehavior* Behavior = WeaponBehaviorConfig->ItemsMap.Find(ItemScriptName))
+		if (const FHandBehavior* Behavior = HandBehaviorConfig->ItemsMap.Find(ItemScriptName))
 		{
 			return Behavior;
 		}

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "ItemBehaviorConfig.generated.h"
+#include "HandBehaviorConfig.generated.h"
 
 UENUM(BlueprintType)
 enum class EMouseButtonReaction : uint8
@@ -25,7 +25,7 @@ enum class EOccupiedHand : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FItemBehavior
+struct FHandBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -55,13 +55,13 @@ struct FItemBehavior
 };
 
 UCLASS()
-class STALKER_API UItemBehaviorConfig : public UPrimaryDataAsset
+class STALKER_API UHandBehaviorConfig : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Behavior")
-	TMap<FName, FItemBehavior> ItemsMap;
+	TMap<FName, FHandBehavior> ItemsMap;
 
-	const FItemBehavior* GetItemBehavior(const FName& ScriptName) const;
+	const FHandBehavior* GetHandBehavior(const FName& ItemScriptName) const;
 };

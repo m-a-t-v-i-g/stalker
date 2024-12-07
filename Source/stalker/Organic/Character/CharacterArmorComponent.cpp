@@ -5,6 +5,7 @@
 #include "ItemObject.h"
 #include "StalkerCharacter.h"
 #include "Components/EquipmentSlot.h"
+#include "Data/ArmorBehaviorConfig.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UCharacterArmorComponent::UCharacterArmorComponent()
@@ -69,11 +70,13 @@ void UCharacterArmorComponent::OnSlotEquipped(const FUpdatedSlotData& SlotData, 
 	}
 
 	if (SlotData.bIsEquipped)
-	{	
+	{
+		EquipSlot(SlotName, SlotData.SlotItem);
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot equipped!"), *SlotName), true, false);
 	}
 	else
 	{
+		UnequipSlot(SlotName);
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s slot unequipped!"), *SlotName), true, false);
 	}
 }
@@ -103,4 +106,64 @@ bool UCharacterArmorComponent::IsSimulatedProxy() const
 		return false;
 	}
 	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
+}
+
+FOutfitSlot* UCharacterArmorComponent::FindArmorSlot(const FString& SlotName)
+{
+	for (FOutfitSlot& Slot : ArmorSlots)
+	{
+		if (Slot.SlotName == SlotName)
+		{
+			return &Slot;
+		}
+	}
+	return nullptr;
+}
+
+const FArmorBehavior* UCharacterArmorComponent::GetArmorBehavior(const FName& ItemScriptName) const
+{
+	if (ArmorBehaviorConfig)
+	{
+		if (const FArmorBehavior* Behavior = ArmorBehaviorConfig->ItemsMap.Find(ItemScriptName))
+		{
+			return Behavior;
+		}
+	}
+	return nullptr;
+}
+
+void UCharacterArmorComponent::EquipSlot(const FString& SlotName, UItemObject* IncomingItem)
+{
+	if (!IncomingItem || SlotName.IsEmpty())
+	{
+		return;
+	}
+
+	const FArmorBehavior* ArmorBehConfig = GetArmorBehavior(IncomingItem->GetScriptName());
+	if (!ArmorBehConfig)
+	{
+		UKismetSystemLibrary::PrintString(
+			this, FString::Printf(TEXT("Behavior for item '%s' not found!"), *IncomingItem->GetScriptName().ToString()),
+			true, false, FLinearColor::Red);
+		return;
+	}
+
+	switch (ArmorBehConfig->ArmorType)
+	{
+	case EArmorType::Helmet:
+		{
+			break;
+		}
+	case EArmorType::Body:
+		{
+			break;
+		}
+	default:
+		break;
+	}
+}
+
+void UCharacterArmorComponent::UnequipSlot(const FString& SlotName)
+{
+	
 }
