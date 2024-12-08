@@ -1,26 +1,27 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryGridWidget.h"
+#include "InventoryComponent.h"
+#include "InventoryManagerComponent.h"
 #include "ItemDragDropOperation.h"
 #include "ItemObject.h"
+#include "ItemsContainer.h"
 #include "ItemWidget.h"
+#include "StalkerHUD.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/ItemsContainer.h"
-#include "HUD/StalkerHUD.h"
-#include "Player/InventoryManagerComponent.h"
 
-void UInventoryGridWidget::SetupContainerGrid(UInventoryManagerComponent* PlayerInventoryManager,
-                                              UItemsContainer* ItemsContainer)
+void UInventoryGridWidget::SetupContainerGrid(UInventoryComponent* InventoryComp, UInventoryManagerComponent* InventoryManager)
 {
 	ClearContainerGrid();
 
-	InventoryManagerRef = PlayerInventoryManager;
+	InventoryComponentRef = InventoryComp;
+	InventoryManagerRef = InventoryManager;
 
-	if (InventoryManagerRef.IsValid())
+	if (InventoryComponentRef.IsValid() && InventoryManagerRef.IsValid())
 	{
-		ItemsContainerRef = ItemsContainer;
+		ItemsContainerRef = InventoryComp->GetItemsContainer();
 
 		if (ItemsContainerRef.IsValid())
 		{
@@ -54,12 +55,11 @@ void UInventoryGridWidget::ClearContainerGrid()
 
 int32 UInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
                                         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
-                                        int32 LayerId,
-                                        const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+                                        int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	if (ItemsContainerRef.IsValid())
 	{
-		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, 100, InWidgetStyle, bParentEnabled};
+		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled};
 		if (!UWidgetBlueprintLibrary::IsDragDropping() && HoveredData.HasValidData())
 		{
 			UWidgetBlueprintLibrary::DrawBox(Context, HoveredData.Tile * AStalkerHUD::TileSize, {
@@ -69,12 +69,6 @@ int32 UInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry&
 		}
 	}
 	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
-}
-
-void UInventoryGridWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-                                                UDragDropOperation*& OutOperation)
-{
-	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 }
 
 bool UInventoryGridWidget::NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
@@ -93,11 +87,13 @@ bool UInventoryGridWidget::NativeOnDragOver(const FGeometry& InGeometry, const F
 bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
+	check(InventoryManagerRef.IsValid());
+	
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			if (ItemsContainerRef.IsValid() && InventoryManagerRef.IsValid())
+			if (InventoryComponentRef.IsValid() && ItemsContainerRef.IsValid())
 			{
 				DragDropOperation->Target = ItemsContainerRef;
 

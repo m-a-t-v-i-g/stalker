@@ -6,7 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "InventoryManagerComponent.generated.h"
 
+class AStalkerCharacter;
 class UInventoryComponent;
+class UEquipmentSlot;
 class UItemsContainer;
 class UItemObject;
 class APlayerCharacter;
@@ -27,47 +29,42 @@ public:
 
 	void AddReplicatedContainer(UItemsContainer* Container);
 	void RemoveReplicatedContainer(UItemsContainer* Container);
+	void AddReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
+	void RemoveReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 
-	void OnLootContainer(UInventoryComponent* InventoryComponent);
-	void OnStopLootContainer(UInventoryComponent* InventoryComponent);
+	void OnLootInventory(UInventoryComponent* InventoryComponent);
+	void OnStopLootInventory(UInventoryComponent* InventoryComponent);
 	
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 
-	bool IsAuthority() const;
-	bool IsAutonomousProxy() const;
-	bool IsSimulatedProxy() const;
+	void ServerTryEquipItem(UItemObject* ItemObject);
+	void ServerEquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
+	void ServerUnequipSlot(UEquipmentSlot* EquipmentSlot);
+	void ServerMoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 	
+	bool IsAuthority() const;
+
 protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
-	TArray<UItemsContainer*> Containers;
-	
-	UItemObject* GetItemObjectById(uint32 ItemId) const;
-	
+	TArray<UItemsContainer*> ReplicatedContainers;
+
+	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
+	TArray<UEquipmentSlot*> ReplicatedEquipmentSlots;
+
 	bool IsItemObjectValid(uint32 ItemId) const;
-	
+
+	UItemObject* GetItemObjectById(uint32 ItemId) const;
+
 private:
-	TObjectPtr<APlayerCharacter> CharacterRef;
+	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
 	
-	TObjectPtr<UInventoryComponent> OwnInventory;
 	TObjectPtr<UItemsContainer> OwnItemsContainer;
+	TArray<UEquipmentSlot*> OwnEquipmentSlots;
 };

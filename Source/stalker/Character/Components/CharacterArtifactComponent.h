@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "CharacterOutfitComponent.h"
 #include "CharacterArtifactComponent.generated.h"
 
-UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
-class STALKER_API UCharacterArtifactComponent : public UActorComponent
+UCLASS(meta = (BlueprintSpawnableComponent))
+class STALKER_API UCharacterArtifactComponent : public UCharacterOutfitComponent
 {
 	GENERATED_BODY()
 

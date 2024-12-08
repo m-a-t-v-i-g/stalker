@@ -3,9 +3,10 @@
 #include "StalkerCharacter.h"
 #include "AbilitySet.h"
 #include "CharacterArmorComponent.h"
-#include "CharacterInventoryComponent.h"
 #include "CharacterStateComponent.h"
 #include "CharacterWeaponComponent.h"
+#include "EquipmentComponent.h"
+#include "InventoryComponent.h"
 #include "StalkerCharacterMovementComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 
@@ -13,6 +14,7 @@ DEFINE_LOG_CATEGORY(LogCharacter);
 
 FName AStalkerCharacter::CharacterMovementName	{"Char Movement Component"};
 FName AStalkerCharacter::InventoryComponentName	{"Char Inventory Component"};
+FName AStalkerCharacter::EquipmentComponentName	{"Char Equipment Component"};
 FName AStalkerCharacter::WeaponComponentName	{"Char Weapon Component"};
 FName AStalkerCharacter::StateComponentName		{"Char State Component"};
 FName AStalkerCharacter::ArmorComponentName		{"Char Armor Component"};
@@ -25,12 +27,10 @@ AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer
 		CharacterMovementComponent->UpdatedComponent = GetRootComponent();
 	}
 	
-	InventoryComponent = CreateDefaultSubobject<UCharacterInventoryComponent>(InventoryComponentName);
-	
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
+	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(EquipmentComponentName);
 	WeaponComponent = CreateDefaultSubobject<UCharacterWeaponComponent>(WeaponComponentName);
-	
 	StateComponent = CreateDefaultSubobject<UCharacterStateComponent>(StateComponentName);
-	
 	ArmorComponent = CreateDefaultSubobject<UCharacterArmorComponent>(ArmorComponentName);
 	
 	ID_Action1 = "Jump";
@@ -135,6 +135,16 @@ void AStalkerCharacter::InitCharacterComponents()
 
 void AStalkerCharacter::SetupCharacterLocally()
 {
+}
+
+void AStalkerCharacter::InteractWithContainer(UInventoryComponent* TargetInventory)
+{
+	OnLootInventory.Broadcast(TargetInventory);
+}
+
+void AStalkerCharacter::InteractWithItem(UItemObject* ItemObject)
+{
+	OnPickUpItem.Broadcast(ItemObject);
 }
 
 void AStalkerCharacter::SetCharacterData()

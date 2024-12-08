@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Player/StalkerPlayerController.h"
+#include "StalkerPlayerController.h"
 #include "GameFramework/HUD.h"
 #include "StalkerHUD.generated.h"
 
@@ -34,7 +34,7 @@ public:
 	void InitializePlayerHUD(const FPlayerInitInfo& PlayerInitInfo);
 
 	void OnOpenInventory();
-	void OnContainerInteract(UInventoryComponent* TargetInventory);
+	void OnLootInventory(UInventoryComponent* TargetInventory);
 	
 	void ToggleTab(EHUDTab Tab, bool bForce = false);
 	

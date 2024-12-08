@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterWeaponComponent.h"
+#include "InventoryComponent.h"
 #include "ItemActor.h"
 #include "ItemObject.h"
+#include "StalkerCharacter.h"
 #include "Ammo/AmmoObject.h"
-#include "Character/CharacterInventoryComponent.h"
-#include "Character/StalkerCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponObject.h"
@@ -380,7 +380,7 @@ void UCharacterWeaponComponent::CompleteReloadWeapon()
 			return;
 		}
 
-		GetCharacterInventory()->ServerSubtractOrRemoveItem(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
+		GetCharacterInventory()->SubtractOrRemoveItem(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
 		ReloadingData.WeaponObject->IncreaseAmmo(ReloadingData.AmmoObject, ReloadingData.AmmoCount);
 	}
 	

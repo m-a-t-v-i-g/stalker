@@ -38,8 +38,9 @@ protected:
 	
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UEquipmentComponent> OwnEquipmentComponent;
 	TWeakObjectPtr<UInventoryManagerComponent> OwnInventoryManager;
-	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
 
 	TObjectPtr<UInventoryManagerWidget> InventoryManagerWidget;
 };

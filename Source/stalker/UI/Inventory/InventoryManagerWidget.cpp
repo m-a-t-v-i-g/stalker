@@ -1,45 +1,47 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryManagerWidget.h"
-#include "Character/CharacterInventoryComponent.h"
+#include "CharacterEquipmentWidget.h"
+#include "EquipmentComponent.h"
+#include "EquipmentSlotWidget.h"
+#include "InventoryComponent.h"
+#include "InventoryGridWidget.h"
+#include "InventoryManagerComponent.h"
+#include "InventoryWidget.h"
+#include "StalkerHUD.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
-#include "HUD/StalkerHUD.h"
-#include "Inventory/EquipmentSlotWidget.h"
-#include "Inventory/InventoryGridWidget.h"
-#include "Inventory/InventoryWidget.h"
-#include "Inventory/Character/CharacterEquipmentWidget.h"
-#include "Player/InventoryManagerComponent.h"
 
 FReply UInventoryManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	return FReply::Handled();
 }
 
-void UInventoryManagerWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp,
-                                           UCharacterInventoryComponent* CharInventoryComp,
-                                           UInventoryManagerComponent* PlayerInventoryManager)
+void UInventoryManagerWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp,
+                                            UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager)
 {
 	OwnAbilityComponent = AbilityComp;
-	OwnInventoryComponent = CharInventoryComp;
-	OwnInventoryManager = PlayerInventoryManager;
+	OwnInventoryComponent = InventoryComp;
+	OwnEquipmentComponent = EquipmentComp;
+	OwnInventoryManager = InventoryManager;
 
 	check(OwnAbilityComponent.IsValid());
 	check(OwnInventoryComponent.IsValid());
+	check(OwnEquipmentComponent.IsValid());
 	check(OwnInventoryManager.IsValid());
 
-	Inventory->SetupInventory(OwnInventoryManager.Get(), OwnInventoryComponent->GetItemsContainer());
+	Inventory->SetupInventory(OwnInventoryComponent.Get(), OwnInventoryManager.Get());
 	
 	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
 	{
 		GridWidget->OnItemWidgetDoubleClick.AddUObject(this, &UInventoryManagerWidget::OnOwnInventoryItemDoubleClick);
 	}
 	
-	Equipment->SetupCharacterEquipment(OwnInventoryComponent.Get());
+	Equipment->SetupCharacterEquipment(OwnEquipmentComponent.Get(), OwnInventoryManager.Get());
 
-	for (UEquipmentSlotWidget* EachSlotWidget : Equipment->GetAllSlots())
+	for (UEquipmentSlotWidget* SlotWidget : Equipment->GetAllSlots())
 	{
-		EachSlotWidget->OnItemWidgetDoubleClick.AddUObject(this, &UInventoryManagerWidget::OnOwnEquippedItemDoubleClick);
+		SlotWidget->OnItemWidgetDoubleClick.AddUObject(this, &UInventoryManagerWidget::OnOwnEquippedItemDoubleClick);
 	}
 }
 
@@ -47,6 +49,7 @@ void UInventoryManagerWidget::CloseInventory()
 {
 	OwnAbilityComponent.Reset();
 	OwnInventoryComponent.Reset();
+	OwnEquipmentComponent.Reset();
 	OwnInventoryManager.Reset();
 
 	Inventory->ClearInventory();
@@ -74,9 +77,10 @@ void UInventoryManagerWidget::OpenEmpty()
 void UInventoryManagerWidget::OpenLooting(UInventoryComponent* LootItemsContainer)
 {
 	LootingInventory = LootItemsContainer;
+	
 	check(LootingInventory.IsValid());
 
-	Looting->SetupInventory(OwnInventoryManager.Get(), LootingInventory->GetItemsContainer());
+	Looting->SetupInventory(LootingInventory.Get(), OwnInventoryManager.Get());
 	
 	if (UInventoryGridWidget* LootingGrid = Looting->GetInventoryGridWidget())
 	{
@@ -95,9 +99,9 @@ void UInventoryManagerWidget::ClearTabs()
 {
 	ActivateTab(EPlayerInventoryTab::Inventory);
 	
-	Inventory->ClearInventory();
+	Looting->ClearInventory();
 	
-	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
+	if (UInventoryGridWidget* GridWidget = Looting->GetInventoryGridWidget())
 	{
 		GridWidget->OnItemWidgetDoubleClick.RemoveAll(this);
 	}
@@ -134,7 +138,7 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 	{
 	case EPlayerInventoryTab::Inventory:
 		{
-			OwnInventoryComponent->TryEquipItem(ItemObject);
+			OwnInventoryManager->ServerTryEquipItem(ItemObject);
 		}
 		break;
 	case EPlayerInventoryTab::Looting:
@@ -149,11 +153,11 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 	}
 }
 
-void UInventoryManagerWidget::OnOwnEquippedItemDoubleClick(const FString& SlotName)
+void UInventoryManagerWidget::OnOwnEquippedItemDoubleClick(UEquipmentSlot* EquipmentSlot)
 {
 	if (OwnInventoryComponent.IsValid())
 	{
-		OwnInventoryComponent->ServerMoveItemFromSlot(SlotName);
+		OwnInventoryManager->ServerMoveItemFromEquipmentSlot(EquipmentSlot);
 	}
 }
 

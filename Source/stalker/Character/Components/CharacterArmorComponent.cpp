@@ -6,7 +6,6 @@
 
 UCharacterArmorComponent::UCharacterArmorComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
 }
 
 const FArmorBehavior* UCharacterArmorComponent::GetArmorBehavior(const FName& ItemScriptName) const
@@ -52,6 +51,33 @@ void UCharacterArmorComponent::OnEquipSlot(const FString& SlotName, UItemObject*
 	}
 }
 
-void UCharacterArmorComponent::OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem)
+void UCharacterArmorComponent::OnUnequipSlot(const FString& SlotName, UItemObject* OutgoingItem)
 {
+	if (!OutgoingItem || SlotName.IsEmpty())
+	{
+		return;
+	}
+
+	const FArmorBehavior* ArmorBehConfig = GetArmorBehavior(OutgoingItem->GetScriptName());
+	if (!ArmorBehConfig)
+	{
+		UKismetSystemLibrary::PrintString(
+			this, FString::Printf(TEXT("Behavior for item '%s' not found!"), *OutgoingItem->GetScriptName().ToString()),
+			true, false, FLinearColor::Red);
+		return;
+	}
+
+	switch (ArmorBehConfig->ArmorType)
+	{
+	case EArmorType::Helmet:
+		{
+			break;
+		}
+	case EArmorType::Body:
+		{
+			break;
+		}
+	default:
+		break;
+	}
 }

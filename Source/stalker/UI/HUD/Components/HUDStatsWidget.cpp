@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDStatsWidget.h"
-#include "AbilitySystem/Attributes/HealthAttributeSet.h"
-#include "AbilitySystem/Components/OrganicAbilityComponent.h"
+#include "Attributes/HealthAttributeSet.h"
+#include "Components/OrganicAbilityComponent.h"
 #include "Components/ProgressBar.h"
 
 void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp)

@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerHUD.h"
-#include "Character/PlayerCharacter.h"
-#include "HUD/MainWidget.h"
-#include "Inventory/InventoryManagerWidget.h"
-#include "Inventory/ItemWidget.h"
+#include "InventoryManagerWidget.h"
+#include "ItemWidget.h"
+#include "MainWidget.h"
+#include "PlayerCharacter.h"
 
 UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
 UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
@@ -15,7 +15,7 @@ void AStalkerHUD::InitializePlayerHUD(const FPlayerInitInfo& PlayerInitInfo)
 	if (APlayerCharacter* PlayerCharacter = PlayerInitInfo.Character)
 	{
 		PlayerCharacter->OnToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
-		PlayerCharacter->OnLootContainer.AddUObject(this, &AStalkerHUD::OnContainerInteract);
+		PlayerCharacter->OnLootInventory.AddUObject(this, &AStalkerHUD::OnLootInventory);
 	}
 
 	if (MainWidget)
@@ -29,7 +29,7 @@ void AStalkerHUD::OnOpenInventory()
 	ToggleTab(EHUDTab::Inventory, false);
 }
 
-void AStalkerHUD::OnContainerInteract(UInventoryComponent* TargetInventory)
+void AStalkerHUD::OnLootInventory(UInventoryComponent* TargetInventory)
 {
 	ToggleTab(EHUDTab::Inventory, false);
 	StartLooting(TargetInventory);

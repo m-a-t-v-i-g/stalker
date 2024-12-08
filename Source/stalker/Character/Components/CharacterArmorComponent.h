@@ -4,15 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "CharacterOutfitComponent.h"
-#include "ItemSystemCore.h"
 #include "Data/ItemBehaviorConfig.h"
 #include "CharacterArmorComponent.generated.h"
 
-struct FUpdatedSlotData;
 class UItemObject;
-class UCharacterStateComponent;
-class UCharacterInventoryComponent;
-class AStalkerCharacter;
 
 UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
@@ -26,5 +21,5 @@ public:
 	
 protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
-	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem) override;
+	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* OutgoingItem) override;
 };

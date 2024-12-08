@@ -66,7 +66,7 @@ class STALKER_API UInventoryGridWidget : public UUserWidget
 public:
 	FOnContainerItemOperationSignature OnItemWidgetDoubleClick;
 	
-	void SetupContainerGrid(UInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer);
+	void SetupContainerGrid(UInventoryComponent* InventoryComp, UInventoryManagerComponent* InventoryManager);
 	void ClearContainerGrid();
 	
 protected:
@@ -82,8 +82,6 @@ protected:
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 	                          const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	                          const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-									  UDragDropOperation*& OutOperation) override;
 	virtual bool NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	                              UDragDropOperation* InOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
@@ -134,8 +132,9 @@ protected:
 	                                          const UItemObject* ItemObject);
 
 private:
-	TWeakObjectPtr<UInventoryManagerComponent> InventoryManagerRef;
+	TWeakObjectPtr<UInventoryComponent> InventoryComponentRef;
 	TWeakObjectPtr<UItemsContainer> ItemsContainerRef;
+	TWeakObjectPtr<UInventoryManagerComponent> InventoryManagerRef;
 
 	const uint8 Columns = 8;
 	

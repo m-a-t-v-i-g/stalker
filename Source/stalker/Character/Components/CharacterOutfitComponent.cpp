@@ -1,10 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterOutfitComponent.h"
-
-#include "CharacterInventoryComponent.h"
+#include "EquipmentComponent.h"
+#include "EquipmentSlot.h"
 #include "StalkerCharacter.h"
-#include "Components/EquipmentSlot.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UCharacterOutfitComponent::UCharacterOutfitComponent()
@@ -27,7 +26,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 		return;
 	}
 
-	InventoryComponentRef = CharacterRef->GetInventoryComponent();
+	EquipmentComponentRef = CharacterRef->GetEquipmentComponent();
 	StateComponentRef = CharacterRef->GetStateComponent();
 }
 
@@ -46,7 +45,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 
 	if (IsAuthority())
 	{
-		if (InventoryComponentRef)
+		if (EquipmentComponentRef)
 		{
 			for (uint8 i = 0; i < OutfitSlots.Num(); i++)
 			{
@@ -55,7 +54,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 					continue;
 				}
 
-				if (UEquipmentSlot* SlotPtr = InventoryComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName))
+				if (UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName))
 				{
 					SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
 													  OutfitSlots[i].SlotName);
@@ -154,11 +153,20 @@ FOutfitSlot* UCharacterOutfitComponent::FindOutfitSlot(const FString& SlotName)
 	return nullptr;
 }
 
-UCharacterInventoryComponent* UCharacterOutfitComponent::GetCharacterInventory() const
+UInventoryComponent* UCharacterOutfitComponent::GetCharacterInventory() const
 {
 	if (GetCharacter())
 	{
 		return GetCharacter()->GetInventoryComponent();
+	}
+	return nullptr;
+}
+
+UEquipmentComponent* UCharacterOutfitComponent::GetCharacterEquipment() const
+{
+	if (GetCharacter())
+	{
+		return GetCharacter()->GetEquipmentComponent();
 	}
 	return nullptr;
 }

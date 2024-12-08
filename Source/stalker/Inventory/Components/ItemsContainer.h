@@ -47,21 +47,21 @@ public:
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);
 
-	bool StackItem(UItemObject* SourceItem, const UItemObject* TargetItem);
+	bool StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
 	
-	bool AddItem(UItemObject* ItemObject);
+	void AddItem(UItemObject* ItemObject);
 
 	void SplitItem(UItemObject* ItemObject);
 	
-	bool RemoveItem(UItemObject* ItemObject);
+	void RemoveItem(UItemObject* ItemObject);
 
 	bool SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
-
-	void MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
 
 	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
 	
 	bool Contains(const UItemObject* ItemObject) const;
+
+	UItemObject* FindAvailableStack(const UItemObject* ItemObject) const;
 
 	UItemObject* FindItemById(uint32 ItemId) const;
 
@@ -78,8 +78,6 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_Items", Category = "Items Container")
 	TArray<UItemObject*> Items;
-
-	UItemObject* FindAvailableStack(const UItemObject* ItemObject) const;
 
 	UFUNCTION()
 	void OnRep_Items(TArray<UItemObject*> PrevContainer);

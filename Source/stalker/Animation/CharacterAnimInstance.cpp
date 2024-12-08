@@ -3,9 +3,9 @@
 #include "Animation/CharacterAnimInstance.h"
 #include "AnimationCore.h"
 #include "CharacterAnimConfig.h"
-#include "Character/CharacterStateComponent.h"
-#include "Character/StalkerCharacter.h"
-#include "Character/StalkerCharacterMovementComponent.h"
+#include "CharacterStateComponent.h"
+#include "StalkerCharacter.h"
+#include "StalkerCharacterMovementComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Curves/CurveVector.h"
 

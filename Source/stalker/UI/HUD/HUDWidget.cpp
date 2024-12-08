@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDWidget.h"
-#include "Components/HUDInteractionWidget.h"
+#include "HUDInteractionWidget.h"
+#include "HUDStatsWidget.h"
+#include "PawnInteractionComponent.h"
+#include "StalkerPlayerController.h"
 #include "Components/OrganicAbilityComponent.h"
-#include "Components/HUDStatsWidget.h"
-#include "Components/PawnInteractionComponent.h"
-#include "Player/StalkerPlayerController.h"
 
 void UHUDWidget::InitializeHUD(const FPlayerInitInfo& CharacterInitInfo)
 {

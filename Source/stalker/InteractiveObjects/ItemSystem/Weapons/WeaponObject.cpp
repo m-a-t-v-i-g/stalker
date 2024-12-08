@@ -4,7 +4,6 @@
 #include "ItemSystemCore.h"
 #include "WeaponActor.h"
 #include "Ammo/AmmoObject.h"
-#include "Character/CharacterInventoryComponent.h"
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
@@ -140,10 +139,7 @@ void UWeaponObject::Use_Implementation(UObject* Source)
 {
 	Super::Use_Implementation(Source);
 
-	if (auto CharInventory = Cast<UCharacterInventoryComponent>(Source))
-	{
-		CharInventory->TryEquipItem(this);
-	}
+	// TODO: try use item
 }
 
 void UWeaponObject::OnBindItemActor()

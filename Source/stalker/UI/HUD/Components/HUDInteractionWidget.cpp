@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDInteractionWidget.h"
-#include "Components/PawnInteractionComponent.h"
+#include "PawnInteractionComponent.h"
 #include "Components/TextBlock.h"
 
 void UHUDInteractionWidget::SetupInteractionWidget(UPawnInteractionComponent* InteractionComp)

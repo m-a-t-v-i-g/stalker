@@ -1,14 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryWidget.h"
+#include "InventoryComponent.h"
 #include "InventoryGridWidget.h"
 
-void UInventoryWidget::SetupInventory(UInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer)
+void UInventoryWidget::SetupInventory(UInventoryComponent* InventoryComp, UInventoryManagerComponent* InventoryManager)
 {
-	check(PlayerInventoryManager);
-	check(ItemsContainer);
+	check(InventoryManager);
+	check(InventoryComp);
 	
-	ItemsGrid->SetupContainerGrid(PlayerInventoryManager, ItemsContainer);
+	ItemsGrid->SetupContainerGrid(InventoryComp, InventoryManager);
 }
 
 void UInventoryWidget::ClearInventory()

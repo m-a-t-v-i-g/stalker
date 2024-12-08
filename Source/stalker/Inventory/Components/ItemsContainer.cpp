@@ -38,12 +38,13 @@ void UItemsContainer::AddStartingData()
 		if (CanAddItem(ItemData.Definition))
 		{
 			UItemPredictedData* PredictedData = ItemData.bUsePredictedData ? ItemData.PredictedData : nullptr;
-			if (auto ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, PredictedData))
+			if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, PredictedData))
 			{
 				AddItem(ItemObject);
 			}
 		}
 	}
+	
 	StartingData.Empty();
 }
 
@@ -51,22 +52,24 @@ bool UItemsContainer::FindAvailablePlace(UItemObject* ItemObject)
 {
 	if (ItemObject)
 	{
-		if (auto StackableItem = FindAvailableStack(ItemObject))
+		if (UItemObject* StackableItem = FindAvailableStack(ItemObject))
 		{
 			if (StackItem(ItemObject, StackableItem))
 			{
 				return true;
 			}
 		}
-		if (AddItem(ItemObject))
+
+		if (CanAddItem(ItemObject->GetDefinition()))
 		{
+			AddItem(ItemObject);
 			return true;
 		}
 	}
 	return false;
 }
 
-bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* TargetItem)
+bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem)
 {
 	if (SourceItem && TargetItem)
 	{
@@ -84,19 +87,19 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, const UItemObject* Targ
 	return false;
 }
 
-bool UItemsContainer::AddItem(UItemObject* ItemObject)
+void UItemsContainer::AddItem(UItemObject* ItemObject)
 {
+	if (!CanAddItem(ItemObject->GetDefinition()))
+	{
+		return;
+	}
+
 	if (ItemObject && !Items.Contains(ItemObject))
 	{
-		if (CanAddItem(ItemObject->GetDefinition()))
-		{
-			Items.Add(ItemObject);
-			ItemObject->SetCollected();
-			OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
-			return true;
-		}
+		ItemObject->SetCollected();
+		Items.Add(ItemObject);
+		OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
 	}
-	return false;
 }
 
 void UItemsContainer::SplitItem(UItemObject* ItemObject)
@@ -108,7 +111,7 @@ void UItemsContainer::SplitItem(UItemObject* ItemObject)
 
 	if (ItemObject->GetAmount() > 1)
 	{
-		if (auto NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
+		if (UItemObject* NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
 		{
 			NewItemObject->SetAmount(NewItemObject->GetStackAmount()); // TODO
 			AddItem(NewItemObject);
@@ -116,18 +119,13 @@ void UItemsContainer::SplitItem(UItemObject* ItemObject)
 	}
 }
 
-bool UItemsContainer::RemoveItem(UItemObject* ItemObject)
+void UItemsContainer::RemoveItem(UItemObject* ItemObject)
 {
 	if (ItemObject && Items.Contains(ItemObject))
 	{
-		if (Items.Contains(ItemObject))
-		{
-			Items.Remove(ItemObject);
-			OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
-			return true;
-		}
+		Items.Remove(ItemObject);
+		OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
 	}
-	return false;
 }
 
 bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)
@@ -147,37 +145,6 @@ bool UItemsContainer::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amoun
 	return false;
 }
 
-void UItemsContainer::MoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer)
-{
-	if (!ItemObject || !OtherContainer)
-	{
-		return;
-	}
-	
-	if (ItemObject->GetAmount() > ItemObject->GetStackAmount())
-	{
-		if (UItemObject* StackableItem = OtherContainer->FindAvailableStack(ItemObject))
-		{
-			StackableItem->AddAmount(ItemObject->GetStackAmount());
-		}
-		else if (UItemObject* NewItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemObject))
-		{
-			if (OtherContainer->AddItem(NewItemObject))
-			{
-				NewItemObject->SetAmount(NewItemObject->GetStackAmount());
-			}
-		}
-		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
-	}
-	else
-	{
-		if (OtherContainer->FindAvailablePlace(ItemObject))
-		{
-			RemoveItem(ItemObject);
-		}
-	}
-}
-
 bool UItemsContainer::CanAddItem(const UItemDefinition* ItemDefinition) const
 {
 	return ItemDefinition->Tag.MatchesAny(CategoryTags);
@@ -186,6 +153,24 @@ bool UItemsContainer::CanAddItem(const UItemDefinition* ItemDefinition) const
 bool UItemsContainer::Contains(const UItemObject* ItemObject) const
 {
 	return Items.Contains(ItemObject);
+}
+
+UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) const
+{
+	for (int i = 0; i < Items.Num(); i++)
+	{
+		auto FoundItem = Items[i];
+		if (!FoundItem)
+		{
+			continue;
+		}
+		
+		if (FoundItem->CanStackItem(ItemObject))
+		{
+			return FoundItem;
+		}
+	}
+	return nullptr;
 }
 
 UItemObject* UItemsContainer::FindItemById(uint32 ItemId) const
@@ -207,24 +192,6 @@ UItemObject* UItemsContainer::FindItemByDefinition(const UItemDefinition* Defini
 		if (Item->GetDefinition() == Definition)
 		{
 			return Item;
-		}
-	}
-	return nullptr;
-}
-
-UItemObject* UItemsContainer::FindAvailableStack(const UItemObject* ItemObject) const
-{
-	for (int i = 0; i < Items.Num(); i++)
-	{
-		auto FoundItem = Items[i];
-		if (!FoundItem)
-		{
-			continue;
-		}
-		
-		if (FoundItem->CanStackItem(ItemObject))
-		{
-			return FoundItem;
 		}
 	}
 	return nullptr;

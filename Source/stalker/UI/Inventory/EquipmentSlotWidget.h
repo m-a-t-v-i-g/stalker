@@ -8,7 +8,9 @@
 #include "EquipmentSlotWidget.generated.h"
 
 struct FUpdatedSlotData;
+class UEquipmentComponent;
 class UEquipmentSlot;
+class UInventoryManagerComponent;
 class UItemObject;
 class UItemWidget;
 
@@ -20,7 +22,7 @@ class STALKER_API UEquipmentSlotWidget : public UUserWidget
 public:
 	FOnEquippedItemOperationSignature OnItemWidgetDoubleClick;
 	
-	void SetupEquipmentSlot(UObject* SlotContainerReference);
+	void SetupEquipmentSlot(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager);
 	void ClearEquipmentSlot();
 
 	bool IsSlotOccupied() const;
@@ -54,6 +56,7 @@ protected:
 	UItemWidget* CreateItemWidget(UItemObject* ItemObject);
 
 private:
+	TWeakObjectPtr<UEquipmentComponent> EquipmentComponentRef;
 	TWeakObjectPtr<UEquipmentSlot> EquipmentSlotRef;
-	TWeakObjectPtr<UObject> SlotContainerRef;
+	TWeakObjectPtr<UInventoryManagerComponent> InventoryManagerRef;
 };

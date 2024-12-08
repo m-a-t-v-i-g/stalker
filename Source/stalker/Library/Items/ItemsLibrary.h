@@ -8,11 +8,12 @@
 #include "Engine/DataTable.h"
 #include "ItemsLibrary.generated.h"
 
+class UEquipmentSlot;
 class UAmmoObject;
 class UItemObject;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerItemOperationSignature, UItemObject*)
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemOperationSignature, const FString&)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemOperationSignature, UEquipmentSlot*)
 
 USTRUCT(BlueprintType)
 struct FItemParams

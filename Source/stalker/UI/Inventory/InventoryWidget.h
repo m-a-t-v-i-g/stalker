@@ -6,8 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryWidget.generated.h"
 
+class UInventoryComponent;
 class UInventoryManagerComponent;
-class UItemsContainer;
 class UInventoryGridWidget;
 
 UCLASS()
@@ -16,7 +16,7 @@ class STALKER_API UInventoryWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	void SetupInventory(UInventoryManagerComponent* PlayerInventoryManager, UItemsContainer* ItemsContainer);
+	void SetupInventory(UInventoryComponent* InventoryComp, UInventoryManagerComponent* InventoryManager);
 	void ClearInventory();
 
 	UInventoryGridWidget* GetInventoryGridWidget() const { return ItemsGrid; }

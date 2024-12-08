@@ -1,11 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Player/StalkerPlayerController.h"
+#include "StalkerPlayerController.h"
 #include "EnhancedInputSubsystems.h"
-#include "Character/CharacterInventoryComponent.h"
-#include "Character/PlayerCharacter.h"
+#include "PlayerCharacter.h"
+#include "StalkerHUD.h"
 #include "Components/OrganicAbilityComponent.h"
-#include "HUD/StalkerHUD.h"
 
 FName AStalkerPlayerController::InventoryManagerComponentName {"Inventory Manager Component"};
 
@@ -86,7 +85,8 @@ void AStalkerPlayerController::ConnectHUD()
 	StalkerHUD->InitializePlayerHUD(FPlayerInitInfo(
 		Stalker,
 		Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
-		Stalker->GetInventoryComponent<UCharacterInventoryComponent>(),
+		Stalker->GetInventoryComponent(),
+		Stalker->GetEquipmentComponent(),
 		Stalker->GetInteractionComponent(),
 		InventoryManager));
 }

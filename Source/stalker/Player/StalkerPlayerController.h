@@ -9,9 +9,10 @@
 #include "StalkerPlayerController.generated.h"
 
 class UOrganicAbilityComponent;
-class UCharacterInventoryComponent;
-class UPawnInteractionComponent;
+class UInventoryComponent;
+class UEquipmentComponent;
 class UInventoryManagerComponent;
+class UPawnInteractionComponent;
 class UPlayerInputConfig;
 class APlayerCharacter;
 
@@ -35,22 +36,37 @@ struct FPlayerInitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
+	
+	UPROPERTY()
 	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
-	UCharacterInventoryComponent* InventoryComponent = nullptr;
-	UPawnInteractionComponent* InteractionComponent = nullptr;
+	
+	UPROPERTY()
+	UInventoryComponent* InventoryComponent = nullptr;
+	
+	UPROPERTY()
+	UEquipmentComponent* EquipmentComponent = nullptr;
+	
+	UPROPERTY()
 	UInventoryManagerComponent* InventoryManager = nullptr;
+	
+	UPROPERTY()
+	UPawnInteractionComponent* InteractionComponent = nullptr;
 
-	FPlayerInitInfo() {}
+	FPlayerInitInfo()
+	{
+	}
 
 	FPlayerInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
-	                         UCharacterInventoryComponent* InventoryComp,
-	                         UPawnInteractionComponent* InteractionComp,
-							 UInventoryManagerComponent* InventoryMgr) : Character(Char),
-	                                                                       AbilitySystemComponent(AbilityComp),
-	                                                                       InventoryComponent(InventoryComp),
-	                                                                       InteractionComponent(InteractionComp),
-	                                                                       InventoryManager(InventoryMgr)
+	                UInventoryComponent* InventoryComp, UEquipmentComponent* EquipmentComp,
+	                UPawnInteractionComponent* InteractionComp,
+	                UInventoryManagerComponent* InventoryMgr) : Character(Char),
+	                                                            AbilitySystemComponent(AbilityComp),
+	                                                            InventoryComponent(InventoryComp),
+	                                                            EquipmentComponent(EquipmentComp),
+	                                                            InventoryManager(InventoryMgr),
+	                                                            InteractionComponent(InteractionComp)
 	{
 	}
 };

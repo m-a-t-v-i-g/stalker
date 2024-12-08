@@ -63,7 +63,7 @@ UItemObject* UItemSystemCore::GetItemObjectById(const UWorld* World, uint32 Item
 	return nullptr;
 }
 
-bool UItemSystemCore::IsItemObjectExist(const UWorld* World, uint32 ItemId)
+bool UItemSystemCore::IsItemObjectValid(const UWorld* World, uint32 ItemId)
 {
 	if (ItemId > 0)
 	{

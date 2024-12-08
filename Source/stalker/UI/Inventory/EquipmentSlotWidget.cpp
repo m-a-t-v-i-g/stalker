@@ -1,33 +1,32 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "EquipmentSlotWidget.h"
+#include "EquipmentComponent.h"
+#include "EquipmentSlot.h"
+#include "ItemDragDropOperation.h"
 #include "ItemObject.h"
-#include "SlotContainerInterface.h"
+#include "ItemWidget.h"
+#include "StalkerHUD.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/EquipmentSlot.h"
-#include "HUD/StalkerHUD.h"
-#include "Inventory/ItemDragDropOperation.h"
-#include "Inventory/ItemWidget.h"
 
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
+	check(InventoryManagerRef.IsValid());
+
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			if (EquipmentSlotRef.IsValid() && SlotContainerRef.IsValid())
+			if (EquipmentComponentRef.IsValid() && EquipmentSlotRef.IsValid())
 			{
-				if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
+				DragDropOperation->Target = EquipmentSlotRef;
+
+				if (EquipmentComponentRef->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 				{
-					DragDropOperation->Target = EquipmentSlotRef;
-					
-					if (SlotContainer->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
-					{
-						SlotContainer->EquipSlot(EquipmentSlotRef->GetSlotName(), Payload->GetItemId());
-						DragDropOperation->bWasSuccessful = true;
-					}
+					InventoryManagerRef->ServerEquipSlot(EquipmentSlotRef.Get(), Payload);
+					DragDropOperation->bWasSuccessful = true;
 				}
 			}
 		}
@@ -35,25 +34,25 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
 
-void UEquipmentSlotWidget::SetupEquipmentSlot(UObject* SlotContainerReference)
+void UEquipmentSlotWidget::SetupEquipmentSlot(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager)
 {
-	SlotContainerRef = SlotContainerReference;
+	ClearEquipmentSlot();
+	
+	EquipmentComponentRef = EquipmentComp;
+	InventoryManagerRef = InventoryManager;
 
-	if (SlotContainerRef.IsValid())
+	if (EquipmentComponentRef.IsValid() && InventoryManagerRef.IsValid())
 	{
-		if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
-		{
-			EquipmentSlotRef = SlotContainer->FindEquipmentSlot(SlotName);
+		EquipmentSlotRef = EquipmentComp->FindEquipmentSlot(SlotName);
 
-			if (EquipmentSlotRef.IsValid())
+		if (EquipmentSlotRef.IsValid())
+		{
+			if (EquipmentSlotRef->IsEquipped())
 			{
-				if (EquipmentSlotRef->IsEquipped())
-				{
-					OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), true));
-				}
-				
-				EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
+				OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), true));
 			}
+
+			EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
 		}
 	}
 }
@@ -62,15 +61,20 @@ void UEquipmentSlotWidget::ClearEquipmentSlot()
 {
 	SlotCanvas->ClearChildren();
 
-	if (SlotContainerRef.IsValid())
+	if (EquipmentComponentRef.IsValid())
 	{
-		SlotContainerRef.Reset();
+		EquipmentComponentRef.Reset();
 	}
 
 	if (EquipmentSlotRef.IsValid())
 	{
 		EquipmentSlotRef->OnSlotChanged.RemoveAll(this);
 		EquipmentSlotRef.Reset();
+	}
+
+	if (InventoryManagerRef.IsValid())
+	{
+		InventoryManagerRef.Reset();
 	}
 }
 
@@ -103,13 +107,13 @@ void UEquipmentSlotWidget::OnSlotUpdated(const FUpdatedSlotData& UpdatedData)
 
 void UEquipmentSlotWidget::OnDoubleClick(UItemObject* ClickedItem)
 {
-	OnItemWidgetDoubleClick.Broadcast(SlotName);
+	OnItemWidgetDoubleClick.Broadcast(EquipmentSlotRef.Get());
 }
 
 void UEquipmentSlotWidget::OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                       UDragDropOperation* InOperation)
 {
-	if (!EquipmentSlotRef.IsValid() || !SlotContainerRef.IsValid())
+	if (!EquipmentSlotRef.IsValid() || !EquipmentComponentRef.IsValid())
 	{
 		return;
 	}
@@ -123,7 +127,7 @@ void UEquipmentSlotWidget::OnDragItem(const FGeometry& InGeometry, const FPointe
 
 void UEquipmentSlotWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 {
-	if (!EquipmentSlotRef.IsValid() || !SlotContainerRef.IsValid())
+	if (!EquipmentSlotRef.IsValid() || !EquipmentComponentRef.IsValid())
 	{
 		return;
 	}
@@ -133,7 +137,7 @@ void UEquipmentSlotWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 
 void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 {
-	if (!EquipmentSlotRef.IsValid() || !SlotContainerRef.IsValid())
+	if (!EquipmentSlotRef.IsValid() || !EquipmentComponentRef.IsValid())
 	{
 		return;
 	}
@@ -149,10 +153,7 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 			{
 				if (EquipmentSlotRef.Get() != DragDropOperation->Target.Get())
 				{
-					if (auto SlotContainer = Cast<ISlotContainerInterface>(SlotContainerRef))
-					{
-						SlotContainer->UnequipSlot(EquipmentSlotRef->GetSlotName());
-					}
+					InventoryManagerRef->ServerUnequipSlot(EquipmentSlotRef.Get());
 				}
 			}
 		}

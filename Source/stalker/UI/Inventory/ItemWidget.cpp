@@ -2,12 +2,12 @@
 
 #include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
+#include "ItemObject.h"
+#include "StalkerHUD.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
-#include "HUD/StalkerHUD.h"
-#include "InteractiveObjects/ItemSystem/ItemObject.h"
 
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {

@@ -23,12 +23,28 @@ public class stalker : ModuleRules
 		{
 			"stalker/",
 			"stalker/AbilitySystem",
+			"stalker/Character",
+			"stalker/Character/Components",
+			"stalker/Character/Data",
+			"stalker/DamageSystem",
+			"stalker/DamageSystem/Types",
+			"stalker/Input",
 			"stalker/InteractiveObjects",
+			"stalker/InteractiveObjects/Components",
 			"stalker/InteractiveObjects/ItemSystem",
 			"stalker/Interfaces",
+			"stalker/Inventory",
+			"stalker/Inventory/Components",
 			"stalker/Library",
+			"stalker/Mobs",
 			"stalker/Organic",
-			"stalker/UI"
+			"stalker/PhysicalObjects",
+			"stalker/Player",
+			"stalker/UI",
+			"stalker/UI/Character",
+			"stalker/UI/HUD",
+			"stalker/UI/HUD/Components",
+			"stalker/UI/Inventory"
 		});
 	}
 }

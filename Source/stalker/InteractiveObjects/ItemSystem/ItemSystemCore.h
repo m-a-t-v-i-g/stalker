@@ -48,7 +48,7 @@ public:
 	static void DestroyItemObject(const UItemObject* ItemObject);
 
 	static UItemObject* GetItemObjectById(const UWorld* World, uint32 ItemId);
-	static bool IsItemObjectExist(const UWorld* World, uint32 ItemId);
+	static bool IsItemObjectValid(const UWorld* World, uint32 ItemId);
 	
 private:
 	static void AddItemObjectToGameState(UItemObject* ItemObject);

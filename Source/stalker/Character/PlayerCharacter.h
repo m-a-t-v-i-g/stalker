@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "InputMappingContext.h"
-#include "Character/StalkerCharacter.h"
-#include "Player/StalkerPlayerController.h"
+#include "StalkerCharacter.h"
+#include "StalkerPlayerController.h"
 #include "PlayerCharacter.generated.h"
 
 class UAbilitySet;
@@ -15,8 +15,6 @@ class UPawnInteractionComponent;
 
 DECLARE_MULTICAST_DELEGATE(FOnPlayerToggleInventorySignature);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerToggleSlotSignature, uint8);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerLootContainerSignature, UInventoryComponent*);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerPickUpItemSignature, UItemObject*);
 
 UCLASS()
 class STALKER_API APlayerCharacter : public AStalkerCharacter
@@ -30,8 +28,6 @@ public:
 	
 	FOnPlayerToggleInventorySignature OnToggleInventory;
 	FOnPlayerToggleSlotSignature OnToggleSlot;
-	FOnPlayerLootContainerSignature OnLootContainer;
-	FOnPlayerPickUpItemSignature OnPickUpItem;
 
 	virtual void InitCharacterComponents() override;
 	
@@ -44,9 +40,6 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
-
-	virtual void InteractWithContainer(UInventoryComponent* TargetInventory) override;
-	virtual void InteractWithItem(UItemObject* ItemObject) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;

@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HUD/StalkerHUD.h"
+#include "StalkerHUD.h"
 #include "Blueprint/UserWidget.h"
 #include "InventoryManagerWidget.generated.h"
 
 class UOrganicAbilityComponent;
-class UCharacterInventoryComponent;
 class UInventoryComponent;
+class UEquipmentComponent;
 class UItemObject;
 
 UCLASS()
@@ -37,14 +37,16 @@ protected:
 
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<UCharacterInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
+	TWeakObjectPtr<UEquipmentComponent> OwnEquipmentComponent;
 	TWeakObjectPtr<UInventoryManagerComponent> OwnInventoryManager;
 	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
 	EPlayerInventoryTab ActiveTab;
-	
+
 public:
-	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UCharacterInventoryComponent* CharInventoryComp, UInventoryManagerComponent* PlayerInventoryManager);
+	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp,
+	                   UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager);
 	void CloseInventory();
 
 	void OpenEmpty();
@@ -57,6 +59,6 @@ public:
 	
 protected:
 	void OnOwnInventoryItemDoubleClick(UItemObject* ItemObject);
-	void OnOwnEquippedItemDoubleClick(const FString& SlotName);
+	void OnOwnEquippedItemDoubleClick(UEquipmentSlot* EquipmentSlot);
 	void OnLootingInventoryItemDoubleClick(UItemObject* ItemObject);
 };

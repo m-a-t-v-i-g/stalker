@@ -24,42 +24,23 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFindAvailablePlace(UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerStackItem(UItemObject* SourceItem, UItemObject* TargetItem);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerAddItem(UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSplitItem(UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRemoveItem(UItemObject* ItemObject);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerMoveItemToOtherContainer(UItemObject* ItemObject, UItemsContainer* OtherContainer);
-
-	bool HasAuthority() const;
+	void FindAvailablePlace(UItemObject* ItemObject);
+	void StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
+	void AddItem(UItemObject* ItemObject);
+	void SplitItem(UItemObject* ItemObject);
+	void RemoveItem(UItemObject* ItemObject);
+	void SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
 
 	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
 	
 	UItemObject* FindItemById(uint32 ItemId) const;
-
 	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
 
+	bool IsAuthority() const;
+	
 	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
 
 protected:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Inventory")
 	TObjectPtr<UItemsContainer> ItemsContainerRef;
-
-	UItemObject* GetItemObjectById(uint32 ItemId) const;
-	
-	bool IsItemObjectValid(uint32 ItemId) const;
 };

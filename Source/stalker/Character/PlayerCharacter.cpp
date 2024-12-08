@@ -5,10 +5,10 @@
 #include "CharacterWeaponComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PawnInteractionComponent.h"
 #include "StalkerGameplayTags.h"
+#include "StalkerInputComponent.h"
 #include "Components/OrganicAbilityComponent.h"
-#include "Components/PawnInteractionComponent.h"
-#include "Input/StalkerInputComponent.h"
 
 FName APlayerCharacter::InteractionComponentName {"Interaction Component"};
 
@@ -25,16 +25,6 @@ void APlayerCharacter::InitCharacterComponents()
 	{
 		InteractionComponent->SetupInteractionComponent();
 	}
-}
-
-void APlayerCharacter::InteractWithContainer(UInventoryComponent* TargetInventory)
-{
-	OnLootContainer.Broadcast(TargetInventory);
-}
-
-void APlayerCharacter::InteractWithItem(UItemObject* ItemObject)
-{
-	OnPickUpItem.Broadcast(ItemObject);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

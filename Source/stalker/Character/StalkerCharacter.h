@@ -10,11 +10,15 @@
 class UAbilitySet;
 class UStalkerCharacterMovementComponent;
 class UCharacterInventoryComponent;
+class UEquipmentComponent;
 class UCharacterWeaponComponent;
 class UCharacterStateComponent;
 class UCharacterArmorComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterLootInventorySignature, UInventoryComponent*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterPickUpItemSignature, UItemObject*);
 
 UCLASS(Abstract)
 class STALKER_API AStalkerCharacter : public ABaseOrganic, public IInteractorInterface
@@ -26,9 +30,13 @@ public:
 	
 	static FName CharacterMovementName;
 	static FName InventoryComponentName;
+	static FName EquipmentComponentName;
 	static FName WeaponComponentName;
 	static FName StateComponentName;
 	static FName ArmorComponentName;
+
+	FOnCharacterLootInventorySignature OnLootInventory;
+	FOnCharacterPickUpItemSignature OnPickUpItem;
 	
 	virtual void PostInitializeComponents() override;
 	
@@ -48,12 +56,21 @@ public:
 	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
-	FORCEINLINE UCharacterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 	template <class T>
 	T* GetInventoryComponent() const
 	{
 		return Cast<T>(GetInventoryComponent());
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
+
+	template <class T>
+	T* GetEquipmentComponent() const
+	{
+		return Cast<T>(GetEquipmentComponent());
 	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
@@ -87,6 +104,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TObjectPtr<UAbilitySet> AbilitySet;
 
+	virtual void InteractWithContainer(UInventoryComponent* TargetInventory) override;
+	virtual void InteractWithItem(UItemObject* ItemObject) override;
+	
 	virtual void SetCharacterData();
 	
 private:
@@ -94,7 +114,10 @@ private:
 	TObjectPtr<UStalkerCharacterMovementComponent> CharacterMovementComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCharacterInventoryComponent> InventoryComponent;
+	TObjectPtr<UInventoryComponent> InventoryComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEquipmentComponent> EquipmentComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponent;
