@@ -22,13 +22,13 @@ void UEquipmentComponent::BeginPlay()
 	}
 }
 
-void UEquipmentComponent::EquipSlot(const FString& SlotName, UItemObject* ItemObject)
+void UEquipmentComponent::EquipSlot(const FString& SlotName, UItemObject* ItemObject, UItemsContainer* SourceContainer)
 {
 	if (IsAuthority())
 	{
 		if (UEquipmentSlot* EquipmentSlot = FindEquipmentSlot(SlotName))
 		{
-			UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+			UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject, SourceContainer);
 		}
 	}
 }

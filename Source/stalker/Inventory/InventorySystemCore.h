@@ -28,7 +28,7 @@ public:
 
 	static void TryEquipItem(const TArray<UEquipmentSlot*>& Slots, UItemObject* ItemObject,
 	                         UItemsContainer* Container = nullptr);
-	static void EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject, UItemsContainer* Container = nullptr);
+	static void EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject, UItemsContainer* SourceContainer = nullptr);
 	static void UnequipSlot(UEquipmentSlot* EquipmentSlot);
 	static void MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container);
 };

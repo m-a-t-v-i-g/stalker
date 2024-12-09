@@ -122,7 +122,7 @@ void UInventorySystemCore::TryEquipItem(const TArray<UEquipmentSlot*>& Slots, UI
 	}
 }
 
-void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject, UItemsContainer* Container)
+void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject, UItemsContainer* SourceContainer)
 {
 	if (!EquipmentSlot || !ItemObject)
 	{
@@ -131,24 +131,24 @@ void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject*
 	
 	if (EquipmentSlot->IsEquipped())
 	{
-		if (Container)
+		if (SourceContainer)
 		{
-			MoveItemFromEquipmentSlot(EquipmentSlot, Container);
+			MoveItemFromEquipmentSlot(EquipmentSlot, SourceContainer);
 		}
 	}
 
 	if (ItemObject->GetAmount() > 1)
 	{
-		if (Container)
+		if (SourceContainer)
 		{
-			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(Container->GetWorld(), ItemObject);
+			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(SourceContainer->GetWorld(), ItemObject);
 			if (!RemainedItem)
 			{
 				return;
 			}
 
 			RemainedItem->SetAmount(ItemObject->GetAmount() - 1);
-			AddItem(Container, RemainedItem);
+			AddItem(SourceContainer, RemainedItem);
 		}
 
 		ItemObject->SetAmount(1);

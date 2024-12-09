@@ -8,6 +8,7 @@
 #include "EquipmentComponent.generated.h"
 
 class UEquipmentSlot;
+class UItemsContainer;
 class UItemObject;
 
 USTRUCT(BlueprintType)
@@ -40,7 +41,7 @@ public:
 	
 	virtual void BeginPlay() override;
 
-	void EquipSlot(const FString& SlotName, UItemObject* ItemObject);
+	void EquipSlot(const FString& SlotName, UItemObject* ItemObject, UItemsContainer* SourceContainer = nullptr);
 	void UnequipSlot(const FString& SlotName);
 	
 	bool IsAuthority() const;
