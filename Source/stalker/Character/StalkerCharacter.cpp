@@ -40,8 +40,6 @@ AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer
 
 void AStalkerCharacter::PostInitializeComponents()
 {
-	Super::PostInitializeComponents();
-
 	if (GetCharacterMovement())
 	{
 		if (GetMesh())
@@ -79,6 +77,8 @@ void AStalkerCharacter::PostInitializeComponents()
 	{
 		SetCharacterData();
 	}
+	
+	Super::PostInitializeComponents();
 }
 
 void AStalkerCharacter::PossessedBy(AController* NewController)

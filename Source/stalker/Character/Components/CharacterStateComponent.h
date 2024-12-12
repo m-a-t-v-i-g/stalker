@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CharacterLibrary.h"
+#include "StalkerCharacter.h"
 #include "Components/ActorComponent.h"
 #include "CharacterStateComponent.generated.h"
 
@@ -15,6 +16,8 @@ class UCharacterWeaponComponent;
 class UMovementModelConfig;
 class AStalkerCharacter;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRagdollStateChangedDelegate, bool);
+
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
 class STALKER_API UCharacterStateComponent : public UActorComponent
 {
@@ -23,7 +26,10 @@ class STALKER_API UCharacterStateComponent : public UActorComponent
 public:
 	UCharacterStateComponent();
 
+	FOnRagdollStateChangedDelegate OnRagdollStateChangedDelegate;
+	
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void SetupStateComponent(AStalkerCharacter* InCharacter);
@@ -78,6 +84,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
 	TObjectPtr<const UMovementModelConfig> InjuredMovementModel;
 
+	UFUNCTION(BlueprintCallable, Category = "Character State|Ragdoll")
+	void StartRagdoll();
+
+	UFUNCTION(BlueprintCallable, Category = "Character State|Ragdoll")
+	void StopRagdoll();
+	
+	void UpdateRagdoll(float DeltaSeconds);
+	
 	void SetupHealth();
 	void OnMaxHealthChange(const FOnAttributeChangeData& HealthChangeData);
 	void OnHealthChange(const FOnAttributeChangeData& HealthChangeData);
@@ -96,6 +110,10 @@ protected:
 	UFUNCTION()
 	void OnRep_CombatState(ECharacterCombatState PrevCombatState);
 
+	USkeletalMeshComponent* GetCharacterMesh() const;
+
+	UCapsuleComponent* GetCharacterCapsule() const;
+
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
@@ -105,9 +123,15 @@ private:
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponentRef;
 
 	TObjectPtr<const UHealthAttributeSet> HealthAttributeSet;
+
+	bool bRagdoll = false;
+	
+	FVector LastRagdollVelocity;
 	
 	bool bFiring = false;
 	bool bAiming = false;
 	
 	FTimerHandle CombatStateTimer;
+	
+	bool bIsDead = false;
 };

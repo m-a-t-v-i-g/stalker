@@ -20,15 +20,15 @@ struct FAmmoDamageData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Damage")
-	TSubclassOf<UDamageType> DamageType;
-	
 	/** Basic bullet damage without any multiplying values or effects. */
 	UPROPERTY(EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0"))
 	float BaseDamage = 0.0f;
 	
+	UPROPERTY(EditAnywhere, Category = "Damage")
+	TSubclassOf<UDamageType> DamageType;
+	
 	UPROPERTY(EditInstanceOnly, Category = "Damage")
-	TArray<TSubclassOf<UGameplayEffect>> DamageEffects;
+	TSubclassOf<UGameplayEffect> DamageEffect;
 };
 
 UCLASS()
@@ -80,5 +80,5 @@ public:
 	FORCEINLINE UClass* GetBulletClass() const;
 	FORCEINLINE FAmmoDamageData GetDamageData() const;
 	FORCEINLINE UClass* GetDamageType() const;
-	FORCEINLINE TArray<TSubclassOf<UGameplayEffect>> GetDamageEffects() const;
+	FORCEINLINE UClass* GetDamageEffect() const;
 };

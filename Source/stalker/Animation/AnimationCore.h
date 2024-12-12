@@ -24,9 +24,10 @@ namespace FCharacterCurveName
 
 namespace FCharacterBoneName
 {
+	static const FName NAME_Root = "root";
+	static const FName NAME_Pelvis = "pelvis";
 	static const FName NAME_IkFoot_L = "ik_foot_l";
 	static const FName NAME_IkFoot_R = "ik_foot_r";
-	static const FName NAME_Root = "root";
 	static const FName NAME_VB_Foot_Target_L = "VB foot_target_l";
 	static const FName NAME_VB_Foot_Target_R = "VB foot_target_r";
 }

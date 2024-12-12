@@ -4,19 +4,32 @@
 #include "CharacterWeaponComponent.h"
 #include "StalkerCharacter.h"
 #include "StalkerCharacterMovementComponent.h"
+#include "Animation/AnimationCore.h"
 #include "Attributes/HealthAttributeSet.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UCharacterStateComponent::UCharacterStateComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
 }
 
 void UCharacterStateComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void UCharacterStateComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+                                             FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (bRagdoll)
+	{
+		UpdateRagdoll(DeltaTime);
+	}
 }
 
 void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -134,6 +147,7 @@ void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState Previo
 		MovementComponentRef->SetMovementModel(InjuredMovementModel);
 		break;
 	case ECharacterHealthState::Dead:
+		StartRagdoll();
 		break;
 	default: break;
 	}
@@ -186,6 +200,37 @@ void UCharacterStateComponent::OnMaxHealthChange(const FOnAttributeChangeData& H
 	{
 		return;
 	}
+}
+
+void UCharacterStateComponent::StartRagdoll()
+{
+	OnRagdollStateChangedDelegate.Broadcast(true);
+
+	bRagdoll = true;
+
+	GetCharacterCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+	GetCharacterMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMesh()->SetAllBodiesBelowSimulatePhysics(FCharacterBoneName::NAME_Pelvis, true, true);
+}
+
+void UCharacterStateComponent::StopRagdoll()
+{
+	bRagdoll = false;
+	
+	OnRagdollStateChangedDelegate.Broadcast(false);
+}
+
+void UCharacterStateComponent::UpdateRagdoll(float DeltaSeconds)
+{
+	const FVector NewRagdollVel = GetCharacterMesh()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root);
+	LastRagdollVelocity = NewRagdollVel != FVector::ZeroVector || CharacterRef->IsLocallyControlled()
+		                      ? NewRagdollVel
+		                      : LastRagdollVelocity / 2;
+	
+	const float SpringValue = FMath::GetMappedRangeValueClamped<float, float>(
+		{0.0f, 1000.0f}, {0.0f, 25000.0f}, LastRagdollVelocity.Size());
+	GetCharacterMesh()->SetAllMotorsAngularDriveParams(SpringValue, 0.0f, 0.0f, false);
 }
 
 void UCharacterStateComponent::SetupHealth()
@@ -303,4 +348,22 @@ void UCharacterStateComponent::OnRep_HealthState(ECharacterHealthState PrevHealt
 void UCharacterStateComponent::OnRep_CombatState(ECharacterCombatState PrevCombatState)
 {
 	OnCombatStateChanged(PrevCombatState);
+}
+
+USkeletalMeshComponent* UCharacterStateComponent::GetCharacterMesh() const
+{
+	if (CharacterRef)
+	{
+		return CharacterRef->GetMesh();
+	}
+	return nullptr;
+}
+
+UCapsuleComponent* UCharacterStateComponent::GetCharacterCapsule() const
+{
+	if (CharacterRef)
+	{
+		return CharacterRef->GetCapsuleComponent();
+	}
+	return nullptr;
 }

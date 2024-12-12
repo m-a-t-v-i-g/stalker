@@ -26,7 +26,7 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 
 	BulletData.DamageType = Ammo->GetDamageType();
 	BulletData.BaseDamage = Ammo->GetDamageData().BaseDamage;
-	BulletData.DamageEffects = Ammo->GetDamageEffects();
+	BulletData.DamageEffect = Ammo->GetDamageEffect();
 }
 
 void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, const FHitResult& SweepResult)
@@ -35,27 +35,21 @@ void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCompone
 	{
 		if (auto OtherAbilityComp = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 		{
-			if (BulletData.DamageEffects.IsEmpty())
+			if (!BulletData.DamageEffect)
 			{
 				return;
 			}
 
 			if (BulletData.OwnerAbilityComponent.IsValid())
 			{
-				for (UClass* EffectClass : BulletData.DamageEffects)
-				{
-					UDamageSystemCore::TakeDamageASCtoASC(BulletData.Instigator.Get(), this, SweepResult,
-					                                      BulletData.OwnerAbilityComponent.Get(), OtherAbilityComp,
-					                                      EffectClass);
-				}
+				UDamageSystemCore::TakeDamageASCtoASC(BulletData.Instigator.Get(), this, BulletData.BaseDamage,
+				                                      SweepResult, BulletData.OwnerAbilityComponent.Get(),
+				                                      OtherAbilityComp, BulletData.DamageEffect);
 			}
 			else
 			{
-				for (UClass* EffectClass : BulletData.DamageEffects)
-				{
-					UDamageSystemCore::TakeDamageActorToASC(BulletData.Instigator.Get(), this, SweepResult,
-					                                        OtherAbilityComp, EffectClass);
-				}
+				UDamageSystemCore::TakeDamageActorToASC(BulletData.Instigator.Get(), this, BulletData.BaseDamage,
+				                                        SweepResult, OtherAbilityComp, BulletData.DamageEffect);
 			}
 		}
 		else

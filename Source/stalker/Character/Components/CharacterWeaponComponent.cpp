@@ -145,7 +145,7 @@ void UCharacterWeaponComponent::PlayBasicAction()
 		return;
 	}
 
-	switch (RightHandItemData.ItemBehavior.LeftMouseReaction)
+	switch (RightHandItemData.WeaponBehavior.LeftMouseReaction)
 	{
 	case EMouseButtonReaction::Attack:
 		StartFire();
@@ -161,7 +161,7 @@ void UCharacterWeaponComponent::StopBasicAction()
 		return;
 	}
 
-	switch (RightHandItemData.ItemBehavior.LeftMouseReaction)
+	switch (RightHandItemData.WeaponBehavior.LeftMouseReaction)
 	{
 	case EMouseButtonReaction::Attack:
 		StopFire();
@@ -619,7 +619,7 @@ bool UCharacterWeaponComponent::ArmLeftHand(UItemObject* ItemObject)
 	
 	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(LeftHandItemData.ItemObject->GetScriptName()))
 	{
-		LeftHandItemData.ItemBehavior = *WeaponBeh;
+		LeftHandItemData.WeaponBehavior = *WeaponBeh;
 	}
 	
 	LeftHandItemActor = LeftHandItemData.ItemActor;
@@ -646,7 +646,7 @@ bool UCharacterWeaponComponent::ArmRightHand(UItemObject* ItemObject)
 	
 	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(RightHandItemData.ItemObject->GetScriptName()))
 	{
-		RightHandItemData.ItemBehavior = *WeaponBeh;
+		RightHandItemData.WeaponBehavior = *WeaponBeh;
 	}
 	
 	RightHandItemActor = RightHandItemData.ItemActor;
@@ -681,7 +681,7 @@ void UCharacterWeaponComponent::DisarmRightHand()
 	}
 }
 
-void UCharacterWeaponComponent::ArmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor,
+void UCharacterWeaponComponent::ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor,
                                         const FName& SocketName, UItemObject* ItemObject)
 {
 	if (HandedItemData.IsValid())
@@ -694,7 +694,7 @@ void UCharacterWeaponComponent::ArmHand(FHandedItemData& HandedItemData, AItemAc
 	
 	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(HandedItemData.ItemObject->GetScriptName()))
 	{
-		HandedItemData.ItemBehavior = *WeaponBeh;
+		HandedItemData.WeaponBehavior = *WeaponBeh;
 	}
 	
 	ReplicatedItemActor = HandedItemData.ItemActor;
@@ -705,7 +705,7 @@ void UCharacterWeaponComponent::ArmHand(FHandedItemData& HandedItemData, AItemAc
 	}
 }
 
-void UCharacterWeaponComponent::DisarmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor)
+void UCharacterWeaponComponent::DisarmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor)
 {
 	if (HandedItemData.IsValid() && ReplicatedItemActor)
 	{

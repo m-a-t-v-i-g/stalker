@@ -2,10 +2,20 @@
 
 #include "CharacterArmorComponent.h"
 #include "ItemObject.h"
+#include "StalkerCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 UCharacterArmorComponent::UCharacterArmorComponent()
 {
+}
+
+void UCharacterArmorComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(ThisClass, EquippedHelmetData,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, EquippedBodyData,	COND_OwnerOnly);
 }
 
 const FArmorBehavior* UCharacterArmorComponent::GetArmorBehavior(const FName& ItemScriptName) const
@@ -40,10 +50,12 @@ void UCharacterArmorComponent::OnEquipSlot(const FString& SlotName, UItemObject*
 	{
 	case EArmorType::Helmet:
 		{
+			EquippedHelmetData = FEquippedArmorData(IncomingItem, *ArmorBehConfig);
 			break;
 		}
 	case EArmorType::Body:
 		{
+			EquippedBodyData = FEquippedArmorData(IncomingItem, *ArmorBehConfig);
 			break;
 		}
 	default:
@@ -71,13 +83,24 @@ void UCharacterArmorComponent::OnUnequipSlot(const FString& SlotName, UItemObjec
 	{
 	case EArmorType::Helmet:
 		{
+			EquippedHelmetData.Clear();
 			break;
 		}
 	case EArmorType::Body:
 		{
+			EquippedBodyData.Clear();
 			break;
 		}
 	default:
 		break;
 	}
+}
+
+USkeletalMeshComponent* UCharacterArmorComponent::GetCharacterMesh() const
+{
+	if (GetCharacter())
+	{
+		return GetCharacter()->GetMesh();
+	}
+	return nullptr;
 }

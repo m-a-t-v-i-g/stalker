@@ -21,7 +21,7 @@ struct FBulletBaseData
 	
 	TSubclassOf<UDamageType> DamageType;
 	float BaseDamage = 0.0f;
-	TArray<TSubclassOf<UGameplayEffect>> DamageEffects;
+	TSubclassOf<UGameplayEffect> DamageEffect;
 };
 
 UCLASS()

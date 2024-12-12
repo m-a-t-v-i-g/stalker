@@ -14,11 +14,12 @@ class STALKER_API UDamageSystemCore : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static bool TakeDamageASCtoASC(AActor* Instigator, AActor* DamageCauser, const FHitResult& HitResult,
-	                               UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC,
-	                               TSubclassOf<UGameplayEffect> DamageEffectClass);
-	static bool TakeDamageActorToASC(AActor* Instigator, AActor* DamageCauser, const FHitResult& HitResult,
-	                                 UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> DamageEffectClass);
+	static bool TakeDamageASCtoASC(AActor* Instigator, AActor* DamageCauser, float Damage,
+	                               const FHitResult& HitResult, UAbilitySystemComponent* SourceASC,
+	                               UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> DamageEffectClass);
+	static bool TakeDamageActorToASC(AActor* Instigator, AActor* DamageCauser, float Damage,
+	                                 const FHitResult& HitResult, UAbilitySystemComponent* TargetASC,
+	                                 TSubclassOf<UGameplayEffect> DamageEffectClass);
 	static bool TakeDamageActorToActor(AActor* Instigator, AActor* DamageCauser, AActor* TargetActor, float Damage,
 	                                   TSubclassOf<UDamageType> DamageClass);
 };

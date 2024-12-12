@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AmmoObject.h"
+#include "GameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicalObjects/BulletBase.h"
 
@@ -20,7 +21,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
-		DamageData.DamageEffects = AmmoDefinition->DamageData.DamageEffects;
+		DamageData.DamageEffect = AmmoDefinition->DamageData.DamageEffect;
 		
 		if (auto AmmoPredictedData = Cast<UAmmoPredictedData>(PredictedData))
 		{
@@ -37,7 +38,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
-		DamageData.DamageEffects = AmmoInstance->DamageData.DamageEffects;
+		DamageData.DamageEffect = AmmoInstance->DamageData.DamageEffect;
 	}
 }
 
@@ -61,7 +62,7 @@ UClass* UAmmoObject::GetDamageType() const
 	return GetAmmoDefinition()->DamageData.DamageType;
 }
 
-TArray<TSubclassOf<UGameplayEffect>> UAmmoObject::GetDamageEffects() const
+UClass* UAmmoObject::GetDamageEffect() const
 {
-	return GetAmmoDefinition()->DamageData.DamageEffects;
+	return GetAmmoDefinition()->DamageData.DamageEffect;
 }

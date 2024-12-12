@@ -22,7 +22,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
 
 USTRUCT()
-struct FHandedItemData
+struct FEquippedWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -33,12 +33,12 @@ struct FHandedItemData
 	TObjectPtr<AItemActor> ItemActor;
 
 	UPROPERTY(VisibleInstanceOnly)
-	FWeaponBehavior ItemBehavior;
+	FWeaponBehavior WeaponBehavior;
 	
-	FHandedItemData() {}
+	FEquippedWeaponData() {}
 	
-	FHandedItemData(UItemObject* ItemObj, AItemActor* ItemAct, const FWeaponBehavior& ItemBeh) : ItemObject(ItemObj),
-		ItemActor(ItemAct), ItemBehavior(ItemBeh)
+	FEquippedWeaponData(UItemObject* ItemObj, AItemActor* ItemAct, const FWeaponBehavior& ItemBeh) : ItemObject(ItemObj),
+		ItemActor(ItemAct), WeaponBehavior(ItemBeh)
 	{
 	}
 
@@ -46,7 +46,7 @@ struct FHandedItemData
 	{
 		ItemObject = nullptr;
 		ItemActor = nullptr;
-		ItemBehavior.Clear();
+		WeaponBehavior.Clear();
 	}
 
 	bool IsValid() const
@@ -232,17 +232,17 @@ protected:
 	void DisarmLeftHand();
 	void DisarmRightHand();
 	
-	void ArmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName, UItemObject* ItemObject);
-	void DisarmHand(FHandedItemData& HandedItemData, AItemActor*& ReplicatedItemActor);
+	void ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName, UItemObject* ItemObject);
+	void DisarmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor);
 	
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName) const;
 	
 private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	FHandedItemData LeftHandItemData;
+	FEquippedWeaponData LeftHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
-	FHandedItemData RightHandItemData;
+	FEquippedWeaponData RightHandItemData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	AItemActor* LeftHandItemActor = nullptr;

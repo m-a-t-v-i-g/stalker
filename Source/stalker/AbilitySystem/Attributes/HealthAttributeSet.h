@@ -29,7 +29,13 @@ public:
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UHealthAttributeSet, Health);
 
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
+	FGameplayAttributeData Damage;
+	ATTRIBUTE_ACCESSORS(UHealthAttributeSet, Damage);
+
 protected:
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
 	UFUNCTION()
 	virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
 	

@@ -8,7 +8,7 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_View,					"InputTag.View", "Look input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Inventory,				"InputTag.Inventory", "Inventory input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Slot,					"InputTag.Slot", "Slot input.");
-	
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Sprint,				"Ability.Character.Sprint", "Sprint ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Crouch,				"Ability.Character.Crouch",	"Crouch ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Jump,					"Ability.Character.Jump", "Jump ability.");
@@ -16,6 +16,10 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_AlternativeAction,	"Ability.Character.AlternativeAction", "Alternative action ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Character.Reload", "Reload ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Character.Interaction", "Interaction ability.");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Damage,				"Effect.Health.Damage", "Damage effect.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Heal,					"Effect.Health.Heal", "Heal effect.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Radiation,				"Effect.Radiation", "Radiation effect.");
 
 	FGameplayTag FStalkerGameplayTags::FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
