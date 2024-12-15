@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "CharacterOutfitComponent.generated.h"
 
+class UAbilitySystemComponent;
 struct FUpdatedSlotData;
 class UInventoryComponent;
 class UEquipmentComponent;
@@ -39,9 +40,11 @@ public:
 
 	AStalkerCharacter* GetCharacter() const { return CharacterRef; }
 	AController* GetController() const { return ControllerRef; }
-	
-	UInventoryComponent* GetCharacterInventory() const;
-	UEquipmentComponent* GetCharacterEquipment() const;
+
+	UAbilitySystemComponent* GetAbilityComponent() const { return AbilityComponentRef; }
+	UInventoryComponent* GetCharacterInventory() const { return InventoryComponentRef; }
+	UEquipmentComponent* GetCharacterEquipment() const { return EquipmentComponentRef; }
+	UCharacterStateComponent* GetStateComponent() const { return StateComponentRef; }
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Outfit")
@@ -57,6 +60,7 @@ private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 	TObjectPtr<AController> ControllerRef;
 
+	TObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
 	TObjectPtr<UInventoryComponent> InventoryComponentRef;
 	TObjectPtr<UEquipmentComponent> EquipmentComponentRef;
 	TObjectPtr<UCharacterStateComponent> StateComponentRef;

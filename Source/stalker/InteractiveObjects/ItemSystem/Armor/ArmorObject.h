@@ -6,18 +6,32 @@
 #include "InteractiveObjects/ItemSystem/ItemObject.h"
 #include "ArmorObject.generated.h"
 
+class UGameplayEffect;
 class AArmorActor;
 
 USTRUCT()
 struct FArmorInstanceData
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditInstanceOnly, NotReplicated, Category = "Armor")
+	TMap<FGameplayTag, float> Modifiers;
 };
 
 UCLASS()
 class STALKER_API UArmorDefinition : public UItemDefinition
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TObjectPtr<UCurveFloat> ProtectionFactorCurve;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TSubclassOf<UGameplayEffect> ArmorEffect;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TMap<FGameplayTag, float> Modifiers;
 };
 
 UCLASS()
@@ -60,16 +74,24 @@ public:
 #pragma region Behavior
 	
 	virtual void Use_Implementation(UObject* Source) override;
+
+	virtual void OnEnduranceUpdated(float NewEndurance, float PrevEndurance) override;
 	
 	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
 	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
+
+	void UpdateModifiers() const;
+	
+	FORCEINLINE const TMap<FGameplayTag, float>& GetModifiers() const;
 	
 #pragma endregion Behavior
-	
+
+	FORCEINLINE const UArmorDefinition* GetArmorDefinition() const;
 	FORCEINLINE USkeletalMesh* GetVisual() const;
-		
 	FORCEINLINE AArmorActor* GetArmorActor() const;
 	FORCEINLINE UArmorInstance* GetArmorInstance() const;
+	FORCEINLINE UCurveFloat* GetProtectionFactorCurve() const;
+	FORCEINLINE UClass* GetArmorEffect() const;
 };

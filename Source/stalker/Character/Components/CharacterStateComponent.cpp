@@ -48,7 +48,9 @@ void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacte
 
 	if (!CharacterRef)
 	{
-		UE_LOG(LogCharacter, Error, TEXT("Unable to setup the State Component: character ref is null."));
+		UE_LOG(LogCharacter, Error,
+		       TEXT("Unable to setup State Component ('%s') for character '%s': character ref is null."), *GetName(),
+		       *GetOwner()->GetName());
 		return;
 	}
 	
@@ -61,12 +63,13 @@ void UCharacterStateComponent::InitCharacterInfo(AController* InController)
 {
 	ControllerRef = InController;
 	
-	if (!CharacterRef || !ControllerRef)
+	if (!ControllerRef)
 	{
 		UE_LOG(LogCharacter, Error,
 		       TEXT(
-			       "Unable to setup the State Component for character: one of the references (character or controller) is null."
-		       ));
+			       "Unable to setup State Component ('%s') for character '%s': controller ref is null."
+		       ), *GetName(), *GetOwner()->GetName());
+		return;
 	}
 
 	if (AbilityComponentRef)

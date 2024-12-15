@@ -16,6 +16,7 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	check(Weapon);
 	check(Ammo);
 	
+	BulletData.AmmoObject = Ammo;
 	BulletData.Owner = GetOwner();
 	BulletData.Instigator = GetInstigator();
 
@@ -25,7 +26,7 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	}
 
 	BulletData.DamageType = Ammo->GetDamageType();
-	BulletData.BaseDamage = Ammo->GetDamageData().BaseDamage;
+	BulletData.BaseDamage = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
 	BulletData.DamageEffect = Ammo->GetDamageEffect();
 }
 
@@ -42,9 +43,9 @@ void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCompone
 
 			if (BulletData.OwnerAbilityComponent.IsValid())
 			{
-				UDamageSystemCore::TakeDamageASCtoASC(BulletData.Instigator.Get(), this, BulletData.BaseDamage,
-				                                      SweepResult, BulletData.OwnerAbilityComponent.Get(),
-				                                      OtherAbilityComp, BulletData.DamageEffect);
+				UDamageSystemCore::TakeDamageASCtoASC(BulletData.OwnerAbilityComponent.Get(), OtherAbilityComp, BulletData.Instigator.Get(),
+				                                      this, BulletData.DamageEffect,
+				                                      BulletData.BaseDamage, SweepResult, BulletData.AmmoObject.Get());
 			}
 			else
 			{

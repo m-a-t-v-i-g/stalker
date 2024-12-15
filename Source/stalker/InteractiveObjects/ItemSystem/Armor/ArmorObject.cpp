@@ -2,6 +2,7 @@
 
 #include "ArmorObject.h"
 #include "ArmorActor.h"
+#include "GameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 
 void UArmorInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,6 +56,13 @@ void UArmorObject::Use_Implementation(UObject* Source)
 	// TODO: try use item
 }
 
+void UArmorObject::OnEnduranceUpdated(float NewEndurance, float PrevEndurance)
+{
+	Super::OnEnduranceUpdated(NewEndurance, PrevEndurance);
+
+	UpdateModifiers();
+}
+
 void UArmorObject::OnBindItemActor()
 {
 	Super::OnBindItemActor();
@@ -70,6 +78,31 @@ bool UArmorObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 	return Super::IsCorrespondsTo(OtherItemObject);
 }
 
+void UArmorObject::UpdateModifiers() const
+{
+	TMap<FGameplayTag, float> NewModifiers;
+	const TMap<FGameplayTag, float>& ArmorModifiers = GetModifiers();
+	UCurveFloat* ProtectionCurve = GetProtectionFactorCurve();
+	
+	for (const auto& Modifier : ArmorModifiers)
+	{
+		float FinalModifierValue = Modifier.Value;
+		if (ProtectionCurve)
+		{
+			FinalModifierValue *= ProtectionCurve->GetFloatValue(GetEndurance() / 100.0f);
+		}
+
+		NewModifiers.Add(Modifier.Key, FinalModifierValue);
+	}
+
+	GetArmorInstance()->ArmorData.Modifiers = NewModifiers;
+}
+
+const UArmorDefinition* UArmorObject::GetArmorDefinition() const
+{
+	return Cast<UArmorDefinition>(GetDefinition());
+}
+
 USkeletalMesh* UArmorObject::GetVisual() const
 {
 	return nullptr; // TODO;
@@ -83,4 +116,19 @@ AArmorActor* UArmorObject::GetArmorActor() const
 UArmorInstance* UArmorObject::GetArmorInstance() const
 {
 	return GetItemInstance<UArmorInstance>();
+}
+
+UCurveFloat* UArmorObject::GetProtectionFactorCurve() const
+{
+	return GetArmorDefinition()->ProtectionFactorCurve;
+}
+
+UClass* UArmorObject::GetArmorEffect() const
+{
+	return GetArmorDefinition()->ArmorEffect;
+}
+
+const TMap<FGameplayTag, float>& UArmorObject::GetModifiers() const
+{
+	return GetArmorDefinition()->Modifiers;
 }

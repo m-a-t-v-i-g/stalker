@@ -5,9 +5,9 @@
 #include "StalkerGameplayTags.h"
 #include "Engine/DamageEvents.h"
 
-bool UDamageSystemCore::TakeDamageASCtoASC(AActor* Instigator, AActor* DamageCauser, float Damage,
-                                           const FHitResult& HitResult, UAbilitySystemComponent* SourceASC,
-                                           UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> DamageEffectClass)
+bool UDamageSystemCore::TakeDamageASCtoASC(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* Instigator,
+                                           AActor* DamageCauser, TSubclassOf<UGameplayEffect> DamageEffectClass,
+                                           float Damage, const FHitResult& HitResult, const UObject* SourceObject)
 {
 	check(Instigator);
 	check(DamageCauser);
@@ -23,6 +23,7 @@ bool UDamageSystemCore::TakeDamageASCtoASC(AActor* Instigator, AActor* DamageCau
 			auto Context = FGameplayEffectContextHandle(new FGameplayEffectContext);
 			if (Context.IsValid())
 			{
+				Context.AddSourceObject(SourceObject);
 				Context.AddHitResult(HitResult);
 				Context.AddInstigator(Instigator, DamageCauser);
 				

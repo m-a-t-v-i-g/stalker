@@ -26,6 +26,8 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 		return;
 	}
 
+	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent();
+	InventoryComponentRef = CharacterRef->GetInventoryComponent();
 	EquipmentComponentRef = CharacterRef->GetEquipmentComponent();
 	StateComponentRef = CharacterRef->GetStateComponent();
 }
@@ -149,24 +151,6 @@ FOutfitSlot* UCharacterOutfitComponent::FindOutfitSlot(const FString& SlotName)
 		{
 			return &Slot;
 		}
-	}
-	return nullptr;
-}
-
-UInventoryComponent* UCharacterOutfitComponent::GetCharacterInventory() const
-{
-	if (GetCharacter())
-	{
-		return GetCharacter()->GetInventoryComponent();
-	}
-	return nullptr;
-}
-
-UEquipmentComponent* UCharacterOutfitComponent::GetCharacterEquipment() const
-{
-	if (GetCharacter())
-	{
-		return GetCharacter()->GetEquipmentComponent();
 	}
 	return nullptr;
 }

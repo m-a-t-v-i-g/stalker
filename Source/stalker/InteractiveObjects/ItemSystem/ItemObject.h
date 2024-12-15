@@ -81,6 +81,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
 	int StackAmount = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Spoiling")
+	TMap<FGameplayTag, float> SpoilModifiers;
 };
 
 UCLASS(EditInlineNew, DefaultToInstanced)
@@ -102,7 +105,7 @@ class STALKER_API UItemInstance : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemData", Category = "Item")
 	FItemInstanceData ItemData;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
@@ -116,6 +119,9 @@ public:
 protected:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
 	TObjectPtr<const UItemDefinition> ItemDefinition;
+
+	UFUNCTION()
+	void OnRep_ItemData();
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -154,6 +160,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Replicated, Category = "Definition")
 	TObjectPtr<const UItemDefinition> ItemDefinition;
 
+	TMulticastDelegate<void(float)> OnEnduranceChangedDelegate;
+	
 #pragma region Replication
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
@@ -178,6 +186,9 @@ public:
 	void SetAmount(uint32 Amount) const;
 	void AddAmount(uint32 Amount) const;
 	void RemoveAmount(uint32 Amount) const;
+
+	void SpoilEndurance(const FGameplayTag& SpoilTag);
+	virtual void OnEnduranceUpdated(float NewEndurance, float PrevEndurance);
 
 	virtual bool IsInteractable() const;
 	virtual bool CanStackItem(const UItemObject* OtherItem) const;
@@ -217,7 +228,9 @@ public:
 	FORCEINLINE bool IsUsable() const;
 	FORCEINLINE bool IsDroppable() const;
 	FORCEINLINE bool IsStackable() const;
+	FORCEINLINE bool IsSpoiling() const;
 	FORCEINLINE uint32 GetStackAmount() const;
+	FORCEINLINE const TMap<FGameplayTag, float>& GetSpoilModifiers() const;
 
 #pragma endregion Static Data
 

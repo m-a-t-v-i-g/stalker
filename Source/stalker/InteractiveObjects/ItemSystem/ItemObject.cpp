@@ -52,6 +52,11 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	}
 }
 
+void UItemInstance::OnRep_ItemData()
+{
+	
+}
+
 void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -177,6 +182,26 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 	{
 		ItemInstance->ItemData.Amount -= Amount;
 	}
+}
+
+void UItemObject::SpoilEndurance(const FGameplayTag& SpoilTag)
+{
+	const float SpoilModifier = GetSpoilModifiers().FindChecked(SpoilTag);
+	if (FMath::IsNearlyZero(SpoilModifier))
+	{
+		return;
+	}
+
+	float PrevEndurance = ItemInstance->ItemData.Endurance;
+	float NewEndurance = PrevEndurance - SpoilModifier;
+	
+	ItemInstance->ItemData.Endurance = NewEndurance;
+	OnEnduranceChangedDelegate.Broadcast(NewEndurance);
+	OnEnduranceUpdated(NewEndurance, PrevEndurance);
+}
+
+void UItemObject::OnEnduranceUpdated(float NewEndurance, float PrevEndurance)
+{
 }
 
 bool UItemObject::IsInteractable() const
@@ -314,9 +339,19 @@ bool UItemObject::IsStackable() const
 	return GetDefinition()->bStackable;
 }
 
+bool UItemObject::IsSpoiling() const
+{
+	return true;
+}
+
 uint32 UItemObject::GetStackAmount() const
 {
 	return GetDefinition()->StackAmount;
+}
+
+const TMap<FGameplayTag, float>& UItemObject::GetSpoilModifiers() const
+{
+	return GetDefinition()->SpoilModifiers;
 }
 
 AItemActor* UItemObject::GetBoundActor() const

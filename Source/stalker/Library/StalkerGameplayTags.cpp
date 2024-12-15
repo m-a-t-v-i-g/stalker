@@ -19,7 +19,8 @@ namespace FStalkerGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Damage,				"Effect.Health.Damage", "Damage effect.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Heal,					"Effect.Health.Heal", "Heal effect.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Radiation,				"Effect.Radiation", "Radiation effect.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletResistance,		"Effect.Resistance.Bullet", "Bullet resistance effect.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BlastResistance,		"Effect.Resistance.Blast", "Blast resistance effect.");
 
 	FGameplayTag FStalkerGameplayTags::FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{

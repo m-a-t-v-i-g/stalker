@@ -15,6 +15,7 @@ struct FBulletBaseData
 {
 	GENERATED_USTRUCT_BODY()
 
+	TWeakObjectPtr<UAmmoObject> AmmoObject;
 	TWeakObjectPtr<AActor> Owner;
 	TWeakObjectPtr<AActor> Instigator;
 	TWeakObjectPtr<UAbilitySystemComponent> OwnerAbilityComponent;
