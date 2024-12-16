@@ -21,7 +21,6 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
-		DamageData.DamageEffect = AmmoDefinition->DamageData.DamageEffect;
 		
 		if (auto AmmoPredictedData = Cast<UAmmoPredictedData>(PredictedData))
 		{
@@ -38,7 +37,6 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 	{
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
-		DamageData.DamageEffect = AmmoInstance->DamageData.DamageEffect;
 	}
 }
 
@@ -60,9 +58,4 @@ FAmmoDamageData UAmmoObject::GetDamageData() const
 UClass* UAmmoObject::GetDamageType() const
 {
 	return GetAmmoDefinition()->DamageData.DamageType;
-}
-
-UClass* UAmmoObject::GetDamageEffect() const
-{
-	return GetAmmoDefinition()->DamageData.DamageEffect;
 }

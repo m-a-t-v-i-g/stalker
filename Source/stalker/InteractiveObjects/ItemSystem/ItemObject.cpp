@@ -184,18 +184,18 @@ void UItemObject::RemoveAmount(uint32 Amount) const
 	}
 }
 
-void UItemObject::SpoilEndurance(const FGameplayTag& SpoilTag)
+void UItemObject::SpoilEndurance(const FGameplayTag& DamageTag)
 {
-	const float SpoilModifier = GetSpoilModifiers().FindChecked(SpoilTag);
+	const float SpoilModifier = GetSpoilModifiers().FindChecked(DamageTag);
 	if (FMath::IsNearlyZero(SpoilModifier))
 	{
 		return;
 	}
 
-	float PrevEndurance = ItemInstance->ItemData.Endurance;
+	float PrevEndurance = ItemInstance->ItemData.Endurance / 100.0f;
 	float NewEndurance = PrevEndurance - SpoilModifier;
 	
-	ItemInstance->ItemData.Endurance = NewEndurance;
+	ItemInstance->ItemData.Endurance = NewEndurance * 100.0f;
 	OnEnduranceChangedDelegate.Broadcast(NewEndurance);
 	OnEnduranceUpdated(NewEndurance, PrevEndurance);
 }

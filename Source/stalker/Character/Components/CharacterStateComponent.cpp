@@ -150,6 +150,7 @@ void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState Previo
 		MovementComponentRef->SetMovementModel(InjuredMovementModel);
 		break;
 	case ECharacterHealthState::Dead:
+		OnCharacterDead.Broadcast();
 		StartRagdoll();
 		break;
 	default: break;

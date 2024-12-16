@@ -15,7 +15,7 @@ struct FArmorInstanceData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditInstanceOnly, NotReplicated, Category = "Armor")
-	TMap<FGameplayTag, float> Modifiers;
+	TMap<FGameplayTag, float> ProtectionModifiers;
 };
 
 UCLASS()
@@ -31,7 +31,7 @@ public:
 	TSubclassOf<UGameplayEffect> ArmorEffect;
 	
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	TMap<FGameplayTag, float> Modifiers;
+	TMap<FGameplayTag, float> ProtectionModifiers;
 };
 
 UCLASS()

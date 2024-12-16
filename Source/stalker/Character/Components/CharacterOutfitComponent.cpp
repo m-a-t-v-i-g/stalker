@@ -1,9 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterOutfitComponent.h"
+
+#include "CharacterStateComponent.h"
 #include "EquipmentComponent.h"
 #include "EquipmentSlot.h"
 #include "StalkerCharacter.h"
+#include "Components/HitScanComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UCharacterOutfitComponent::UCharacterOutfitComponent()
@@ -30,6 +33,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	InventoryComponentRef = CharacterRef->GetInventoryComponent();
 	EquipmentComponentRef = CharacterRef->GetEquipmentComponent();
 	StateComponentRef = CharacterRef->GetStateComponent();
+	HitScanComponentRef = CharacterRef->GetHitScanComponent();
 }
 
 void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
@@ -65,6 +69,16 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 				}
 			}
 		}
+
+		if (StateComponentRef)
+		{
+			StateComponentRef->OnCharacterDead.AddUObject(this, &UCharacterOutfitComponent::OnCharacterDead);
+		}
+		
+		if (HitScanComponentRef)
+		{
+			HitScanComponentRef->OnOwnerDamagedDelegate.AddUObject(this, &UCharacterOutfitComponent::OnCharacterDamaged);
+		}
 	}
 }
 
@@ -89,6 +103,15 @@ void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FUpdatedSlotData& S
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotName),
 		                                  true, false);
 	}
+}
+
+void UCharacterOutfitComponent::OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
+                                               const FHitResult& HitResult)
+{
+}
+
+void UCharacterOutfitComponent::OnCharacterDead()
+{
 }
 
 void UCharacterOutfitComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)

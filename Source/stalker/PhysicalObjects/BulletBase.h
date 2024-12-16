@@ -21,8 +21,7 @@ struct FBulletBaseData
 	TWeakObjectPtr<UAbilitySystemComponent> OwnerAbilityComponent;
 	
 	TSubclassOf<UDamageType> DamageType;
-	float BaseDamage = 0.0f;
-	TSubclassOf<UGameplayEffect> DamageEffect;
+	float DamageValue = 0.0f;
 };
 
 UCLASS()

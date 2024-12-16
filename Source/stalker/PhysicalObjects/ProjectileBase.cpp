@@ -46,6 +46,10 @@ void AProjectileBase::OnProjectileOverlapTarget(UPrimitiveComponent* OverlappedC
 
 	HitLogic(OverlappedComponent, OtherActor, SweepResult);
 	OnProjectileHit(OverlappedComponent, OtherActor, SweepResult);
+
+	ActorsToIgnore.AddUnique(OtherActor);
+
+	Destroy();
 }
 
 void AProjectileBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

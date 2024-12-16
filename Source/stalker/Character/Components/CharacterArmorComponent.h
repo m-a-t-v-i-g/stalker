@@ -49,7 +49,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	void EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
+	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
+	                            const FHitResult& HitResult) override;
+	
+	bool EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
 	void UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
 
 	void OnEquippedArmorEnduranceChanged(float ItemEndurance, UItemObject* ItemObject);
@@ -57,14 +60,9 @@ public:
 	const FArmorBehavior* GetArmorBehavior(const FName& ItemScriptName) const;
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Armor")
-	TMap<FName, FGameplayTag> HitScanMap;
-	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* OutgoingItem) override;
 
-	void OnCharacterDamaged(const FGameplayTag& DamageTag, const FHitResult& HitResult);
-	
 	FActiveGameplayEffectHandle ApplyItemEffectSpec(UItemObject* ItemObject);
 	bool RemoveItemEffectSpec(UItemObject* ItemObject);
 	void ReapplyItemEffectSpec(UItemObject* ItemObject);
@@ -79,8 +77,8 @@ private:
 	FEquippedArmorData EquippedBodyData;
 
 	UPROPERTY(EditInstanceOnly, Category = "Armor")
-	TMap<FGameplayTag, UItemObject*> EquippedArmor;
+	TMap<FGameplayTag, UItemObject*> EquippedArmorParts;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Armor")
-	TMap<UItemObject*, FActiveGameplayEffectHandle> ItemEffects;
+	TMap<UItemObject*, FActiveGameplayEffectHandle> ActiveItemEffects;
 };

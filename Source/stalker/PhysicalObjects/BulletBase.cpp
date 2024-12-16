@@ -26,8 +26,7 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	}
 
 	BulletData.DamageType = Ammo->GetDamageType();
-	BulletData.BaseDamage = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
-	BulletData.DamageEffect = Ammo->GetDamageEffect();
+	BulletData.DamageValue = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
 }
 
 void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, const FHitResult& SweepResult)
@@ -36,26 +35,29 @@ void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCompone
 	{
 		if (auto OtherAbilityComp = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 		{
-			if (!BulletData.DamageEffect)
-			{
-				return;
-			}
-
 			if (BulletData.OwnerAbilityComponent.IsValid())
 			{
-				UDamageSystemCore::TakeDamageASCtoASC(BulletData.OwnerAbilityComponent.Get(), OtherAbilityComp, BulletData.Instigator.Get(),
-				                                      this, BulletData.DamageEffect,
-				                                      BulletData.BaseDamage, SweepResult, BulletData.AmmoObject.Get());
+				FDamageDataASCtoASC DamageData;
+				DamageData.SetSourceASC(BulletData.OwnerAbilityComponent.Get());
+				DamageData.SetTargetASC(OtherAbilityComp);
+				DamageData.SetInstigator(BulletData.Instigator.Get(), this);
+				DamageData.SetDamageInfo(BulletData.DamageType, BulletData.DamageValue);
+				DamageData.SetHitResult(SweepResult);
+				DamageData.SetSourceObject(BulletData.AmmoObject.Get());
+				
+				FActiveGameplayEffectHandle GameplayEffectHandle;
+				
+				UDamageSystemCore::TakeDamageASCtoASC(DamageData, GameplayEffectHandle);
 			}
 			else
 			{
-				UDamageSystemCore::TakeDamageActorToASC(BulletData.Instigator.Get(), this, BulletData.BaseDamage,
-				                                        SweepResult, OtherAbilityComp, BulletData.DamageEffect);
+				UDamageSystemCore::TakeDamageActorToASC(BulletData.Instigator.Get(), this, BulletData.DamageValue,
+				                                        SweepResult, OtherAbilityComp, nullptr);
 			}
 		}
 		else
 		{
-			UDamageSystemCore::TakeDamageActorToActor(BulletData.Instigator.Get(), this, OtherActor, BulletData.BaseDamage,
+			UDamageSystemCore::TakeDamageActorToActor(BulletData.Instigator.Get(), this, OtherActor, BulletData.DamageValue,
 													  BulletData.DamageType);	
 		}
 	}

@@ -5,10 +5,12 @@
 #include "Attributes/HealthAttributeSet.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Components/HitScanComponent.h"
 
 FName ABaseOrganic::MeshName {"Mesh0"};
 FName ABaseOrganic::CapsuleName {"Capsule Collision"};
 FName ABaseOrganic::AbilitySystemComponentName {"Ability Component"};
+FName ABaseOrganic::HitScanComponentName {"Hit Scan Component"};
 
 ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -64,6 +66,8 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 
 		HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>("Health Attribute Set");
 	}
+
+	HitScanComponent = CreateDefaultSubobject<UHitScanComponent>(HitScanComponentName);
 	
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");

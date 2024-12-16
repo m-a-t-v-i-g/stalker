@@ -12,6 +12,7 @@ struct FUpdatedSlotData;
 class UInventoryComponent;
 class UEquipmentComponent;
 class UCharacterStateComponent;
+class UHitScanComponent;
 class UItemObject;
 class UItemBehaviorConfig;
 class AStalkerCharacter;
@@ -28,6 +29,8 @@ public:
 	virtual void InitCharacterInfo(AController* InController);
 
 	void OnEquipmentSlotChanged(const FUpdatedSlotData& SlotData, FString SlotName);
+	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag, const FHitResult& HitResult);
+	virtual void OnCharacterDead();
 	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);
@@ -45,6 +48,7 @@ public:
 	UInventoryComponent* GetCharacterInventory() const { return InventoryComponentRef; }
 	UEquipmentComponent* GetCharacterEquipment() const { return EquipmentComponentRef; }
 	UCharacterStateComponent* GetStateComponent() const { return StateComponentRef; }
+	UHitScanComponent* GetHitScanComponent() const { return HitScanComponentRef; }
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Outfit")
@@ -64,4 +68,5 @@ private:
 	TObjectPtr<UInventoryComponent> InventoryComponentRef;
 	TObjectPtr<UEquipmentComponent> EquipmentComponentRef;
 	TObjectPtr<UCharacterStateComponent> StateComponentRef;
+	TObjectPtr<UHitScanComponent> HitScanComponentRef;
 };

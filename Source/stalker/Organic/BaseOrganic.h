@@ -9,6 +9,7 @@
 
 class UCapsuleComponent;
 class UOrganicAbilityComponent;
+class UHitScanComponent;
 
 UCLASS()
 class STALKER_API ABaseOrganic : public AGenPawn, public IAbilitySystemInterface
@@ -21,6 +22,7 @@ public:
 	static FName MeshName;
 	static FName CapsuleName;
 	static FName AbilitySystemComponentName;
+	static FName HitScanComponentName;
 	
 	virtual void PossessedBy(AController* NewController) override;
 	
@@ -44,6 +46,9 @@ public:
 		return Cast<T>(GetCapsuleComponent());
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Organic")
+	FORCEINLINE UHitScanComponent* GetHitScanComponent() const { return HitScanComponent; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
 	TObjectPtr<class UHealthAttributeSet> HealthAttributeSet;
@@ -57,6 +62,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UOrganicAbilityComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHitScanComponent> HitScanComponent;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()

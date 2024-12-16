@@ -2,35 +2,47 @@
 
 #include "DamageSystemCore.h"
 #include "AbilitySystemComponent.h"
+#include "DamageType_Base.h"
 #include "StalkerGameplayTags.h"
+#include "Components/HitScanComponent.h"
 #include "Engine/DamageEvents.h"
 
-bool UDamageSystemCore::TakeDamageASCtoASC(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* Instigator,
-                                           AActor* DamageCauser, TSubclassOf<UGameplayEffect> DamageEffectClass,
-                                           float Damage, const FHitResult& HitResult, const UObject* SourceObject)
+bool UDamageSystemCore::TakeDamageASCtoASC(const FDamageDataASCtoASC& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle)
 {
-	check(Instigator);
-	check(DamageCauser);
-	check(SourceASC);
-	check(TargetASC);
+	check(DamageData.SourceASC.IsValid());
+	check(DamageData.TargetASC.IsValid());
 	
-	if (DamageEffectClass)
+	if (UDamageType_Base* DamageCDO = DamageData.DamageTypeClass->GetDefaultObject<UDamageType_Base>())
 	{
-		auto DamageEffect = NewObject<UGameplayEffect>(SourceASC, DamageEffectClass,
-		                                               FName(DamageCauser->GetName() + "_" + DamageEffectClass->GetName()));
-		if (DamageEffect)
+		if (UClass* DamageEffectClass = DamageCDO->GetDamageEffect())
 		{
-			auto Context = FGameplayEffectContextHandle(new FGameplayEffectContext);
-			if (Context.IsValid())
+			auto DamageEffect = NewObject<UGameplayEffect>(DamageData.SourceASC.Get(), DamageEffectClass,
+			                                               FName(DamageData.DamageCauser->GetName() + "_" +
+				                                               DamageEffectClass->GetName()));
+			if (DamageEffect)
 			{
-				Context.AddSourceObject(SourceObject);
-				Context.AddHitResult(HitResult);
-				Context.AddInstigator(Instigator, DamageCauser);
+				auto Context = FGameplayEffectContextHandle(new FGameplayEffectContext);
+				if (Context.IsValid())
+				{
+					Context.AddSourceObject(DamageData.SourceObject);
+					Context.AddHitResult(DamageData.HitResult);
+					Context.AddInstigator(DamageData.Instigator.Get(), DamageData.DamageCauser.Get());
 				
-				auto DamageSpec = FGameplayEffectSpec(DamageEffect, Context, 1.0f);
-				DamageSpec.SetSetByCallerMagnitude(FStalkerGameplayTags::EffectTag_Damage, Damage);
-				SourceASC->ApplyGameplayEffectSpecToTarget(DamageSpec, TargetASC);
-				return true;
+					auto DamageSpec = FGameplayEffectSpec(DamageEffect, Context, 1.0f);
+					DamageSpec.SetSetByCallerMagnitude(DamageCDO->GetDamageTag(), DamageData.DamageValue);
+				
+					OutDamageEffectHandle = DamageData.SourceASC->ApplyGameplayEffectSpecToTarget(
+						DamageSpec, DamageData.TargetASC.Get());
+				
+					if (AActor* TargetAbilityCompOwner = DamageData.TargetASC->GetOwner())
+					{
+						if (UHitScanComponent* HitScanComponent = TargetAbilityCompOwner->GetComponentByClass<UHitScanComponent>())
+						{
+							HitScanComponent->HitOwnerPart(DamageCDO->GetDamageTag(), DamageData.HitResult);
+						}
+					}
+					return true;
+				}
 			}
 		}
 	}
@@ -78,6 +90,10 @@ bool UDamageSystemCore::TakeDamageActorToActor(AActor* Instigator, AActor* Damag
 	                                             Instigator->GetInstigatorController(), DamageCauser);
 	if (ResultDamage > 0.0f)
 	{
+		if (UHitScanComponent* HitScanComponent = TargetActor->GetComponentByClass<UHitScanComponent>())
+		{
+			//HitScanComponent->HitOwnerPart(DamageCDO->GetDamageTag(), DamageData.HitResult);
+		}
 		return true;
 	}
 	return false;

@@ -2,9 +2,7 @@
 
 #include "ExecCalculation_BulletDamage.h"
 #include "AbilitySystemComponent.h"
-#include "StalkerGameplayTags.h"
 #include "Attributes/HealthAttributeSet.h"
-#include "Attributes/ResistanceAttributeSet.h"
 
 void UExecCalculation_BulletDamage::Execute_Implementation(
 	const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -19,22 +17,19 @@ void UExecCalculation_BulletDamage::Execute_Implementation(
 		return;
 	}
 	
-	float FinalDamage = ExecutionParams.GetOwningSpecForPreExecuteMod()->GetSetByCallerMagnitude(
-		FStalkerGameplayTags::EffectTag_Damage, false);
-	
-	bool bBullResFound;
-	float BulletResistanceValue = TargetASC->GetGameplayAttributeValue(
-		UResistanceAttributeSet::GetBulletResistanceAttribute(), bBullResFound);
-
-	if (bBullResFound)
-	{
-		FinalDamage *= 1 - BulletResistanceValue / 100.0f;
-	}
-
+	float FinalDamage = ExecutionParams.GetOwningSpecForPreExecuteMod()->GetSetByCallerMagnitude(DamageTag, false);
 	if (FinalDamage > 0.0f)
 	{
+		bool bAttributeFound;
+		float DamageResistanceValue = TargetASC->GetGameplayAttributeValue(ResistanceAttribute, bAttributeFound);
+
+		if (bAttributeFound)
+		{
+			FinalDamage *= 1 - DamageResistanceValue / 100.0f;
+		}
+		
 		OutExecutionOutput.AddOutputModifier(
 			FGameplayModifierEvaluatedData(UHealthAttributeSet::GetDamageAttribute(), EGameplayModOp::Additive,
-										   FinalDamage));
+			                               FinalDamage));
 	}
 }

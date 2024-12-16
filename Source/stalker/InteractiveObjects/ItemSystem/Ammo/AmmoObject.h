@@ -26,9 +26,6 @@ struct FAmmoDamageData
 	
 	UPROPERTY(EditAnywhere, Category = "Damage")
 	TSubclassOf<UDamageType> DamageType;
-	
-	UPROPERTY(EditInstanceOnly, Category = "Damage")
-	TSubclassOf<UGameplayEffect> DamageEffect;
 };
 
 UCLASS()
@@ -80,5 +77,4 @@ public:
 	FORCEINLINE UClass* GetBulletClass() const;
 	FORCEINLINE FAmmoDamageData GetDamageData() const;
 	FORCEINLINE UClass* GetDamageType() const;
-	FORCEINLINE UClass* GetDamageEffect() const;
 };

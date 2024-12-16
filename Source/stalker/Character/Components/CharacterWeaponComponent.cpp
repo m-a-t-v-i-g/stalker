@@ -44,6 +44,11 @@ void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	*/
 }
 
+void UCharacterWeaponComponent::OnCharacterDead()
+{
+	Super::OnCharacterDead();
+}
+
 const FWeaponBehavior* UCharacterWeaponComponent::GetWeaponBehavior(const FName& ItemScriptName) const
 {
 	if (ItemBehaviorConfig)

@@ -14,4 +14,11 @@ class STALKER_API UExecCalculation_BulletDamage : public UGameplayEffectExecutio
 public:
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
 	                                    FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Calculation")
+	FGameplayTag DamageTag;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Calculation")
+	FGameplayAttribute ResistanceAttribute;
 };

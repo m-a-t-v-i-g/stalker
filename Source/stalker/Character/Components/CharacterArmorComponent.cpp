@@ -4,6 +4,7 @@
 #include "AbilitySystemComponent.h"
 #include "ItemObject.h"
 #include "StalkerCharacter.h"
+#include "StalkerGameplayTags.h"
 #include "Armor/ArmorObject.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -20,39 +21,57 @@ void UCharacterArmorComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME_CONDITION(ThisClass, EquippedBodyData,	COND_OwnerOnly);
 }
 
-void UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData)
+void UCharacterArmorComponent::OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
+                                              const FHitResult& HitResult)
+{
+	Super::OnCharacterDamaged(DamageTag, PartTag, HitResult);
+
+	UItemObject** DamagedArmorPtr = EquippedArmorParts.Find(PartTag);
+	if (!DamagedArmorPtr)
+	{
+		return;
+	}
+
+	if (UItemObject* DamagedArmor = *DamagedArmorPtr)
+	{
+		DamagedArmor->SpoilEndurance(DamageTag);
+	}
+}
+
+bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData)
 {
 	if (!GetAbilityComponent())
 	{
-		return;
+		return false;
 	}
 
 	UArmorObject* ArmorObject = Cast<UArmorObject>(ItemObject);
 	if (!ArmorObject)
 	{
-		return;
+		return false;
 	}
 
-	if (ItemEffects.Contains(ArmorObject))
+	if (ActiveItemEffects.Contains(ArmorObject))
 	{
-		return;
+		return false;
 	}
 	
 	const FArmorBehavior* ArmorBehConfig = GetArmorBehavior(ArmorObject->GetScriptName());
 	if (!ArmorBehConfig)
 	{
-		return;
+		return false;
 	}
 
 	FActiveGameplayEffectHandle NewEffectHandle = ApplyItemEffectSpec(ArmorObject);
 	if (NewEffectHandle.IsValid())
 	{
-		ItemEffects.Add(ArmorObject, NewEffectHandle);
+		ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
 	}
 
 	ArmorObject->OnEnduranceChangedDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
 	                                                   ItemObject);
 	ArmorData = FEquippedArmorData(ArmorObject, *ArmorBehConfig);
+	return true;
 }
 
 void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData)
@@ -70,7 +89,7 @@ void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedAr
 
 	if (RemoveItemEffectSpec(ArmorObject))
 	{
-		ItemEffects.Remove(ArmorObject);
+		ActiveItemEffects.Remove(ArmorObject);
 	}
 
 	ArmorObject->OnEnduranceChangedDelegate.RemoveAll(this);
@@ -114,12 +133,18 @@ void UCharacterArmorComponent::OnEquipSlot(const FString& SlotName, UItemObject*
 	{
 	case EArmorType::Helmet:
 		{
-			EquipArmor(IncomingItem, EquippedHelmetData);
+			if (EquipArmor(IncomingItem, EquippedHelmetData))
+			{
+				EquippedArmorParts.Add(FStalkerGameplayTags::ArmorPartTag_Helmet, IncomingItem);
+			}
 			break;
 		}
 	case EArmorType::Body:
 		{
-			EquipArmor(IncomingItem, EquippedBodyData);
+			if (EquipArmor(IncomingItem, EquippedBodyData))
+			{
+				EquippedArmorParts.Add(FStalkerGameplayTags::ArmorPartTag_Body, IncomingItem);
+			}
 			break;
 		}
 	default:
@@ -160,18 +185,6 @@ void UCharacterArmorComponent::OnUnequipSlot(const FString& SlotName, UItemObjec
 	}
 }
 
-void UCharacterArmorComponent::OnCharacterDamaged(const FGameplayTag& DamageTag, const FHitResult& HitResult)
-{
-	FGameplayTag HitBone = HitScanMap.FindChecked(HitResult.BoneName);
-	if (HitBone.IsValid())
-	{
-		if (UItemObject* DamagedArmor = EquippedArmor.FindChecked(HitBone))
-		{
-			DamagedArmor->SpoilEndurance(DamageTag);
-		}
-	}
-}
-
 FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemObject* ItemObject)
 {
 	if (UArmorObject* ArmorObject = Cast<UArmorObject>(ItemObject))
@@ -207,7 +220,7 @@ FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemO
 
 bool UCharacterArmorComponent::RemoveItemEffectSpec(UItemObject* ItemObject)
 {
-	if (FActiveGameplayEffectHandle* EffectHandle = ItemEffects.Find(ItemObject))
+	if (FActiveGameplayEffectHandle* EffectHandle = ActiveItemEffects.Find(ItemObject))
 	{
 		if (EffectHandle && EffectHandle->IsValid())
 		{

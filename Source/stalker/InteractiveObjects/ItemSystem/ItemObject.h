@@ -187,7 +187,7 @@ public:
 	void AddAmount(uint32 Amount) const;
 	void RemoveAmount(uint32 Amount) const;
 
-	void SpoilEndurance(const FGameplayTag& SpoilTag);
+	void SpoilEndurance(const FGameplayTag& DamageTag);
 	virtual void OnEnduranceUpdated(float NewEndurance, float PrevEndurance);
 
 	virtual bool IsInteractable() const;

@@ -25,7 +25,7 @@ void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* De
 
 	if (auto ArmorDefinition = Cast<UArmorDefinition>(Definition))
 	{
-		// Logic
+		ArmorData.ProtectionModifiers = ArmorDefinition->ProtectionModifiers;
 		
 		if (auto ArmorPredictedData = Cast<UArmorPredictedData>(PredictedData))
 		{
@@ -40,7 +40,7 @@ void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* De
 	
 	if (auto ArmorInstance = Cast<UArmorInstance>(Instance))
 	{
-		// Logic
+		ArmorData.ProtectionModifiers = ArmorInstance->ArmorData.ProtectionModifiers;
 	}
 }
 
@@ -95,7 +95,7 @@ void UArmorObject::UpdateModifiers() const
 		NewModifiers.Add(Modifier.Key, FinalModifierValue);
 	}
 
-	GetArmorInstance()->ArmorData.Modifiers = NewModifiers;
+	GetArmorInstance()->ArmorData.ProtectionModifiers = NewModifiers;
 }
 
 const UArmorDefinition* UArmorObject::GetArmorDefinition() const
@@ -130,5 +130,5 @@ UClass* UArmorObject::GetArmorEffect() const
 
 const TMap<FGameplayTag, float>& UArmorObject::GetModifiers() const
 {
-	return GetArmorDefinition()->Modifiers;
+	return GetArmorInstance()->ArmorData.ProtectionModifiers;
 }

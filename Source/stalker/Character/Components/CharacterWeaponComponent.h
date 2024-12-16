@@ -114,6 +114,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void OnCharacterDead() override;
+
 	void TryToggleSlot(int8 SlotIndex);
 	
 	UFUNCTION(Server, Reliable)
