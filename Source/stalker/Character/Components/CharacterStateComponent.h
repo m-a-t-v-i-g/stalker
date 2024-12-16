@@ -10,6 +10,7 @@
 
 struct FOnAttributeChangeData;
 class UHealthAttributeSet;
+class UResistanceAttributeSet;
 class UOrganicAbilityComponent;
 class UStalkerCharacterMovementComponent;
 class UCharacterWeaponComponent;
@@ -65,14 +66,14 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
 	ECharacterMovementAction MovementAction = ECharacterMovementAction::None;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = "OnRep_OverlayState", Category = "Character State")
 	ECharacterOverlayState OverlayState = ECharacterOverlayState::Default;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = "OnRep_HealthState", Category = "Character State")
-	ECharacterHealthState HealthState = ECharacterHealthState::Normal;
+	ECharacterHealthState HealthState = ECharacterHealthState::None;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = "OnRep_CombatState", Category = "Character State")
-	ECharacterCombatState CombatState = ECharacterCombatState::Relaxed;
+	ECharacterCombatState CombatState = ECharacterCombatState::None;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character State")
 	float CombatStateTransitionTime = 3.0f;
@@ -107,6 +108,9 @@ protected:
 	void SetRelaxTimer();
 
 	UFUNCTION()
+	void OnRep_OverlayState(ECharacterOverlayState PrevOverlayState);
+
+	UFUNCTION()
 	void OnRep_HealthState(ECharacterHealthState PrevHealthState);
 
 	UFUNCTION()
@@ -125,6 +129,7 @@ private:
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponentRef;
 
 	TObjectPtr<const UHealthAttributeSet> HealthAttributeSet;
+	TObjectPtr<const UResistanceAttributeSet> ResistanceAttributeSet;
 
 	bool bRagdoll = false;
 	

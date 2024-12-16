@@ -6,6 +6,7 @@
 #include "StalkerCharacterMovementComponent.h"
 #include "Animation/AnimationCore.h"
 #include "Attributes/HealthAttributeSet.h"
+#include "Attributes/ResistanceAttributeSet.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -36,10 +37,10 @@ void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, HealthState,		COND_SimulatedOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, CombatState,		COND_SimulatedOnly);
 	DOREPLIFETIME(ThisClass, MovementAction);
 	DOREPLIFETIME(ThisClass, OverlayState);
+	DOREPLIFETIME_CONDITION(ThisClass, HealthState, COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, CombatState, COND_SimulatedOnly);
 }
 
 void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacter)
@@ -88,6 +89,12 @@ void UCharacterStateComponent::InitCharacterInfo(AController* InController)
 			HealthDelegate.AddUObject(this, &UCharacterStateComponent::OnHealthChange);
 
 			SetupHealth();
+		}
+
+		if (const UResistanceAttributeSet* ResistanceAttribute = Cast<UResistanceAttributeSet>(
+			AbilityComponentRef->GetAttributeSet(UResistanceAttributeSet::StaticClass())))
+		{
+			ResistanceAttributeSet = ResistanceAttribute;
 		}
 	}
 
@@ -342,6 +349,11 @@ void UCharacterStateComponent::SetRelaxTimer()
 
 		GetWorld()->GetTimerManager().SetTimer(CombatStateTimer, TimerDelegate, CombatStateTransitionTime, false);
 	}
+}
+
+void UCharacterStateComponent::OnRep_OverlayState(ECharacterOverlayState PrevOverlayState)
+{
+	OnOverlayStateChanged(PrevOverlayState);
 }
 
 void UCharacterStateComponent::OnRep_HealthState(ECharacterHealthState PrevHealthState)

@@ -42,6 +42,7 @@ enum class ECharacterOverlayState : uint8
 UENUM(BlueprintType)
 enum class ECharacterHealthState : uint8
 {
+	None,
 	Normal	 UMETA(DisplayName = "Normal"),
 	Injured	 UMETA(DisplayName = "Injured"),
 	Dead	 UMETA(DisplayName = "Dead")
@@ -50,6 +51,7 @@ enum class ECharacterHealthState : uint8
 UENUM(BlueprintType)
 enum class ECharacterCombatState : uint8
 {
+	None,
 	Relaxed	 UMETA(DisplayName = "Relaxed"),
 	Tense	 UMETA(DisplayName = "Tense"),
 	Ready	 UMETA(DisplayName = "Ready")

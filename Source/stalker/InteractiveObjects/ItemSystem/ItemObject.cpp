@@ -19,9 +19,10 @@ bool UItemInstance::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch
 	return bReplicateSomething;
 }
 
-void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
-                                    const UItemPredictedData* PredictedData)
+void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData)
 {
+	FItemInstanceData PrevItemData = ItemData;
+	
 	ItemData.ItemId = NewItemId;
 
 	if (Definition)
@@ -34,10 +35,14 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 			ItemData.Endurance = PredictedData->Endurance;
 		}
 	}
+	
+	UpdateItemInstance(PrevItemData);
 }
 
 void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
 {
+	FItemInstanceData PrevItemData = ItemData;
+	
 	ItemData.ItemId = NewItemId;
 
 	if (Definition)
@@ -50,11 +55,18 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 			ItemData.Endurance = Instance->ItemData.Endurance;
 		}
 	}
+
+	UpdateItemInstance(PrevItemData);
 }
 
-void UItemInstance::OnRep_ItemData()
+void UItemInstance::UpdateItemInstance(const FItemInstanceData& PrevItemData)
 {
-	
+	OnItemDataChangedDelegate.ExecuteIfBound(ItemData, PrevItemData);
+}
+
+void UItemInstance::OnRep_ItemData(const FItemInstanceData& PrevItemData)
+{
+	UpdateItemInstance(PrevItemData);
 }
 
 void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -102,6 +114,7 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	}
 	
 	ItemInstance = NewItemInstance;
+	ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	ItemInstance->SetupProperties(ItemId, GetDefinition(), ItemObject->GetItemInstance());
 }
 
@@ -124,7 +137,13 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 	}
 
 	ItemInstance = NewItemInstance;
+	ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	ItemInstance->SetupProperties(ItemId, GetDefinition(), PredictedData);
+}
+
+void UItemObject::OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData)
+{
+	UpdateEndurance(ItemData.Endurance, PrevItemData.Endurance);
 }
 
 void UItemObject::BindItemActor(AItemActor* BindItem)
@@ -196,6 +215,11 @@ void UItemObject::SpoilEndurance(const FGameplayTag& DamageTag)
 	float NewEndurance = PrevEndurance - SpoilModifier;
 	
 	ItemInstance->ItemData.Endurance = NewEndurance * 100.0f;
+	UpdateEndurance(NewEndurance, PrevEndurance);
+}
+
+void UItemObject::UpdateEndurance(float NewEndurance, float PrevEndurance)
+{
 	OnEnduranceChangedDelegate.Broadcast(NewEndurance);
 	OnEnduranceUpdated(NewEndurance, PrevEndurance);
 }
@@ -369,14 +393,28 @@ FTimerManager& UItemObject::GetWorldTimerManager() const
 	return GetWorld()->GetTimerManager();
 }
 
+void UItemObject::OnRep_ItemInstance(UItemInstance* PrevItemInstance)
+{
+	if (PrevItemInstance)
+	{
+		PrevItemInstance->OnItemDataChangedDelegate.Unbind();
+	}
+
+	if (ItemInstance)
+	{
+		ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
+	}
+}
+
 void UItemObject::OnRep_BoundItem(AItemActor* PrevItemActor)
 {
+	if (PrevItemActor)
+	{
+		OnUnbindItemActor(PrevItemActor);
+	}
+	
 	if (BoundItemActor)
 	{
 		OnBindItemActor();
-	}
-	else
-	{
-		OnUnbindItemActor(PrevItemActor);
 	}
 }

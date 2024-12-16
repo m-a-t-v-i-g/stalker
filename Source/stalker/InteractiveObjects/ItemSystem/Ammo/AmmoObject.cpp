@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AmmoObject.h"
-#include "GameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicalObjects/BulletBase.h"
 
@@ -9,14 +8,13 @@ void UAmmoInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(ThisClass, AmmoData, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, AmmoData,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, DamageData,	COND_OwnerOnly);
 }
 
 void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                     const UItemPredictedData* PredictedData)
 {
-	Super::SetupProperties(NewItemId, Definition, PredictedData);
-
 	if (auto AmmoDefinition = Cast<UAmmoDefinition>(Definition))
 	{
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
@@ -27,17 +25,19 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 			// Predicted data
 		}
 	}
+
+	Super::SetupProperties(NewItemId, Definition, PredictedData);
 }
 
 void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
 {
-	Super::SetupProperties(NewItemId, Definition, Instance);
-
 	if (auto AmmoInstance = Cast<UAmmoInstance>(Instance))
 	{
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
 	}
+
+	Super::SetupProperties(NewItemId, Definition, Instance);
 }
 
 const UAmmoDefinition* UAmmoObject::GetAmmoDefinition() const

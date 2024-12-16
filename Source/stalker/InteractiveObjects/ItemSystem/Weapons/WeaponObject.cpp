@@ -12,6 +12,7 @@ void UWeaponInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, WeaponData, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, DamageData, COND_OwnerOnly);
 }
 
 bool UWeaponInstance::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -30,8 +31,6 @@ bool UWeaponInstance::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bun
 void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                       const UItemPredictedData* PredictedData)
 {
-	Super::SetupProperties(NewItemId, Definition, PredictedData);
-
 	if (auto WeaponDefinition = Cast<UWeaponDefinition>(Definition))
 	{
 		WeaponData.AmmoClasses = WeaponDefinition->AmmoClasses;
@@ -45,12 +44,12 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		
 		SetupRounds(Definition, PredictedData);
 	}
+	
+	Super::SetupProperties(NewItemId, Definition, PredictedData);
 }
 
 void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
 {
-	Super::SetupProperties(NewItemId, Definition, Instance);
-	
 	if (auto WeaponInstance = Cast<UWeaponInstance>(Instance))
 	{
 		WeaponData.AmmoClasses = WeaponInstance->WeaponData.AmmoClasses;
@@ -62,6 +61,8 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 
 		DamageData = WeaponInstance->DamageData;
 	}
+	
+	Super::SetupProperties(NewItemId, Definition, Instance);
 }
 
 void UWeaponInstance::SetupRounds(const UItemDefinition* Definition, const UItemPredictedData* PredictedData)

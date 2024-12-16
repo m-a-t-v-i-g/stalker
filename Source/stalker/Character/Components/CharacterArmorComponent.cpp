@@ -199,7 +199,7 @@ FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemO
 					Context.AddSourceObject(ArmorObject);
 				
 					auto ArmorSpec = FGameplayEffectSpec(ArmorEffect, Context, 1.0f);
-					const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetModifiers();
+					const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
 
 					for (const auto& Modifier : ArmorModifiers)
 					{

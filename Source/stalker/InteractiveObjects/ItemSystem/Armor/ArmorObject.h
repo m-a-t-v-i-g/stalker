@@ -82,9 +82,9 @@ public:
 
 	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
 
-	void UpdateModifiers() const;
+	void UpdateProtectionModifiers() const;
 	
-	FORCEINLINE const TMap<FGameplayTag, float>& GetModifiers() const;
+	FORCEINLINE const TMap<FGameplayTag, float>& GetProtectionModifiers() const;
 	
 #pragma endregion Behavior
 

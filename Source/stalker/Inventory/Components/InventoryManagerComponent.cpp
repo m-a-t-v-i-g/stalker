@@ -13,7 +13,7 @@
 
 UInventoryManagerComponent::UInventoryManagerComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	SetIsReplicatedByDefault(true);
 }
@@ -22,7 +22,8 @@ void UInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UInventoryManagerComponent, ReplicatedContainers, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UInventoryManagerComponent, ReplicatedContainers,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UInventoryManagerComponent, ReplicatedEquipmentSlots,	COND_OwnerOnly);
 }
 
 bool UInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)

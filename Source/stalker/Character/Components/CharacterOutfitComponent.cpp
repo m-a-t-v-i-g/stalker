@@ -106,7 +106,7 @@ void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FUpdatedSlotData& S
 }
 
 void UCharacterOutfitComponent::OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
-                                               const FHitResult& HitResult)
+                                                   const FHitResult& HitResult)
 {
 }
 

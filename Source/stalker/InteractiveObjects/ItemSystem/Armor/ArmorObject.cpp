@@ -21,8 +21,6 @@ bool UArmorInstance::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunc
 void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
                                      const UItemPredictedData* PredictedData)
 {
-	Super::SetupProperties(NewItemId, Definition, PredictedData);
-
 	if (auto ArmorDefinition = Cast<UArmorDefinition>(Definition))
 	{
 		ArmorData.ProtectionModifiers = ArmorDefinition->ProtectionModifiers;
@@ -32,16 +30,18 @@ void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* De
 			// Predicted data
 		}
 	}
+
+	Super::SetupProperties(NewItemId, Definition, PredictedData);
 }
 
 void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance)
-{
-	Super::SetupProperties(NewItemId, Definition, Instance);
-	
+{	
 	if (auto ArmorInstance = Cast<UArmorInstance>(Instance))
 	{
 		ArmorData.ProtectionModifiers = ArmorInstance->ArmorData.ProtectionModifiers;
 	}
+
+	Super::SetupProperties(NewItemId, Definition, Instance);
 }
 
 void UArmorObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -58,9 +58,9 @@ void UArmorObject::Use_Implementation(UObject* Source)
 
 void UArmorObject::OnEnduranceUpdated(float NewEndurance, float PrevEndurance)
 {
+	UpdateProtectionModifiers();
+	
 	Super::OnEnduranceUpdated(NewEndurance, PrevEndurance);
-
-	UpdateModifiers();
 }
 
 void UArmorObject::OnBindItemActor()
@@ -78,10 +78,10 @@ bool UArmorObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 	return Super::IsCorrespondsTo(OtherItemObject);
 }
 
-void UArmorObject::UpdateModifiers() const
+void UArmorObject::UpdateProtectionModifiers() const
 {
 	TMap<FGameplayTag, float> NewModifiers;
-	const TMap<FGameplayTag, float>& ArmorModifiers = GetModifiers();
+	const TMap<FGameplayTag, float>& ArmorModifiers = GetProtectionModifiers();
 	UCurveFloat* ProtectionCurve = GetProtectionFactorCurve();
 	
 	for (const auto& Modifier : ArmorModifiers)
@@ -128,7 +128,7 @@ UClass* UArmorObject::GetArmorEffect() const
 	return GetArmorDefinition()->ArmorEffect;
 }
 
-const TMap<FGameplayTag, float>& UArmorObject::GetModifiers() const
+const TMap<FGameplayTag, float>& UArmorObject::GetProtectionModifiers() const
 {
 	return GetArmorInstance()->ArmorData.ProtectionModifiers;
 }

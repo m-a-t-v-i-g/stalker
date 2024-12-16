@@ -107,6 +107,8 @@ class STALKER_API UItemInstance : public UObject
 public:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemData", Category = "Item")
 	FItemInstanceData ItemData;
+
+	TDelegate<void(const FItemInstanceData&, const FItemInstanceData&)> OnItemDataChangedDelegate;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -115,13 +117,15 @@ public:
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition,
 								 const UItemPredictedData* PredictedData);
 	virtual void SetupProperties(uint32 NewItemId, const UItemDefinition* Definition, const UItemInstance* Instance);
+
+	void UpdateItemInstance(const FItemInstanceData& PrevItemData);
 	
 protected:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Item")
 	TObjectPtr<const UItemDefinition> ItemDefinition;
 
 	UFUNCTION()
-	void OnRep_ItemData();
+	void OnRep_ItemData(const FItemInstanceData& PrevItemData);
 };
 
 USTRUCT(BlueprintType, Blueprintable)
@@ -176,6 +180,8 @@ public:
 
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
+
+	void OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData);
 	
 	void BindItemActor(AItemActor* BindItem);
 	virtual void OnBindItemActor();
@@ -188,6 +194,7 @@ public:
 	void RemoveAmount(uint32 Amount) const;
 
 	void SpoilEndurance(const FGameplayTag& DamageTag);
+	void UpdateEndurance(float NewEndurance, float PrevEndurance);
 	virtual void OnEnduranceUpdated(float NewEndurance, float PrevEndurance);
 
 	virtual bool IsInteractable() const;
@@ -253,13 +260,16 @@ public:
 	FTimerManager& GetWorldTimerManager() const;
 
 protected:
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Instance Data")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemInstance", Category = "Instance Data")
 	TObjectPtr<UItemInstance> ItemInstance;
 
 	UFUNCTION()
-	void OnRep_BoundItem(AItemActor* PrevItemActor);
+	void OnRep_ItemInstance(UItemInstance* PrevItemInstance);
 
 private:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")
 	TObjectPtr<AItemActor> BoundItemActor;
+	
+	UFUNCTION()
+	void OnRep_BoundItem(AItemActor* PrevItemActor);
 };

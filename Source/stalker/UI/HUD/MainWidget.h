@@ -35,7 +35,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UNamedSlot> SlotManager;
-	
+
 private:
 	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;

@@ -4,14 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
-#include "ExecCalculation_BlastDamage.generated.h"
+#include "ExecCalculation_Damage.generated.h"
 
 UCLASS()
-class STALKER_API UExecCalculation_BlastDamage : public UGameplayEffectExecutionCalculation
+class STALKER_API UExecCalculation_Damage : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
 	                                    FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Calculation")
+	FGameplayTag DamageTag;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Calculation")
+	FGameplayAttribute ResistanceAttribute;
 };

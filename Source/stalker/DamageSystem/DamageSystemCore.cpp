@@ -70,7 +70,7 @@ bool UDamageSystemCore::TakeDamageActorToASC(AActor* Instigator, AActor* DamageC
 				Context.AddInstigator(Instigator, DamageCauser);
 				
 				auto DamageSpec = FGameplayEffectSpec(DamageEffect, Context, 1.0f);
-				DamageSpec.SetSetByCallerMagnitude(FStalkerGameplayTags::EffectTag_Damage, Damage);
+				//DamageSpec.SetSetByCallerMagnitude(FStalkerGameplayTags::EffectTag_Damage, Damage);
 				TargetASC->ApplyGameplayEffectSpecToSelf(DamageSpec);
 				return true;
 			}

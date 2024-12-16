@@ -17,8 +17,6 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Character.Reload", "Reload ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Character.Interaction", "Interaction ability.");
 	
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Damage,				"Effect.Health.Damage", "Damage effect.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_Heal,					"Effect.Health.Heal", "Heal effect.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletDamage,			"Effect.Damage.Bullet", "Bullet damage tag.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletResistance,		"Effect.Resistance.Bullet", "Bullet resistance effect.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BlastDamage,			"Effect.Damage.Blast", "Blast damage tag.");
