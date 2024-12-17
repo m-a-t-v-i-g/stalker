@@ -47,10 +47,12 @@ class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
 public:
 	UCharacterArmorComponent();
 
+	TMulticastDelegate<void(float)> OnTotalArmorEnduranceChangedDelegate;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
-	                            const FHitResult& HitResult) override;
+	                                const FHitResult& HitResult, float DamageValue) override;
 	
 	bool EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
 	void UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
@@ -58,6 +60,8 @@ public:
 	void OnEquippedArmorEnduranceChanged(float ItemEndurance, UItemObject* ItemObject);
 	
 	const FArmorBehavior* GetArmorBehavior(const FName& ItemScriptName) const;
+
+	float GetTotalArmorEndurance() const { return TotalArmorEndurance; }
 	
 protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
@@ -68,6 +72,9 @@ protected:
 	void ReapplyItemEffectSpec(UItemObject* ItemObject);
 	
 	USkeletalMeshComponent* GetCharacterMesh() const;
+
+	UFUNCTION()
+	void OnRep_TotalArmorEndurance();
 	
 private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Armor")
@@ -81,4 +88,7 @@ private:
 	
 	UPROPERTY(EditInstanceOnly, Category = "Armor")
 	TMap<UItemObject*, FActiveGameplayEffectHandle> ActiveItemEffects;
+
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_TotalArmorEndurance", Category = "Armor", meta = (ForceUnits = "%"))
+	float TotalArmorEndurance = 0.0f;
 };

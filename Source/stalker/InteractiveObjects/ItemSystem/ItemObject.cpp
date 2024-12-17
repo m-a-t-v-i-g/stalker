@@ -144,6 +144,8 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 void UItemObject::OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData)
 {
 	UpdateEndurance(ItemData.Endurance, PrevItemData.Endurance);
+	UpdateAmount(ItemData.Amount, PrevItemData.Amount);
+	UpdateMode(ItemData.Mode, PrevItemData.Mode);
 }
 
 void UItemObject::BindItemActor(AItemActor* BindItem)
@@ -179,43 +181,76 @@ void UItemObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 {
 }
 
-void UItemObject::SetAmount(uint32 Amount) const
+void UItemObject::SetAmount(uint32 Amount)
 {
 	if (ItemInstance)
 	{
+		uint32 PrevAmount = ItemInstance->ItemData.Amount;
 		ItemInstance->ItemData.Amount = Amount;
+		UpdateAmount(Amount, PrevAmount);
 	}
 }
 
-void UItemObject::AddAmount(uint32 Amount) const
+void UItemObject::AddAmount(uint32 Amount)
 {
 	if (ItemInstance)
 	{
-		ItemInstance->ItemData.Amount += Amount;
+		uint32 PrevAmount = ItemInstance->ItemData.Amount;
+		uint32 NewAmount = ItemInstance->ItemData.Amount + Amount;
+		ItemInstance->ItemData.Amount = NewAmount;
+		UpdateAmount(NewAmount, PrevAmount);
 	}
 }
 
-void UItemObject::RemoveAmount(uint32 Amount) const
+void UItemObject::RemoveAmount(uint32 Amount)
 {
 	if (ItemInstance)
 	{
-		ItemInstance->ItemData.Amount -= Amount;
+		uint32 PrevAmount = ItemInstance->ItemData.Amount;
+		uint32 NewAmount = ItemInstance->ItemData.Amount - Amount;
+		ItemInstance->ItemData.Amount = NewAmount;
+		UpdateAmount(NewAmount, PrevAmount);
 	}
 }
 
-void UItemObject::SpoilEndurance(const FGameplayTag& DamageTag)
+void UItemObject::UpdateAmount(uint32 NewAmount, uint32 PrevAmount)
 {
-	const float SpoilModifier = GetSpoilModifiers().FindChecked(DamageTag);
-	if (FMath::IsNearlyZero(SpoilModifier))
-	{
-		return;
-	}
+	OnAmountChangedDelegate.Broadcast(NewAmount);
+	OnAmountUpdated(NewAmount, PrevAmount);
+}
 
-	float PrevEndurance = ItemInstance->ItemData.Endurance / 100.0f;
-	float NewEndurance = PrevEndurance - SpoilModifier;
-	
-	ItemInstance->ItemData.Endurance = NewEndurance * 100.0f;
-	UpdateEndurance(NewEndurance, PrevEndurance);
+void UItemObject::OnAmountUpdated(uint32 NewAmount, uint32 PrevAmount)
+{
+}
+
+void UItemObject::RecoveryEndurance()
+{
+	if (ItemInstance)
+	{
+		float PrevEndurance = ItemInstance->ItemData.Endurance / 100.0f;
+		float NewEndurance = ItemInstance->ItemData.Endurance = 100.0f;
+		UpdateEndurance(NewEndurance, PrevEndurance);
+	}
+}
+
+void UItemObject::SpoilEndurance(const FGameplayTag& DamageTag, float DamageValue)
+{
+	if (ItemInstance)
+	{
+		if (const float* SpoilModifierPtr = GetSpoilModifiers().Find(DamageTag))
+		{
+			const float SpoilModifier = *SpoilModifierPtr;
+			if (FMath::IsNearlyZero(SpoilModifier))
+			{
+				return;
+			}
+
+			float PrevEndurance = ItemInstance->ItemData.Endurance / 100.0f;
+			float NewEndurance = PrevEndurance - SpoilModifier * DamageValue;
+			ItemInstance->ItemData.Endurance = NewEndurance * 100.0f;
+			UpdateEndurance(NewEndurance, PrevEndurance);
+		}
+	}
 }
 
 void UItemObject::UpdateEndurance(float NewEndurance, float PrevEndurance)
@@ -275,17 +310,36 @@ EItemMode UItemObject::GetItemMode() const
 
 void UItemObject::SetGrounded()
 {
-	ItemInstance->ItemData.Mode = EItemMode::Grounded;
+	if (ItemInstance)
+	{
+		ItemInstance->ItemData.Mode = EItemMode::Grounded;
+	}
 }
 
 void UItemObject::SetCollected()
 {
-	ItemInstance->ItemData.Mode = EItemMode::Collected;
+	if (ItemInstance)
+	{
+		ItemInstance->ItemData.Mode = EItemMode::Collected;
+	}
 }
 
 void UItemObject::SetEquipped()
 {
-	ItemInstance->ItemData.Mode = EItemMode::Equipped;
+	if (ItemInstance)
+	{
+		ItemInstance->ItemData.Mode = EItemMode::Equipped;
+	}
+}
+
+void UItemObject::UpdateMode(EItemMode NewMode, EItemMode PrevMode)
+{
+	OnModeChangedDelegate.Broadcast(NewMode);
+	OnModeUpdated(NewMode, PrevMode);
+}
+
+void UItemObject::OnModeUpdated(EItemMode NewMode, EItemMode PrevMode)
+{
 }
 
 bool UItemObject::IsGrounded() const
@@ -402,6 +456,8 @@ void UItemObject::OnRep_ItemInstance(UItemInstance* PrevItemInstance)
 
 	if (ItemInstance)
 	{
+		OnItemInstanceDataChanged(ItemInstance->ItemData,
+		                          PrevItemInstance ? PrevItemInstance->ItemData : FItemInstanceData());
 		ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	}
 }

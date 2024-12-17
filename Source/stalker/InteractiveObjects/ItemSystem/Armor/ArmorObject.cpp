@@ -3,6 +3,8 @@
 #include "ArmorObject.h"
 #include "ArmorActor.h"
 #include "GameplayEffect.h"
+#include "ItemSystemCore.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 void UArmorInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -23,8 +25,6 @@ void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* De
 {
 	if (auto ArmorDefinition = Cast<UArmorDefinition>(Definition))
 	{
-		ArmorData.ProtectionModifiers = ArmorDefinition->ProtectionModifiers;
-		
 		if (auto ArmorPredictedData = Cast<UArmorPredictedData>(PredictedData))
 		{
 			// Predicted data
@@ -38,7 +38,7 @@ void UArmorInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* De
 {	
 	if (auto ArmorInstance = Cast<UArmorInstance>(Instance))
 	{
-		ArmorData.ProtectionModifiers = ArmorInstance->ArmorData.ProtectionModifiers;
+
 	}
 
 	Super::SetupProperties(NewItemId, Definition, Instance);
@@ -80,22 +80,37 @@ bool UArmorObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 
 void UArmorObject::UpdateProtectionModifiers() const
 {
-	TMap<FGameplayTag, float> NewModifiers;
-	const TMap<FGameplayTag, float>& ArmorModifiers = GetProtectionModifiers();
-	UCurveFloat* ProtectionCurve = GetProtectionFactorCurve();
-	
-	for (const auto& Modifier : ArmorModifiers)
+	if (FArmorStaticDataTableRow* ArmorProperties = GetArmorProperties())
 	{
-		float FinalModifierValue = Modifier.Value;
-		if (ProtectionCurve)
+		TMap<FGameplayTag, float> NewModifiers;
+		const TMap<FGameplayTag, float>& ArmorModifiers = ArmorProperties->ProtectionModifiers;
+		UCurveFloat* ProtectionCurve = ArmorProperties->ProtectionFactor;
+
+		for (const auto& Modifier : ArmorModifiers)
 		{
-			FinalModifierValue *= ProtectionCurve->GetFloatValue(GetEndurance() / 100.0f);
+			float NormalizedEndurance = GetEndurance() / 100.0f;
+			float FinalModifierValue = Modifier.Value;
+
+			if (ProtectionCurve)
+			{
+				FinalModifierValue *= ProtectionCurve->GetFloatValue(NormalizedEndurance);
+			}
+			else
+			{
+				FinalModifierValue = UKismetMathLibrary::MapRangeClamped(
+					NormalizedEndurance, 0.0f, 1.0f, 0.0f, Modifier.Value);
+			}
+
+			NewModifiers.Add(Modifier.Key, FinalModifierValue);
 		}
 
-		NewModifiers.Add(Modifier.Key, FinalModifierValue);
+		GetArmorInstance()->ArmorData.ProtectionModifiers = NewModifiers;
 	}
+}
 
-	GetArmorInstance()->ArmorData.ProtectionModifiers = NewModifiers;
+const TMap<FGameplayTag, float>& UArmorObject::GetProtectionModifiers() const
+{
+	return GetArmorInstance()->ArmorData.ProtectionModifiers;
 }
 
 const UArmorDefinition* UArmorObject::GetArmorDefinition() const
@@ -118,17 +133,14 @@ UArmorInstance* UArmorObject::GetArmorInstance() const
 	return GetItemInstance<UArmorInstance>();
 }
 
-UCurveFloat* UArmorObject::GetProtectionFactorCurve() const
+FArmorStaticDataTableRow* UArmorObject::GetArmorProperties() const
 {
-	return GetArmorDefinition()->ProtectionFactorCurve;
-}
-
-UClass* UArmorObject::GetArmorEffect() const
-{
-	return GetArmorDefinition()->ArmorEffect;
-}
-
-const TMap<FGameplayTag, float>& UArmorObject::GetProtectionModifiers() const
-{
-	return GetArmorInstance()->ArmorData.ProtectionModifiers;
+	if (UDataTable* ArmorPropertiesDT = GetArmorDefinition()->ArmorPropertiesDataTable)
+	{
+		if (FArmorStaticDataTableRow* Row = ArmorPropertiesDT->FindRow<FArmorStaticDataTableRow>(GetScriptName(), ""))
+		{
+			return Row;
+		}
+	}
+	return nullptr;
 }

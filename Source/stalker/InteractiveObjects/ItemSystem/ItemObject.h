@@ -165,6 +165,8 @@ public:
 	TObjectPtr<const UItemDefinition> ItemDefinition;
 
 	TMulticastDelegate<void(float)> OnEnduranceChangedDelegate;
+	TMulticastDelegate<void(uint32)> OnAmountChangedDelegate;
+	TMulticastDelegate<void(EItemMode)> OnModeChangedDelegate;
 	
 #pragma region Replication
 	
@@ -189,11 +191,14 @@ public:
 	void UnbindItemActor();
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor);
 	
-	void SetAmount(uint32 Amount) const;
-	void AddAmount(uint32 Amount) const;
-	void RemoveAmount(uint32 Amount) const;
+	void SetAmount(uint32 Amount);
+	void AddAmount(uint32 Amount);
+	void RemoveAmount(uint32 Amount);
+	void UpdateAmount(uint32 NewAmount, uint32 PrevAmount);
+	virtual void OnAmountUpdated(uint32 NewAmount, uint32 PrevAmount);
 
-	void SpoilEndurance(const FGameplayTag& DamageTag);
+	void RecoveryEndurance();
+	void SpoilEndurance(const FGameplayTag& DamageTag, float DamageValue);
 	void UpdateEndurance(float NewEndurance, float PrevEndurance);
 	virtual void OnEnduranceUpdated(float NewEndurance, float PrevEndurance);
 
@@ -215,6 +220,10 @@ public:
 	virtual void SetGrounded();
 	virtual void SetCollected();
 	virtual void SetEquipped();
+
+	void UpdateMode(EItemMode NewMode, EItemMode PrevMode);
+	virtual void OnModeUpdated(EItemMode NewMode, EItemMode PrevMode);
+	
 	virtual bool IsGrounded() const;
 	virtual bool IsCollected() const;
 	virtual bool IsEquipped() const;

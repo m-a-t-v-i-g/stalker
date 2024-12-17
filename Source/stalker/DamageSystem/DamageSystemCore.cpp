@@ -3,7 +3,6 @@
 #include "DamageSystemCore.h"
 #include "AbilitySystemComponent.h"
 #include "DamageType_Base.h"
-#include "StalkerGameplayTags.h"
 #include "Components/HitScanComponent.h"
 #include "Engine/DamageEvents.h"
 
@@ -38,7 +37,7 @@ bool UDamageSystemCore::TakeDamageASCtoASC(const FDamageDataASCtoASC& DamageData
 					{
 						if (UHitScanComponent* HitScanComponent = TargetAbilityCompOwner->GetComponentByClass<UHitScanComponent>())
 						{
-							HitScanComponent->HitOwnerPart(DamageCDO->GetDamageTag(), DamageData.HitResult);
+							HitScanComponent->HitOwnerPart(DamageCDO->GetDamageTag(), DamageData.HitResult, DamageData.DamageValue);
 						}
 					}
 					return true;

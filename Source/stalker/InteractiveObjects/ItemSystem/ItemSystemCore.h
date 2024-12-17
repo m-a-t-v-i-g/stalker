@@ -37,6 +37,21 @@ struct FOutfitSlot
 	}
 };
 
+USTRUCT(Blueprintable)
+struct FArmorStaticDataTableRow : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TSubclassOf<UGameplayEffect> Effect;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TObjectPtr<UCurveFloat> ProtectionFactor;
+	
+	UPROPERTY(EditAnywhere, Category = "Armor")
+	TMap<FGameplayTag, float> ProtectionModifiers;
+};
+
 UCLASS()
 class STALKER_API UItemSystemCore : public UBlueprintFunctionLibrary
 {
@@ -50,6 +65,9 @@ public:
 
 	static UItemObject* GetItemObjectById(const UWorld* World, uint32 ItemId);
 	static bool IsItemObjectValid(const UWorld* World, uint32 ItemId);
+
+protected:
+	
 	
 private:
 	static void AddItemObjectToGameState(UItemObject* ItemObject);

@@ -29,7 +29,8 @@ public:
 	virtual void InitCharacterInfo(AController* InController);
 
 	void OnEquipmentSlotChanged(const FUpdatedSlotData& SlotData, FString SlotName);
-	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag, const FHitResult& HitResult);
+	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
+	                                const FHitResult& HitResult, float DamageValue);
 	virtual void OnCharacterDead();
 	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);

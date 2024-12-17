@@ -15,13 +15,13 @@ class STALKER_API UHitScanComponent : public UActorComponent
 public:
 	UHitScanComponent();
 
-	TMulticastDelegate<void(const FGameplayTag&, const FGameplayTag&, const FHitResult&)> OnOwnerDamagedDelegate;
+	TMulticastDelegate<void(const FGameplayTag&, const FGameplayTag&, const FHitResult&, float)> OnOwnerDamagedDelegate;
 
-	void HitOwnerPart(const FGameplayTag& DamageTag, const FHitResult& HitResult);
+	void HitOwnerPart(const FGameplayTag& DamageTag, const FHitResult& HitResult, float DamageValue);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Hit Scan")
 	TMap<FName, FGameplayTag> HitScanMap;
 	
-	virtual void OnOwnerHit(const FGameplayTag& DamageTag, const FGameplayTag& PartTag, const FHitResult& HitResult);
+	virtual void OnOwnerHit(const FGameplayTag& DamageTag, const FGameplayTag& PartTag, const FHitResult& HitResult, float DamageValue);
 };

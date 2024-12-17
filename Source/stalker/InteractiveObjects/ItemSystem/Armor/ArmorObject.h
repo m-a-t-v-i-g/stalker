@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/ItemSystem/ItemObject.h"
+#include "ItemObject.h"
+#include "ItemSystemCore.h"
 #include "ArmorObject.generated.h"
 
 class UGameplayEffect;
@@ -25,13 +26,7 @@ class STALKER_API UArmorDefinition : public UItemDefinition
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	TObjectPtr<UCurveFloat> ProtectionFactorCurve;
-	
-	UPROPERTY(EditAnywhere, Category = "Armor")
-	TSubclassOf<UGameplayEffect> ArmorEffect;
-	
-	UPROPERTY(EditAnywhere, Category = "Armor")
-	TMap<FGameplayTag, float> ProtectionModifiers;
+	TObjectPtr<UDataTable> ArmorPropertiesDataTable;
 };
 
 UCLASS()
@@ -92,6 +87,5 @@ public:
 	FORCEINLINE USkeletalMesh* GetVisual() const;
 	FORCEINLINE AArmorActor* GetArmorActor() const;
 	FORCEINLINE UArmorInstance* GetArmorInstance() const;
-	FORCEINLINE UCurveFloat* GetProtectionFactorCurve() const;
-	FORCEINLINE UClass* GetArmorEffect() const;
+	FORCEINLINE FArmorStaticDataTableRow* GetArmorProperties() const;
 };
