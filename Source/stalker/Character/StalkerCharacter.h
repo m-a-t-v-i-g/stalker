@@ -102,7 +102,7 @@ public:
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TObjectPtr<UAbilitySet> AbilitySet;
+	TObjectPtr<const UAbilitySet> AbilitySet;
 
 	virtual void InteractWithContainer(UInventoryComponent* TargetInventory) override;
 	virtual void InteractWithItem(UItemObject* ItemObject) override;

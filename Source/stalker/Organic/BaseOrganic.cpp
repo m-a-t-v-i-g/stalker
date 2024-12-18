@@ -3,6 +3,7 @@
 #include "Organic/BaseOrganic.h"
 #include "GenCapsuleComponent.h"
 #include "Attributes/HealthAttributeSet.h"
+#include "Attributes/ResistanceAttributeSet.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/HitScanComponent.h"
@@ -65,6 +66,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 		HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>("Health Attribute Set");
+		ResistanceAttributeSet = CreateDefaultSubobject<UResistanceAttributeSet>("Resistance Attribute Set");
 	}
 
 	HitScanComponent = CreateDefaultSubobject<UHitScanComponent>(HitScanComponentName);

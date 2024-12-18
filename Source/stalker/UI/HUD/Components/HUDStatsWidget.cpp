@@ -1,45 +1,72 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDStatsWidget.h"
+
+#include "CharacterArmorComponent.h"
 #include "Attributes/HealthAttributeSet.h"
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/ProgressBar.h"
 
-void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp)
+void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp, UCharacterArmorComponent* ArmorComp)
 {
-	Attributes = Cast<UHealthAttributeSet>(AbilityComp->GetAttributeSet(UHealthAttributeSet::StaticClass()));
-	if (!Attributes.IsValid()) return;
+	ArmorComponentRef = ArmorComp;
+	if (!ArmorComponentRef.IsValid())
+	{
+		return;
+	}
 	
-	auto& MaxHealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(Attributes->GetHealthAttribute());
-	auto& HealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(Attributes->GetMaxHealthAttribute());
+	HealthAttribute = Cast<UHealthAttributeSet>(AbilityComp->GetAttributeSet(UHealthAttributeSet::StaticClass()));
+	if (!HealthAttribute.IsValid())
+	{
+		return;
+	}
+	
+	auto& MaxHealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(HealthAttribute->GetMaxHealthAttribute());
+	auto& HealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(HealthAttribute->GetHealthAttribute());
 
-	TDelegate<void(const FOnAttributeChangeData&)> HealthDelegate;
-	TDelegate<void(const FOnAttributeChangeData&)> MaxHealthDelegate;
+	MaxHealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnMaxHealthUpdated);
+	HealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnHealthUpdated);
 
-	MaxHealthDelHandle = MaxHealthAttrDelegate.Add(MaxHealthDelegate);
-	HealthDelHandle = HealthAttrDelegate.Add(HealthDelegate);
-
-	HealthDelegate.BindUObject(this, &UHUDStatsWidget::OnHealthUpdated);
-	MaxHealthDelegate.BindUObject(this, &UHUDStatsWidget::OnMaxHealthUpdated);
+	ArmorComponentRef->OnTotalArmorEnduranceChangedDelegate.AddUObject(this, &UHUDStatsWidget::OnTotalArmorEnduranceUpdated);
 
 	ForceUpdateHealthBar();
+	ForceUpdateArmorBar();
 }
 
 void UHUDStatsWidget::OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData)
 {
-	float CurrentValue = Attributes->GetHealth();
-	HealthBar->SetPercent(CurrentValue / AttributeChangeData.NewValue);
+	float HealthValue = HealthAttribute->GetHealth();
+	HealthBar->SetPercent(HealthValue / AttributeChangeData.NewValue);
 }
 
 void UHUDStatsWidget::OnHealthUpdated(const FOnAttributeChangeData& AttributeChangeData)
 {
-	float MaxValue = Attributes->GetMaxHealth();
-	HealthBar->SetPercent(AttributeChangeData.NewValue / MaxValue);
+	float MaxHealthValue = HealthAttribute->GetMaxHealth();
+	HealthBar->SetPercent(AttributeChangeData.NewValue / MaxHealthValue);
+}
+
+void UHUDStatsWidget::OnTotalArmorEnduranceUpdated(float NewTotalEndurance)
+{
+	int ArmorPartsNum = ArmorComponentRef->GetArmorPartsNum();
+	
+	float FinalArmorPercent = 0.0f;
+	if (ArmorPartsNum > 0)
+	{
+		FinalArmorPercent = NewTotalEndurance / ArmorPartsNum;
+	}
+	
+	ArmorBar->SetPercent(FinalArmorPercent);
 }
 
 void UHUDStatsWidget::ForceUpdateHealthBar()
 {
-	float MaxValue = Attributes->GetMaxHealth();
-	float CurrentValue = Attributes->GetHealth();
-	HealthBar->SetPercent(CurrentValue / MaxValue);
+	FOnAttributeChangeData Data;
+	Data.NewValue = HealthAttribute->GetHealth();
+	
+	OnHealthUpdated(Data);
+}
+
+void UHUDStatsWidget::ForceUpdateArmorBar()
+{
+	OnTotalArmorEnduranceUpdated(ArmorComponentRef->GetTotalArmorEndurance());
 }

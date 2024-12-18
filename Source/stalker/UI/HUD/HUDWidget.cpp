@@ -14,6 +14,6 @@ void UHUDWidget::InitializeHUD(const FPlayerInitInfo& CharacterInitInfo)
 
 	check(OwnAbilityComponent.IsValid() && OwnInteractionComponent.IsValid());
 
-	StatsWidget->SetupStatsWidget(OwnAbilityComponent.Get());
+	StatsWidget->SetupStatsWidget(OwnAbilityComponent.Get(), CharacterInitInfo.ArmorComponent);
 	InteractionWidget->SetupInteractionWidget(OwnInteractionComponent.Get());
 }

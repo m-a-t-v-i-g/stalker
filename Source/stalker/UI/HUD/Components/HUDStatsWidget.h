@@ -7,14 +7,17 @@
 #include "HUDStatsWidget.generated.h"
 
 struct FOnAttributeChangeData;
-
-class UHealthAttributeSet;
 class UOrganicAbilityComponent;
+class UCharacterArmorComponent;
+class UHealthAttributeSet;
 
 UCLASS()
 class STALKER_API UHUDStatsWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	void SetupStatsWidget(UOrganicAbilityComponent* AbilityComp, UCharacterArmorComponent* ArmorComp);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -23,18 +26,18 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> ArmorBar;
 
+	void OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
+	void OnHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
+
+	void OnTotalArmorEnduranceUpdated(float NewTotalEndurance);
+	
+	void ForceUpdateHealthBar();
+	void ForceUpdateArmorBar();
+
 private:
 	FDelegateHandle MaxHealthDelHandle;
 	FDelegateHandle HealthDelHandle;
 
-	TWeakObjectPtr<const UHealthAttributeSet> Attributes;
-
-public:
-	void SetupStatsWidget(UOrganicAbilityComponent* AbilityComp);
-
-protected:
-	void OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
-	void OnHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
-
-	void ForceUpdateHealthBar();
+	TWeakObjectPtr<const UHealthAttributeSet> HealthAttribute;
+	TWeakObjectPtr<UCharacterArmorComponent> ArmorComponentRef;
 };

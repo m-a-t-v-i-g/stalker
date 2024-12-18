@@ -34,18 +34,38 @@ public:
 
 	void OnLootInventory(UInventoryComponent* InventoryComponent);
 	void OnStopLootInventory(UInventoryComponent* InventoryComponent);
-	
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerTryEquipItem(UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerEquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUnequipSlot(UEquipmentSlot* EquipmentSlot);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 	
 	bool IsAuthority() const;

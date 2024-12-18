@@ -17,7 +17,11 @@ void UEquipmentSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 bool UEquipmentSlot::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
 	bool bReplicateSomething = false;
-	bReplicateSomething |= Channel->ReplicateSubobject(BoundObject, *Bunch, *RepFlags);
+	if (BoundObject)
+	{
+		bReplicateSomething |= Channel->ReplicateSubobject(BoundObject, *Bunch, *RepFlags);
+		bReplicateSomething |= BoundObject->ReplicateSubobjects(Channel, Bunch, RepFlags);
+	}
 	return bReplicateSomething;
 }
 

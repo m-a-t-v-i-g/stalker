@@ -30,6 +30,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UResistanceAttributeSet, BlastResistance);
 
 protected:
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
 	UFUNCTION()
 	virtual void OnRep_BulletResistance(const FGameplayAttributeData& OldBulletResistance);
 

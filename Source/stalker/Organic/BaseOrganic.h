@@ -53,6 +53,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
 	TObjectPtr<class UHealthAttributeSet> HealthAttributeSet;
 
+	UPROPERTY(VisibleAnywhere, Category = "Attributes")
+	TObjectPtr<class UResistanceAttributeSet> ResistanceAttributeSet;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Mesh;

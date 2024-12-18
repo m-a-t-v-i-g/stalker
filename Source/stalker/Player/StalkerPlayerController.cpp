@@ -82,13 +82,16 @@ void AStalkerPlayerController::ConnectHUD()
 		return;
 	}
 
-	StalkerHUD->InitializePlayerHUD(FPlayerInitInfo(
+	FPlayerInitInfo PlayerInitInfo(
 		Stalker,
 		Stalker->GetAbilitySystemComponent<UOrganicAbilityComponent>(),
 		Stalker->GetInventoryComponent(),
 		Stalker->GetEquipmentComponent(),
 		Stalker->GetInteractionComponent(),
-		InventoryManager));
+		InventoryManager);
+	PlayerInitInfo.AddArmorComponent(Stalker->GetArmorComponent());
+	
+	StalkerHUD->InitializePlayerHUD(PlayerInitInfo);
 }
 
 void AStalkerPlayerController::InitEssentialComponents()

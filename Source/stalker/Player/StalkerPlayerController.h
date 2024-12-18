@@ -11,6 +11,7 @@
 class UOrganicAbilityComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
+class UCharacterArmorComponent;
 class UInventoryManagerComponent;
 class UPawnInteractionComponent;
 class UPlayerInputConfig;
@@ -28,6 +29,7 @@ enum class EInventoryAction : uint8
 {
 	None,
 	Looting,
+	Trading,
 	Upgrading
 };
 
@@ -49,6 +51,9 @@ struct FPlayerInitInfo
 	UEquipmentComponent* EquipmentComponent = nullptr;
 	
 	UPROPERTY()
+	UCharacterArmorComponent* ArmorComponent = nullptr;
+	
+	UPROPERTY()
 	UInventoryManagerComponent* InventoryManager = nullptr;
 	
 	UPROPERTY()
@@ -68,6 +73,11 @@ struct FPlayerInitInfo
 	                                                            InventoryManager(InventoryMgr),
 	                                                            InteractionComponent(InteractionComp)
 	{
+	}
+
+	void AddArmorComponent(UCharacterArmorComponent* ArmorComp)
+	{
+		ArmorComponent = ArmorComp;
 	}
 };
 

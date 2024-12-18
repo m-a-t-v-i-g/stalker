@@ -37,7 +37,7 @@ void UInventoryManagerWidget::OpenInventory(UOrganicAbilityComponent* AbilityCom
 		GridWidget->OnItemWidgetDoubleClick.AddUObject(this, &UInventoryManagerWidget::OnOwnInventoryItemDoubleClick);
 	}
 	
-	Equipment->SetupCharacterEquipment(OwnEquipmentComponent.Get(), OwnInventoryManager.Get());
+	Equipment->SetupCharacterEquipment(OwnAbilityComponent.Get(), OwnEquipmentComponent.Get(), OwnInventoryManager.Get());
 
 	for (UEquipmentSlotWidget* SlotWidget : Equipment->GetAllSlots())
 	{

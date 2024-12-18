@@ -3,20 +3,31 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "CharacterEquipmentWidget.generated.h"
 
+class UResistanceAttributeSet;
 class UEquipmentComponent;
 class UInventoryManagerComponent;
+class UEquipmentSlotWidget;
+class UTextBlock;
 
 UCLASS()
 class STALKER_API UCharacterEquipmentWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void SetupCharacterEquipment(UAbilitySystemComponent* AbilityComp, UEquipmentComponent* EquipmentComp,
+	                             UInventoryManagerComponent* InventoryManager);
+	void ClearCharacterEquipment();
+	
+	TArray<UEquipmentSlotWidget*> GetAllSlots() const;
+	
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UEquipmentSlotWidget> ArmorSlot;
+	TObjectPtr<UEquipmentSlotWidget> ArmorSlot;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEquipmentSlotWidget> PrimarySlot;
@@ -26,10 +37,22 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEquipmentSlotWidget> DetectorSlot;
-	
-public:
-	void SetupCharacterEquipment(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager) const;
-	void ClearCharacterEquipment() const;
 
-	TArray<UEquipmentSlotWidget*> GetAllSlots() const;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> BulletResistanceText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> BlastResistanceText;
+
+	void OnBulletResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData);
+	void OnBlastResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData);
+
+	void ForceUpdateResistanceText();
+	
+private:
+	FDelegateHandle BulletResistanceDelHandle;
+	FDelegateHandle BlastResistanceDelHandle;
+
+	TWeakObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
+	TWeakObjectPtr<const UResistanceAttributeSet> ResistanceAttribute;
 };

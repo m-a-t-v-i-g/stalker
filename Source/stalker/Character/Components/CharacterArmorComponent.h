@@ -58,9 +58,12 @@ public:
 	void UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
 
 	void OnEquippedArmorEnduranceChanged(float ItemEndurance, UItemObject* ItemObject);
+
+	float CalculateTotalArmorEndurance();
 	
 	const FArmorBehavior* GetArmorBehavior(const FName& ItemScriptName) const;
 
+	int GetArmorPartsNum() const { return EquippedArmorParts.Num(); }
 	float GetTotalArmorEndurance() const { return TotalArmorEndurance; }
 	
 protected:
