@@ -63,12 +63,7 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 		return false;
 	}
 
-	FActiveGameplayEffectHandle NewEffectHandle = ApplyItemEffectSpec(ArmorObject);
-	if (NewEffectHandle.IsValid())
-	{
-		ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
-	}
-	
+	ApplyItemEffectSpec(ArmorObject);
 	ArmorObject->OnEnduranceChangedDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
 	                                                   ItemObject);
 	ArmorData = FEquippedArmorData(ArmorObject, *ArmorBehConfig);
@@ -88,11 +83,7 @@ void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedAr
 		return;
 	}
 
-	if (RemoveItemEffectSpec(ArmorObject))
-	{
-		ActiveItemEffects.Remove(ArmorObject);
-	}
-
+	RemoveItemEffectSpec(ArmorObject);
 	ArmorObject->OnEnduranceChangedDelegate.RemoveAll(this);
 	ArmorData.Clear();
 }
@@ -235,10 +226,11 @@ FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemO
 					{
 						ArmorSpec.SetSetByCallerMagnitude(Modifier.Key, Modifier.Value);
 					}
-					
+
 					FActiveGameplayEffectHandle NewEffectHandle = GetAbilityComponent()->ApplyGameplayEffectSpecToSelf(ArmorSpec);
 					if (NewEffectHandle.IsValid())
 					{
+						ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
 						return NewEffectHandle;
 					}
 				}
@@ -254,6 +246,7 @@ bool UCharacterArmorComponent::RemoveItemEffectSpec(UItemObject* ItemObject)
 	{
 		if (EffectHandle && EffectHandle->IsValid())
 		{
+			ActiveItemEffects.Remove(ItemObject);
 			return GetAbilityComponent()->RemoveActiveGameplayEffect(*EffectHandle);
 		}
 	}

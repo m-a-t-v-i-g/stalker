@@ -29,7 +29,7 @@ bool UDamageSystemCore::TakeDamageASCtoASC(const FDamageDataASCtoASC& DamageData
 				
 					auto DamageSpec = FGameplayEffectSpec(DamageEffect, Context, 1.0f);
 					DamageSpec.SetSetByCallerMagnitude(DamageCDO->GetDamageTag(), DamageData.DamageValue);
-				
+
 					OutDamageEffectHandle = DamageData.SourceASC->ApplyGameplayEffectSpecToTarget(
 						DamageSpec, DamageData.TargetASC.Get());
 				

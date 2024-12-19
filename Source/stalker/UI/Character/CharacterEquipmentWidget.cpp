@@ -4,6 +4,7 @@
 #include "EquipmentSlotWidget.h"
 #include "Attributes/ResistanceAttributeSet.h"
 #include "Components/TextBlock.h"
+#include "Kismet/KismetTextLibrary.h"
 
 void UCharacterEquipmentWidget::SetupCharacterEquipment(UAbilitySystemComponent* AbilityComp,
                                                         UEquipmentComponent* EquipmentComp,
@@ -60,14 +61,14 @@ TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlots() const
 
 void UCharacterEquipmentWidget::OnBulletResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData)
 {
-	FString ValueString = FString::Printf(TEXT("%f"), AttributeChangeData.NewValue);
-	BulletResistanceText->SetText(FText::FromString(ValueString));
+	FText AsNumber = UKismetTextLibrary::Conv_IntToText(AttributeChangeData.NewValue, false, true, 1, 1);
+	BulletResistanceText->SetText(AsNumber);
 }
 
 void UCharacterEquipmentWidget::OnBlastResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData)
 {
-	FString ValueString = FString::Printf(TEXT("%f"), AttributeChangeData.NewValue);
-	BlastResistanceText->SetText(FText::FromString(ValueString));
+	FText AsNumber = UKismetTextLibrary::Conv_IntToText(AttributeChangeData.NewValue, false, true, 1, 1);
+	BlastResistanceText->SetText(AsNumber);
 }
 
 void UCharacterEquipmentWidget::ForceUpdateResistanceText()

@@ -218,7 +218,7 @@ void UCharacterStateComponent::StartRagdoll()
 	OnRagdollStateChangedDelegate.Broadcast(true);
 
 	bRagdoll = true;
-
+	
 	GetCharacterCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 	GetCharacterMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
