@@ -8,10 +8,14 @@ UStalkerCharacterMovementComponent::UStalkerCharacterMovementComponent()
 {
 	InputRotationMode = ECharacterRotationMode::LookingDirection;
 	TargetMaxSpeed = MaxDesiredSpeed;
-	InputAccelerationGrounded = 2200.0f;
-	OverMaxSpeedDecelerationAirborne = 3000.0f;
+	InputAccelerationGrounded = 1000.0f;
+	InputAccelerationAirborne = 250.0f;
+	BrakingDecelerationAirborne = 50.0f;
+	OverMaxSpeedDecelerationAirborne = 10000.0f;
 	bOrientToInputDirection = false;
 	RotationRate = 100.0f;
+	MaxStepUpHeight = 40.0f;
+	MaxStepDownHeight = 30.0f;
 }
 
 void UStalkerCharacterMovementComponent::SetUpdatedComponent(USceneComponent* NewUpdatedComponent)
@@ -350,6 +354,7 @@ void UStalkerCharacterMovementComponent::UpdateGroundRotation(float DeltaTime)
 				TargetRotation.Yaw + RotationAmount * (DeltaTime / (1.0f / 30.0f)));
 			SetRootCollisionRotation(TargetRotation);
 		}
+		
 		TargetRotation = GetRootCollisionRotation();
 	}
 }
@@ -471,7 +476,7 @@ void UStalkerCharacterMovementComponent::CalculateMovement(float DeltaSeconds)
 	PreviousVelocity = GetVelocity();
 	PreviousViewYaw = ViewRotation.Yaw;
 	
-	MaxDesiredSpeed = FMath::FInterpTo(MaxDesiredSpeed, TargetMaxSpeed, DeltaSeconds, SpeedInterpSpeed);
+	MaxDesiredSpeed = TargetMaxSpeed;
 }
 
 void UStalkerCharacterMovementComponent::Sprinting()
@@ -525,12 +530,11 @@ void UStalkerCharacterMovementComponent::OnUnCrouch()
 
 void UStalkerCharacterMovementComponent::OnJump()
 {
-	AddImpulse({0.0f, 0.0f, JumpForce}, true);
-	
 	if (CharMovementState == ECharacterMovementState::Ground)
 	{
 		if (Stance == ECharacterStanceType::Standing)
 		{
+			AddImpulse({0.0f, 0.0f, JumpForce}, true);
 			OnJumpedDelegate.Broadcast();
 		}
 		else if (Stance == ECharacterStanceType::Crouching)

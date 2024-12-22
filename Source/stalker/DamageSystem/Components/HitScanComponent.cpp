@@ -9,6 +9,8 @@ UHitScanComponent::UHitScanComponent()
 
 void UHitScanComponent::HitOwnerPart(const FGameplayTag& DamageTag, const FHitResult& HitResult, float DamageValue)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Hit part: %s"), *HitResult.BoneName.ToString()));
+	
 	FGameplayTag* ImpactedPartTag = HitScanMap.Find(HitResult.BoneName);
 	if (ImpactedPartTag && ImpactedPartTag->IsValid())
 	{

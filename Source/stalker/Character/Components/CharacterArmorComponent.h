@@ -11,7 +11,7 @@
 class UItemObject;
 
 USTRUCT()
-struct FEquippedArmorData
+struct FEquippedArmorPartData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -21,9 +21,9 @@ struct FEquippedArmorData
 	UPROPERTY(VisibleInstanceOnly)
 	FArmorBehavior ArmorBehavior;
 	
-	FEquippedArmorData() {}
+	FEquippedArmorPartData() {}
 	
-	FEquippedArmorData(UItemObject* ItemObj, const FArmorBehavior& ArmorBeh) : ItemObject(ItemObj), ArmorBehavior(ArmorBeh)
+	FEquippedArmorPartData(UItemObject* ItemObj, const FArmorBehavior& ArmorBeh) : ItemObject(ItemObj), ArmorBehavior(ArmorBeh)
 	{
 	}
 
@@ -39,6 +39,18 @@ struct FEquippedArmorData
 	}
 };
 
+USTRUCT()
+struct FTotalArmorData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditInstanceOnly, Category = "Armor")
+	uint8 ArmorPartsNum = 0;
+
+	UPROPERTY(EditInstanceOnly, Category = "Armor", meta = (ForceUnits = "%"))
+	float TotalArmorEndurance = 0.0f;
+};
+
 UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
 {
@@ -47,15 +59,15 @@ class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
 public:
 	UCharacterArmorComponent();
 
-	TMulticastDelegate<void(float)> OnTotalArmorEnduranceChangedDelegate;
+	TMulticastDelegate<void(const FTotalArmorData&)> OnTotalArmorDataChangedDelegate;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
 	                                const FHitResult& HitResult, float DamageValue) override;
 	
-	bool EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
-	void UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData);
+	bool EquipArmor(UItemObject* ItemObject, FEquippedArmorPartData& ArmorData);
+	void UnequipArmor(UItemObject* ItemObject, FEquippedArmorPartData& ArmorData);
 
 	void OnEquippedArmorEnduranceChanged(float ItemEndurance, UItemObject* ItemObject);
 
@@ -64,7 +76,7 @@ public:
 	const FArmorBehavior* GetArmorBehavior(const FName& ItemScriptName) const;
 
 	int GetArmorPartsNum() const { return EquippedArmorParts.Num(); }
-	float GetTotalArmorEndurance() const { return TotalArmorEndurance; }
+	FTotalArmorData GetTotalArmorEndurance() const { return TotalArmorData; }
 	
 protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
@@ -77,21 +89,21 @@ protected:
 	USkeletalMeshComponent* GetCharacterMesh() const;
 
 	UFUNCTION()
-	void OnRep_TotalArmorEndurance();
+	void OnRep_TotalArmorData();
 	
 private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Armor")
-	FEquippedArmorData EquippedHelmetData;
+	FEquippedArmorPartData EquippedHelmetData;
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Armor")
-	FEquippedArmorData EquippedBodyData;
+	FEquippedArmorPartData EquippedBodyData;
 
 	UPROPERTY(EditInstanceOnly, Category = "Armor")
 	TMap<FGameplayTag, UItemObject*> EquippedArmorParts;
 	
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_TotalArmorData", Category = "Armor")
+	FTotalArmorData TotalArmorData;
+	
 	UPROPERTY(EditInstanceOnly, Category = "Armor")
 	TMap<UItemObject*, FActiveGameplayEffectHandle> ActiveItemEffects;
-
-	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_TotalArmorEndurance", Category = "Armor", meta = (ForceUnits = "%"))
-	float TotalArmorEndurance = 0.0f;
 };

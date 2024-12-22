@@ -15,6 +15,8 @@ class STALKER_API AExplosionArea : public AActor
 
 public:
 	AExplosionArea();
+
+	virtual void BeginPlay() override;
 	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Explosion Area", meta = (AllowPrivateAccess = "true"))

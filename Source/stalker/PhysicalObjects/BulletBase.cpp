@@ -29,21 +29,24 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	BulletData.DamageValue = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
 }
 
-void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, const FHitResult& SweepResult)
+void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                          const FHitResult& SweepResult)
 {
 	if (OtherActor)
 	{
+		FApplyDamageData DamageData;
+		DamageData.SetInstigator(BulletData.Instigator.Get(), this);
+		DamageData.SetDamageInfo(BulletData.DamageType, BulletData.DamageValue);
+		DamageData.SetHitResult(SweepResult);
+		DamageData.SetSourceObject(BulletData.AmmoObject.Get());
+		
 		if (auto OtherAbilityComp = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 		{
+			DamageData.SetTargetASC(OtherAbilityComp);
+			
 			if (BulletData.OwnerAbilityComponent.IsValid())
 			{
-				FDamageDataASCtoASC DamageData;
 				DamageData.SetSourceASC(BulletData.OwnerAbilityComponent.Get());
-				DamageData.SetTargetASC(OtherAbilityComp);
-				DamageData.SetInstigator(BulletData.Instigator.Get(), this);
-				DamageData.SetDamageInfo(BulletData.DamageType, BulletData.DamageValue);
-				DamageData.SetHitResult(SweepResult);
-				DamageData.SetSourceObject(BulletData.AmmoObject.Get());
 				
 				FActiveGameplayEffectHandle GameplayEffectHandle;
 				
@@ -51,14 +54,16 @@ void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCompone
 			}
 			else
 			{
-				UDamageSystemCore::TakeDamageActorToASC(BulletData.Instigator.Get(), this, BulletData.DamageValue,
-				                                        SweepResult, OtherAbilityComp, nullptr);
+				FActiveGameplayEffectHandle GameplayEffectHandle;
+				
+				UDamageSystemCore::TakeDamageActorToASC(DamageData, GameplayEffectHandle);
 			}
 		}
 		else
 		{
-			UDamageSystemCore::TakeDamageActorToActor(BulletData.Instigator.Get(), this, OtherActor, BulletData.DamageValue,
-													  BulletData.DamageType);	
+			float OutDamageValue;
+			
+			UDamageSystemCore::TakeDamageActorToActor(DamageData, OutDamageValue);	
 		}
 	}
 }

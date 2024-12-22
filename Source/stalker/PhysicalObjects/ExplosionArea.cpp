@@ -12,3 +12,10 @@ AExplosionArea::AExplosionArea()
 
 	PrimaryActorTick.bCanEverTick = false;
 }
+
+void AExplosionArea::BeginPlay()
+{
+	Super::BeginPlay();
+
+	
+}

@@ -13,9 +13,6 @@ class UAbilitySet;
 class UPlayerInputConfig;
 class UPawnInteractionComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnPlayerToggleInventorySignature);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerToggleSlotSignature, uint8);
-
 UCLASS()
 class STALKER_API APlayerCharacter : public AStalkerCharacter
 {
@@ -25,19 +22,19 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	static FName InteractionComponentName;
-	
-	FOnPlayerToggleInventorySignature OnToggleInventory;
-	FOnPlayerToggleSlotSignature OnToggleSlot;
+
+	TMulticastDelegate<void()> OnToggleInventory;
+	TMulticastDelegate<void(float)> OnToggleSlot;
 
 	virtual void InitCharacterComponents() override;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE UPawnInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UPlayerInputConfig> InputConfig;
 
@@ -48,7 +45,7 @@ protected:
 
 	void IA_Move(const FInputActionValue& Value);
 	void IA_View(const FInputActionValue& Value);
-	
+
 	void IA_Inventory(const FInputActionValue& Value);
 	void IA_Slot(const FInputActionInstance& InputAction);
 

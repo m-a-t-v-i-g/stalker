@@ -17,6 +17,18 @@ class UCharacterWeaponComponent;
 class UMovementModelConfig;
 class AStalkerCharacter;
 
+USTRUCT()
+struct FCharacterRagdollData
+{
+	GENERATED_USTRUCT_BODY()
+
+	ECollisionEnabled::Type CapsuleCollisionType = ECollisionEnabled::NoCollision;
+
+	ECollisionEnabled::Type MeshCollisionType = ECollisionEnabled::NoCollision;
+
+	ECollisionChannel CollisionChannel = ECC_MAX;
+};
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRagdollStateChangedDelegate, bool);
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
@@ -141,4 +153,6 @@ private:
 	FTimerHandle CombatStateTimer;
 	
 	bool bIsDead = false;
+
+	FCharacterRagdollData PreRagdollData;
 };

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDStatsWidget.generated.h"
 
+struct FTotalArmorData;
 struct FOnAttributeChangeData;
 class UOrganicAbilityComponent;
 class UCharacterArmorComponent;
@@ -29,7 +30,7 @@ protected:
 	void OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
 	void OnHealthUpdated(const FOnAttributeChangeData& AttributeChangeData);
 
-	void OnTotalArmorEnduranceUpdated(float NewTotalEndurance);
+	void OnTotalArmorEnduranceUpdated(const FTotalArmorData& ArmorEnduranceData);
 	
 	void ForceUpdateHealthBar();
 	void ForceUpdateArmorBar();

@@ -109,7 +109,7 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 		}
 
 		const TArray<FEnhancedActionKeyMapping>& Mappings = InputMappingContext->GetMappings();
-		
+
 		for (uint8 i = 0, a = 0; i < Mappings.Num(); i++)
 		{
 			if (Mappings[i].Action != InputAction.GetSourceAction())
@@ -123,7 +123,7 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 				OnToggleSlot.Broadcast(a);
 				break;
 			}
-			
+
 			a++;
 		}
 	}

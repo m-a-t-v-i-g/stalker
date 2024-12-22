@@ -236,15 +236,10 @@ void UCharacterWeaponComponent::StartFire()
 		return;
 	}
 	
-	if (auto RightWeapon = Cast<UWeaponObject>(GetItemObjectAtRightHand()))
+	if (auto RightWeapon = GetItemObjectAtRightHand<UWeaponObject>())
 	{
 		OnFireStart.Broadcast();
 		RightWeapon->StartAttack();
-	}
-
-	if (IsAutonomousProxy())
-	{
-		ServerStartFire();
 	}
 }
 
@@ -264,11 +259,6 @@ void UCharacterWeaponComponent::StopFire()
 	{
 		OnFireStop.Broadcast();
 		RightWeapon->StopAttack();
-	}
-	
-	if (IsAutonomousProxy())
-	{
-		ServerStopFire();
 	}
 }
 
@@ -417,9 +407,9 @@ void UCharacterWeaponComponent::SetReloadTimer()
 
 void UCharacterWeaponComponent::ClearReloadingData(bool bWasSuccessful)
 {
-	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 	OnReloadStop.Broadcast(bWasSuccessful);
 	ReloadingData.Clear();
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 }
 
 bool UCharacterWeaponComponent::HasAmmoForReload() const
@@ -531,7 +521,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 							break;
 						case EOccupiedHand::Both:
 							TargetOverlay = ECharacterOverlayState::OnlyLeftHand;
-							DisarmRightHand();
+							DisarmHand(RightHandItemData, RightHandItemActor);
 							break;
 						default: break;
 						}
@@ -553,7 +543,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 				{
 					TargetOverlay = ECharacterOverlayState::Default;
 				}
-				DisarmLeftHand();
+				DisarmHand(LeftHandItemData, LeftHandItemActor);
 			}
 			break;
 		}
@@ -581,7 +571,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 				{
 					TargetOverlay = ECharacterOverlayState::OnlyLeftHand;
 				}
-				DisarmRightHand();
+				DisarmHand(RightHandItemData, RightHandItemActor);
 			}
 			break;
 		}
@@ -591,7 +581,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 			{
 				if (IsLeftItemObjectValid())
 				{
-					DisarmLeftHand();
+					DisarmHand(LeftHandItemData, LeftHandItemActor);
 				}
 
 				TargetOverlay = ECharacterOverlayState::BothHands;
@@ -600,7 +590,7 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 			else
 			{
 				TargetOverlay = ECharacterOverlayState::Default;
-				DisarmRightHand();
+				DisarmHand(RightHandItemData, RightHandItemActor);
 			}
 			break;
 		}
@@ -608,82 +598,6 @@ void UCharacterWeaponComponent::EquipOrUnequipSlot(const FString& SlotName, UIte
 	}
 	
 	OnOverlayChanged.Broadcast(TargetOverlay);
-}
-
-bool UCharacterWeaponComponent::ArmLeftHand(UItemObject* ItemObject)
-{
-	check(ItemObject);
-
-	if (LeftHandItemData.IsValid())
-	{
-		DisarmLeftHand();
-	}
-
-	LeftHandItemData.ItemObject = ItemObject;
-	LeftHandItemData.ItemActor = SpawnWeapon(GetCharacter()->GetMesh(), ItemObject, FCharacterSocketName::NAME_LeftHand);
-	
-	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(LeftHandItemData.ItemObject->GetScriptName()))
-	{
-		LeftHandItemData.WeaponBehavior = *WeaponBeh;
-	}
-	
-	LeftHandItemActor = LeftHandItemData.ItemActor;
-	
-	if (!IsValid(LeftHandItemData.ItemActor))
-	{
-		UKismetSystemLibrary::PrintString(this, FString("Hands was not equipped..."), true, false, FLinearColor::Red);
-		return false;
-	}
-	return true;
-}
-
-bool UCharacterWeaponComponent::ArmRightHand(UItemObject* ItemObject)
-{
-	check(ItemObject);
-	
-	if (RightHandItemActor)
-	{
-		DisarmRightHand();
-	}
-
-	RightHandItemData.ItemObject = ItemObject;
-	RightHandItemData.ItemActor = SpawnWeapon(GetCharacter()->GetMesh(), ItemObject, FCharacterSocketName::NAME_RightHand);
-	
-	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(RightHandItemData.ItemObject->GetScriptName()))
-	{
-		RightHandItemData.WeaponBehavior = *WeaponBeh;
-	}
-	
-	RightHandItemActor = RightHandItemData.ItemActor;
-	
-	if (!IsValid(RightHandItemData.ItemActor))
-	{
-		UKismetSystemLibrary::PrintString(this, FString("Hands was not equipped..."), true, false, FLinearColor::Red);
-		return false;
-	}
-	return true;
-}
-
-void UCharacterWeaponComponent::DisarmLeftHand()
-{
-	if (LeftHandItemData.IsValid() && LeftHandItemActor)
-	{
-		LeftHandItemData.ItemObject->UnbindItemActor();
-		LeftHandItemData.ItemActor->Destroy();
-		LeftHandItemData.Clear();
-		LeftHandItemActor = nullptr;
-	}
-}
-
-void UCharacterWeaponComponent::DisarmRightHand()
-{
-	if (RightHandItemData.IsValid() && RightHandItemActor)
-	{
-		RightHandItemData.ItemObject->UnbindItemActor();
-		RightHandItemData.ItemActor->Destroy();
-		RightHandItemData.Clear();
-		RightHandItemActor = nullptr;
-	}
 }
 
 void UCharacterWeaponComponent::ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor,
@@ -729,6 +643,7 @@ AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentCo
 		if (ItemObject && ItemObject->GetActorClass())
 		{
 			FTransform SpawnTransform = AttachmentComponent->GetSocketTransform(SocketName);
+			
 			FAttachmentTransformRules AttachmentRules{EAttachmentRule::SnapToTarget, true};
 
 			auto SpawnedWeapon = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,

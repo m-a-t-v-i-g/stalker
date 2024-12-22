@@ -218,16 +218,28 @@ void UCharacterStateComponent::StartRagdoll()
 	OnRagdollStateChangedDelegate.Broadcast(true);
 
 	bRagdoll = true;
+
+	FCharacterRagdollData RagdollData;
+	RagdollData.CapsuleCollisionType = GetCharacterCapsule()->GetCollisionEnabled();
+	RagdollData.MeshCollisionType = GetCharacterMesh()->GetCollisionEnabled();
+	RagdollData.CollisionChannel = GetCharacterMesh()->GetCollisionObjectType();
+	
+	PreRagdollData = RagdollData;
 	
 	GetCharacterCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCharacterMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 	GetCharacterMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 	GetCharacterMesh()->SetAllBodiesBelowSimulatePhysics(FCharacterBoneName::NAME_Pelvis, true, true);
 }
 
 void UCharacterStateComponent::StopRagdoll()
 {
 	bRagdoll = false;
+	
+	GetCharacterCapsule()->SetCollisionEnabled(PreRagdollData.CapsuleCollisionType);
+	GetCharacterMesh()->SetCollisionEnabled(PreRagdollData.MeshCollisionType);
+	GetCharacterMesh()->SetCollisionObjectType(PreRagdollData.CollisionChannel);
+	GetCharacterMesh()->SetAllBodiesSimulatePhysics(false);
 	
 	OnRagdollStateChangedDelegate.Broadcast(false);
 }

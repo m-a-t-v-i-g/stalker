@@ -27,7 +27,7 @@ void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp, UC
 	MaxHealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnMaxHealthUpdated);
 	HealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnHealthUpdated);
 
-	ArmorComponentRef->OnTotalArmorEnduranceChangedDelegate.AddUObject(this, &UHUDStatsWidget::OnTotalArmorEnduranceUpdated);
+	ArmorComponentRef->OnTotalArmorDataChangedDelegate.AddUObject(this, &UHUDStatsWidget::OnTotalArmorEnduranceUpdated);
 
 	ForceUpdateHealthBar();
 	ForceUpdateArmorBar();
@@ -45,14 +45,13 @@ void UHUDStatsWidget::OnHealthUpdated(const FOnAttributeChangeData& AttributeCha
 	HealthBar->SetPercent(AttributeChangeData.NewValue / MaxHealthValue);
 }
 
-void UHUDStatsWidget::OnTotalArmorEnduranceUpdated(float NewTotalEndurance)
+void UHUDStatsWidget::OnTotalArmorEnduranceUpdated(const FTotalArmorData& ArmorEnduranceData)
 {
-	int ArmorPartsNum = ArmorComponentRef->GetArmorPartsNum();
-	
+	int ArmorPartsNum = ArmorEnduranceData.ArmorPartsNum;
 	float FinalArmorPercent = 0.0f;
 	if (ArmorPartsNum > 0)
 	{
-		FinalArmorPercent = NewTotalEndurance / ArmorPartsNum;
+		FinalArmorPercent = ArmorEnduranceData.TotalArmorEndurance / ArmorPartsNum / 100.0f;
 	}
 	
 	ArmorBar->SetPercent(FinalArmorPercent);

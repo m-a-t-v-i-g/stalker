@@ -10,7 +10,7 @@ class UGameplayEffect;
 class UAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
-struct FDamageDataASCtoASC
+struct FApplyDamageData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -19,6 +19,9 @@ struct FDamageDataASCtoASC
 
 	UPROPERTY()
 	TWeakObjectPtr<UAbilitySystemComponent> TargetASC;
+
+	UPROPERTY()
+	TWeakObjectPtr<AActor> TargetActor;
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> Instigator;
@@ -36,7 +39,7 @@ struct FDamageDataASCtoASC
 	
 	float DamageValue = 0.0f;
 
-	FDamageDataASCtoASC()
+	FApplyDamageData()
 	{
 	}
 
@@ -79,10 +82,7 @@ class STALKER_API UDamageSystemCore : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static bool TakeDamageASCtoASC(const FDamageDataASCtoASC& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
-	static bool TakeDamageActorToASC(AActor* Instigator, AActor* DamageCauser, float Damage,
-	                                 const FHitResult& HitResult, UAbilitySystemComponent* TargetASC,
-	                                 TSubclassOf<UGameplayEffect> DamageEffectClass);
-	static bool TakeDamageActorToActor(AActor* Instigator, AActor* DamageCauser, AActor* TargetActor, float Damage,
-	                                   TSubclassOf<UDamageType> DamageClass);
+	static bool TakeDamageASCtoASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
+	static bool TakeDamageActorToASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
+	static void TakeDamageActorToActor(const FApplyDamageData& DamageData, float& OutResultDamage);
 };

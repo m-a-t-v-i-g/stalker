@@ -19,7 +19,7 @@ void UCharacterArmorComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	
 	DOREPLIFETIME_CONDITION(ThisClass, EquippedHelmetData,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, EquippedBodyData,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, TotalArmorEndurance, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, TotalArmorData,		COND_OwnerOnly);
 }
 
 void UCharacterArmorComponent::OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
@@ -39,7 +39,7 @@ void UCharacterArmorComponent::OnCharacterDamaged(const FGameplayTag& DamageTag,
 	}
 }
 
-bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData)
+bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmorPartData& ArmorData)
 {
 	if (!GetAbilityComponent())
 	{
@@ -56,7 +56,7 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 	{
 		return false;
 	}
-	
+
 	const FArmorBehavior* ArmorBehConfig = GetArmorBehavior(ArmorObject->GetScriptName());
 	if (!ArmorBehConfig)
 	{
@@ -66,11 +66,11 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 	ApplyItemEffectSpec(ArmorObject);
 	ArmorObject->OnEnduranceChangedDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
 	                                                   ItemObject);
-	ArmorData = FEquippedArmorData(ArmorObject, *ArmorBehConfig);
+	ArmorData = FEquippedArmorPartData(ArmorObject, *ArmorBehConfig);
 	return true;
 }
 
-void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedArmorData& ArmorData)
+void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedArmorPartData& ArmorData)
 {
 	if (!GetAbilityComponent())
 	{
@@ -108,9 +108,10 @@ float UCharacterArmorComponent::CalculateTotalArmorEndurance()
 			}
 		}
 	}
-	
-	TotalArmorEndurance = UpdatedEndurance;
-	OnTotalArmorEnduranceChangedDelegate.Broadcast(TotalArmorEndurance);
+
+	TotalArmorData.ArmorPartsNum = EquippedArmorParts.Num();
+	TotalArmorData.TotalArmorEndurance = UpdatedEndurance;
+	OnTotalArmorDataChangedDelegate.Broadcast(TotalArmorData);
 
 	return UpdatedEndurance;
 }
@@ -218,7 +219,7 @@ FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemO
 				{
 					Context.AddSourceObject(ArmorObject);
 
-					UGameplayEffect* ArmorEffect = ArmorEffectClass->GetDefaultObject<UGameplayEffect>();
+					auto ArmorEffect = ArmorEffectClass->GetDefaultObject<UGameplayEffect>();
 					auto ArmorSpec = FGameplayEffectSpec(ArmorEffect, Context, 1.0f);
 					const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
 
@@ -270,7 +271,7 @@ USkeletalMeshComponent* UCharacterArmorComponent::GetCharacterMesh() const
 	return nullptr;
 }
 
-void UCharacterArmorComponent::OnRep_TotalArmorEndurance()
+void UCharacterArmorComponent::OnRep_TotalArmorData()
 {
-	OnTotalArmorEnduranceChangedDelegate.Broadcast(TotalArmorEndurance);
+	OnTotalArmorDataChangedDelegate.Broadcast(TotalArmorData);
 }

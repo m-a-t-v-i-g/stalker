@@ -229,11 +229,6 @@ protected:
 	
 	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);
 
-	bool ArmLeftHand(UItemObject* ItemObject);
-	bool ArmRightHand(UItemObject* ItemObject);
-	void DisarmLeftHand();
-	void DisarmRightHand();
-	
 	void ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName, UItemObject* ItemObject);
 	void DisarmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor);
 	
