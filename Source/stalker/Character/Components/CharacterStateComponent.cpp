@@ -176,6 +176,15 @@ void UCharacterStateComponent::SetCombatState(ECharacterCombatState NewState, bo
 
 void UCharacterStateComponent::OnCombatStateChanged(ECharacterCombatState PreviousState)
 {
+	switch (CombatState)
+	{
+	case ECharacterCombatState::Ready:
+		MovementComponentRef->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
+		break;
+	default:
+		MovementComponentRef->SetRotationMode(ECharacterRotationMode::LookingDirection, true);
+		break;
+	}
 }
 
 bool UCharacterStateComponent::IsAuthority() const
@@ -321,7 +330,6 @@ void UCharacterStateComponent::OnAimingStart()
 		}
 
 		SetCombatState(ECharacterCombatState::Ready);
-		MovementComponentRef->SetRotationMode(ECharacterRotationMode::ControlDirection, true);
 		bAiming = true;
 	}
 }

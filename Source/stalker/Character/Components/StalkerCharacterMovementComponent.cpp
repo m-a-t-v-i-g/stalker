@@ -220,8 +220,9 @@ void UStalkerCharacterMovementComponent::UpdateGait()
 	if (AllowedGait != CalcAllowedGait)
 	{
 		AllowedGait = CalcAllowedGait;
-		TargetMaxSpeed = MovementModel.GetSpeedForGait(AllowedGait);
 	}
+	
+	TargetMaxSpeed = MovementModel.GetSpeedForGait(AllowedGait);
 }
 
 ECharacterGaitType UStalkerCharacterMovementComponent::CalculateAllowedGait() const
@@ -440,6 +441,11 @@ bool UStalkerCharacterMovementComponent::CanJump() const
 
 void UStalkerCharacterMovementComponent::CalculateMovement(float DeltaSeconds)
 {
+	if (!FMath::IsNearlyEqual(GetRootCollisionHalfHeight(), TargetHalfHeight))
+	{
+		LerpRootCollisionHalfHeight(TargetHalfHeight, 90.0f, 0.99f, DeltaSeconds);
+	}
+
 	if (!IsSimulatedProxy())
 	{
 		PrevCharacterRotation = GetInRotation();
@@ -518,12 +524,14 @@ void UStalkerCharacterMovementComponent::OnSprint(bool bEnabled)
 
 void UStalkerCharacterMovementComponent::OnCrouch()
 {
+	TargetHalfHeight = 60.0f;
 	bJustCrouched = true;
 	SetStance(ECharacterStanceType::Crouching);
 }
 
 void UStalkerCharacterMovementComponent::OnUnCrouch()
 {
+	TargetHalfHeight = 88.0f;
 	bJustCrouched = false;
 	SetStance(ECharacterStanceType::Standing);
 }

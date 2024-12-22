@@ -190,6 +190,8 @@ protected:
 
 	float TargetMaxSpeed = 0.0f;
 	
+	float TargetHalfHeight = 0.0f;
+	
 	void CalculateMovement(float DeltaSeconds);
 	
 	void Sprinting();

@@ -8,28 +8,28 @@ UAbilitySet::UAbilitySet(const FObjectInitializer& ObjectInitializer) : Super(Ob
 {
 }
 
-void UAbilitySet::GiveToAbilitySystem(UOrganicAbilityComponent* ASC, UObject* SourceObject) const
+void UAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* ASC, TArray<FGameplayAbilitySpecHandle>& OutHandles,
+                                      UObject* SourceObject) const
 {
 	check(ASC);
 
-	if (!ASC->IsOwnerActorAuthoritative())
+	if (ASC->IsOwnerActorAuthoritative())
 	{
-		return;
-	}
-
-	for (int32 AbilityIndex = 0; AbilityIndex < GrantedGameplayAbilities.Num(); ++AbilityIndex)
-	{
-		const FAbilitySet_GameplayAbility& AbilityToGrant = GrantedGameplayAbilities[AbilityIndex];
-		if (!IsValid(AbilityToGrant.Ability))
+		for (int32 AbilityIndex = 0; AbilityIndex < GrantedGameplayAbilities.Num(); ++AbilityIndex)
 		{
-			continue;
+			const FAbilitySet_GameplayAbility& AbilityToGrant = GrantedGameplayAbilities[AbilityIndex];
+			if (!IsValid(AbilityToGrant.Ability))
+			{
+				continue;
+			}
+
+			UGameplayAbility* AbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UGameplayAbility>();
+			FGameplayAbilitySpec AbilitySpec(AbilityCDO, AbilityToGrant.AbilityLevel);
+			AbilitySpec.SourceObject = SourceObject;
+			AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
+
+			FGameplayAbilitySpecHandle OutSpec = ASC->GiveAbility(AbilitySpec);
+			OutHandles.Add(OutSpec);
 		}
-
-		UGameplayAbility* AbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UGameplayAbility>();
-		FGameplayAbilitySpec AbilitySpec(AbilityCDO, AbilityToGrant.AbilityLevel);
-		AbilitySpec.SourceObject = SourceObject;
-		AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
-
-		ASC->GiveAbility(AbilitySpec);
 	}
 }

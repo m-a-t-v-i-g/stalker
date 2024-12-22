@@ -6,6 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "ItemBehaviorConfig.generated.h"
 
+class UAbilitySet;
+
 UENUM(BlueprintType)
 enum class EMouseButtonReaction : uint8
 {
@@ -52,6 +54,9 @@ struct FWeaponBehavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
 		meta = (EditCondition = "OccupiedHand != EOccupiedHand::Left"))
 	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	TObjectPtr<const UAbilitySet> AbilitySet;
 
 	void Clear()
 	{

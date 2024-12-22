@@ -13,6 +13,7 @@ struct FUpdatedSlotData;
 class UCharacterInventoryComponent;
 class UCharacterStateComponent;
 class UWeaponObject;
+class UAbilitySet;
 class AStalkerCharacter;
 
 DECLARE_MULTICAST_DELEGATE(FCharacterFireDelegate);
@@ -35,6 +36,12 @@ struct FEquippedWeaponData
 	UPROPERTY(VisibleInstanceOnly)
 	FWeaponBehavior WeaponBehavior;
 	
+	UPROPERTY(VisibleInstanceOnly)
+	TObjectPtr<const UAbilitySet> AbilitySet;
+
+	UPROPERTY()
+	TArray<FGameplayAbilitySpecHandle> Abilities;
+
 	FEquippedWeaponData() {}
 	
 	FEquippedWeaponData(UItemObject* ItemObj, AItemActor* ItemAct, const FWeaponBehavior& ItemBeh) : ItemObject(ItemObj),
@@ -46,7 +53,9 @@ struct FEquippedWeaponData
 	{
 		ItemObject = nullptr;
 		ItemActor = nullptr;
+		AbilitySet = nullptr;
 		WeaponBehavior.Clear();
+		Abilities.Empty();
 	}
 
 	bool IsValid() const

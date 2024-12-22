@@ -1,6 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterWeaponComponent.h"
+
+#include "AbilitySet.h"
+#include "AbilitySystemComponent.h"
 #include "InventoryComponent.h"
 #include "ItemActor.h"
 #include "ItemObject.h"
@@ -614,6 +617,8 @@ void UCharacterWeaponComponent::ArmHand(FEquippedWeaponData& HandedItemData, AIt
 	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(HandedItemData.ItemObject->GetScriptName()))
 	{
 		HandedItemData.WeaponBehavior = *WeaponBeh;
+		HandedItemData.AbilitySet = WeaponBeh->AbilitySet;
+		HandedItemData.AbilitySet->GiveToAbilitySystem(GetAbilityComponent(), HandedItemData.Abilities);
 	}
 	
 	ReplicatedItemActor = HandedItemData.ItemActor;
@@ -628,6 +633,11 @@ void UCharacterWeaponComponent::DisarmHand(FEquippedWeaponData& HandedItemData, 
 {
 	if (HandedItemData.IsValid() && ReplicatedItemActor)
 	{
+		for (const FGameplayAbilitySpecHandle& AbilityHandle : HandedItemData.Abilities)
+		{
+			GetAbilityComponent()->ClearAbility(AbilityHandle);
+		}
+		
 		HandedItemData.ItemObject->UnbindItemActor();
 		HandedItemData.ItemActor->Destroy();
 		HandedItemData.Clear();

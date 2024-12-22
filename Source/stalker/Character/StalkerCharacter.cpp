@@ -157,6 +157,7 @@ void AStalkerCharacter::SetCharacterData()
 	
 	if (AbilitySet)
 	{
-		AbilitySet->GiveToAbilitySystem(AbilityComp);
+		TArray<FGameplayAbilitySpecHandle> OutHandles;
+		AbilitySet->GiveToAbilitySystem(AbilityComp, OutHandles);
 	}
 }

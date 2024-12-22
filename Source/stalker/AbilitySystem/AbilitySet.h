@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
 #include "AbilitySet.generated.h"
 
 class UGameplayAbility;
+class UAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
 struct FAbilitySet_GameplayAbility
@@ -32,7 +34,8 @@ class STALKER_API UAbilitySet : public UPrimaryDataAsset
 public:
 	UAbilitySet(const FObjectInitializer& ObjectInitializer);
 
-	void GiveToAbilitySystem(class UOrganicAbilityComponent* ASC, UObject* SourceObject = nullptr) const;
+	void GiveToAbilitySystem(UAbilitySystemComponent* ASC, TArray<FGameplayAbilitySpecHandle>& OutHandles,
+	                         UObject* SourceObject = nullptr) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta = (TitleProperty = Ability))
