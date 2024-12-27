@@ -11,8 +11,6 @@ struct FWeaponParams;
 class UWeaponObject;
 class ABulletBase;
 
-DECLARE_DELEGATE(FOnWeaponAttackDelegate);
-
 UCLASS()
 class STALKER_API AWeaponActor : public AItemActor
 {
@@ -20,9 +18,6 @@ class STALKER_API AWeaponActor : public AItemActor
 
 public:
 	AWeaponActor();
-
-	FOnWeaponAttackDelegate OnWeaponStartAttack;
-	FOnWeaponAttackDelegate OnWeaponStopAttack;
 
 	virtual void OnBindItem() override;
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;
@@ -47,11 +42,7 @@ public:
 	UWeaponObject* GetWeaponObject() const { return Cast<UWeaponObject>(GetItemObject()); }
 	
 protected:
-	virtual ABulletBase* SpawnBullet();
-
 	virtual void OnSetupBullet(ABulletBase* Bullet);
-
-	virtual FVector GetFireLocation();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))

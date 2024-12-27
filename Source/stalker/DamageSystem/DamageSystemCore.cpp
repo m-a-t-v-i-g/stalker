@@ -7,6 +7,32 @@
 #include "Components/HitScanComponent.h"
 #include "Engine/DamageEvents.h"
 
+/* TODO: out ActiveGameplayEffectHandle and OutDamageValue */
+void UDamageSystemCore::TakeDamage(const FApplyDamageData& DamageData)
+{
+	if (DamageData.TargetActor.IsValid())
+	{
+		if (DamageData.TargetActor->GetComponentByClass<UAbilitySystemComponent>())
+		{
+			if (DamageData.SourceASC.IsValid())
+			{
+				FActiveGameplayEffectHandle GameplayEffectHandle;
+				TakeDamageASCtoASC(DamageData, GameplayEffectHandle);
+			}
+			else
+			{
+				FActiveGameplayEffectHandle GameplayEffectHandle;
+				TakeDamageActorToASC(DamageData, GameplayEffectHandle);
+			}
+		}
+		else
+		{
+			float OutDamageValue;
+			TakeDamageActorToActor(DamageData, OutDamageValue);	
+		}
+	}
+}
+
 bool UDamageSystemCore::TakeDamageASCtoASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle)
 {
 	if (!DamageData.SourceASC.IsValid() || !DamageData.TargetASC.IsValid())
@@ -105,4 +131,38 @@ void UDamageSystemCore::TakeDamageActorToActor(const FApplyDamageData& DamageDat
 			HitScanComponent->HitOwnerPart(DamageCDO->GetDamageTag(), DamageData.HitResult, DamageData.DamageValue);
 		}
 	}
+}
+
+FApplyDamageData UDamageSystemCore::GenerateDamageData(AActor* SourceActor, AActor* TargetActor, AActor* DamageCauser,
+                                                       UClass* DamageType, float DamageValue,
+                                                       const FHitResult& SweepResult, const UObject* SourceObject)
+{
+	FApplyDamageData GenerateDamageData;
+
+	if (SourceActor)
+	{
+		GenerateDamageData.SetSourceActor(SourceActor);
+		
+		if (UAbilitySystemComponent* SourceASC = SourceActor->GetComponentByClass<UAbilitySystemComponent>())
+		{
+			GenerateDamageData.SetSourceASC(SourceASC);
+		}
+	}
+	
+	if (TargetActor)
+	{
+		GenerateDamageData.SetTargetActor(TargetActor);
+		
+		if (UAbilitySystemComponent* TargetASC = TargetActor->GetComponentByClass<UAbilitySystemComponent>())
+		{
+			GenerateDamageData.SetTargetASC(TargetASC);
+		}
+	}
+
+	GenerateDamageData.SetInstigator(SourceActor, DamageCauser);
+	GenerateDamageData.SetDamageInfo(DamageType, DamageValue);
+	GenerateDamageData.SetHitResult(SweepResult);
+	GenerateDamageData.SetSourceObject(SourceObject);
+	
+	return GenerateDamageData;
 }

@@ -20,11 +20,11 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 {
 	CharacterRef = InCharacter;
 
-	if (!CharacterRef)
+	if (!IsValid(CharacterRef))
 	{
 		UE_LOG(LogCharacter, Error,
 		       TEXT(
-			       "Unable to setup Outfit Component ('%s') for character '%s': character ref is null."
+			       "Unable to setup Outfit Component ('%s') for character '%s': character ref is not valid."
 		       ), *GetName(), *GetOwner()->GetName());
 		return;
 	}
@@ -40,7 +40,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 {
 	ControllerRef = InController;
 	
-	if (!ControllerRef)
+	if (!IsValid(ControllerRef))
 	{
 		UE_LOG(LogCharacter, Error,
 			   TEXT(

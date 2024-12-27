@@ -9,14 +9,15 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Inventory,				"InputTag.Inventory", "Inventory input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Slot,					"InputTag.Slot", "Slot input.");
 
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Sprint,				"Ability.Character.Sprint", "Sprint ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Crouch,				"Ability.Character.Crouch",	"Crouch ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Jump,					"Ability.Character.Jump", "Jump ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_BasicAction,			"Ability.Character.BasicAction", "Basic action ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_AlternativeAction,	"Ability.Character.AlternativeAction", "Alternative action ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Character.Reload", "Reload ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Character.Interaction", "Interaction ability.");
-	
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Sprint,				"Ability.Sprint", "Sprint ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Crouch,				"Ability.Crouch",	"Crouch ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Jump,					"Ability.Jump", "Jump ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Interaction", "Interaction ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Fire,					"Ability.Fire", "Weapon fire ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_FireAuto,				"Ability.FireAuto", "Weapon auto fire ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Aiming,				"Ability.Aiming", "Weapon aiming ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Reload", "Reload ability.");
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletDamage,			"Effect.Damage.Bullet", "Bullet damage tag.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletResistance,		"Effect.Resistance.Bullet", "Bullet resistance effect.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BlastDamage,			"Effect.Damage.Blast", "Blast damage tag.");

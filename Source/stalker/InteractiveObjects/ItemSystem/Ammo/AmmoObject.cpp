@@ -17,6 +17,8 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 {
 	if (auto AmmoDefinition = Cast<UAmmoDefinition>(Definition))
 	{
+		AmmoData.BulletsPerCartridge = AmmoDefinition->BulletsPerCartridge;
+		AmmoData.BulletSweepRadius = AmmoDefinition->BulletSweepRadius;
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
 		
@@ -33,6 +35,8 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 {
 	if (auto AmmoInstance = Cast<UAmmoInstance>(Instance))
 	{
+		AmmoData.BulletsPerCartridge = AmmoInstance->AmmoData.BulletsPerCartridge;
+		AmmoData.BulletSweepRadius = AmmoInstance->AmmoData.BulletSweepRadius;
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
 	}
@@ -58,4 +62,19 @@ FAmmoDamageData UAmmoObject::GetDamageData() const
 UClass* UAmmoObject::GetDamageType() const
 {
 	return GetAmmoDefinition()->DamageData.DamageType;
+}
+
+uint8 UAmmoObject::GetBulletsPerCartridge() const
+{
+	return GetAmmoInstance()->AmmoData.BulletsPerCartridge;
+}
+
+float UAmmoObject::GetBulletSweepRadius() const
+{
+	return GetAmmoInstance()->AmmoData.BulletSweepRadius;
+}
+
+UAmmoInstance* UAmmoObject::GetAmmoInstance() const
+{
+	return GetItemInstance<UAmmoInstance>();
 }

@@ -15,13 +15,12 @@ struct FBulletBaseData
 {
 	GENERATED_USTRUCT_BODY()
 
-	TWeakObjectPtr<UAmmoObject> AmmoObject;
+	TWeakObjectPtr<UAmmoObject> SourceAmmo;
 	TWeakObjectPtr<AActor> Owner;
 	TWeakObjectPtr<AActor> Instigator;
-	TWeakObjectPtr<UAbilitySystemComponent> OwnerAbilityComponent;
-	
-	TSubclassOf<UDamageType> DamageType;
+	UClass* DamageType = nullptr;
 	float DamageValue = 0.0f;
+	float SweepRadius = 0.0f;
 };
 
 UCLASS()
@@ -33,15 +32,13 @@ public:
 	ABulletBase();
 	
 	virtual void SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo);
-
+	
 	virtual void HitLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+												const FHitResult& SweepResult) override;
+	virtual void OverlapLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	                                     const FHitResult& SweepResult) override;
-	virtual void OnProjectileHit_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	                                            const FHitResult& SweepResult) override;
 
 	FBulletBaseData GetBulletData() const { return BulletData; }
-	
-protected:
 	
 private:
 	FBulletBaseData BulletData;

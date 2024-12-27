@@ -25,19 +25,20 @@ AProjectileBase::AProjectileBase()
 	}
 
 	SetCanBeDamaged(false);
-	AActor::SetLifeSpan(3.0f);
+	AActor::SetLifeSpan(6.0f);
 }
 
 void AProjectileBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	PhysicsRoot->OnComponentHit.AddDynamic(this, &AProjectileBase::OnProjectileHitTarget);
 	PhysicsRoot->OnComponentBeginOverlap.AddDynamic(this, &AProjectileBase::OnProjectileOverlapTarget);
 }
 
-void AProjectileBase::OnProjectileOverlapTarget(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                               const FHitResult& SweepResult)
+void AProjectileBase::OnProjectileHitTarget(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+                                            UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+                                            const FHitResult& Hit)
 {
 	if (!IsValid(OtherActor) || ActorsToIgnore.Contains(OtherActor))
 	{
@@ -46,9 +47,22 @@ void AProjectileBase::OnProjectileOverlapTarget(UPrimitiveComponent* OverlappedC
 
 	ActorsToIgnore.AddUnique(OtherActor);
 
-	HitLogic(OtherComp, OtherActor, SweepResult);
-	OnProjectileHit(OtherComp, OtherActor, SweepResult);
+	HitLogic(OtherComp, OtherActor, Hit);
+	Destroy();
+}
 
+void AProjectileBase::OnProjectileOverlapTarget(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                                const FHitResult& SweepResult)
+{
+	if (!IsValid(OtherActor) || ActorsToIgnore.Contains(OtherActor))
+	{
+		return;
+	}
+
+	ActorsToIgnore.AddUnique(OtherActor);
+
+	OverlapLogic(OtherComp, OtherActor, SweepResult);
 	Destroy();
 }
 
@@ -57,7 +71,7 @@ void AProjectileBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCom
 {
 }
 
-void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                     const FHitResult& SweepResult)
+void AProjectileBase::OverlapLogic_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                  const FHitResult& SweepResult)
 {
 }

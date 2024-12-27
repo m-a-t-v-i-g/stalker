@@ -20,17 +20,16 @@ DECLARE_MULTICAST_DELEGATE(FCharacterFireDelegate);
 DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStartReloadSignature, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlayChangedSignature, ECharacterOverlayState);
 
 USTRUCT()
 struct FEquippedWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<UItemObject> ItemObject;
 
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<AItemActor> ItemActor;
 
 	UPROPERTY(VisibleInstanceOnly)
@@ -69,22 +68,27 @@ struct FReloadingData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	UWeaponObject* WeaponObject = nullptr;
+	UPROPERTY(VisibleInstanceOnly)
+	TObjectPtr<UWeaponObject> WeaponObject;
 
-	UPROPERTY()
-	UAmmoObject* AmmoObject = nullptr;
+	UPROPERTY(VisibleInstanceOnly)
+	TObjectPtr<UAmmoObject> AmmoObject;
 
-	uint16 AmmoCount = 0;
+	UPROPERTY(VisibleInstanceOnly)
+	uint16 RequiredAmmoCount = 0;
 
+	UPROPERTY(VisibleInstanceOnly)
 	float ReloadTime = 0.0f;
 
+	UPROPERTY(VisibleInstanceOnly)
 	bool bInProgress = false;
 	
-	FReloadingData() {}
+	FReloadingData()
+	{
+	}
 	
 	FReloadingData(UWeaponObject* WeaponObj, UAmmoObject* AmmoObj, uint16 AmmoAmount, float TimeToReload,
-	               bool bProcessReload) : WeaponObject(WeaponObj), AmmoObject(AmmoObj), AmmoCount(AmmoAmount),
+	               bool bProcessReload) : WeaponObject(WeaponObj), AmmoObject(AmmoObj), RequiredAmmoCount(AmmoAmount),
 	                                      ReloadTime(TimeToReload), bInProgress(bProcessReload)
 	{
 	}
@@ -93,14 +97,14 @@ struct FReloadingData
 	{
 		WeaponObject = nullptr;
 		AmmoObject = nullptr;
-		AmmoCount = 0;
+		RequiredAmmoCount = 0;
 		ReloadTime = 0.0f;
 		bInProgress = false;
 	}
 
 	bool IsValid() const
 	{
-		return WeaponObject != nullptr && AmmoObject != nullptr && AmmoCount > 0;
+		return WeaponObject != nullptr && AmmoObject != nullptr && RequiredAmmoCount > 0;
 	}
 };
 
@@ -118,68 +122,35 @@ public:
 	FCharacterAimingDelegate OnAimingStop;
 	FOnCharacterStartReloadSignature OnReloadStart;
 	FOnCharacterStopReloadSignature OnReloadStop;
-	FOnWeaponOverlayChangedSignature OnOverlayChanged;
+	TMulticastDelegate<void(ECharacterOverlayState)> OnOverlayChanged;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void OnCharacterDead() override;
 
-	void TryToggleSlot(int8 SlotIndex);
+	void ToggleSlot(int8 SlotIndex);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void PlayBasicAction();
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void StopBasicAction();
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void PlayAlternativeAction();
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void StopAlternativeAction();
-
+	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StartFire();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerStartFire();
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StopFire();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerStopFire();
-	
-	void StartAlternative();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerStartAlternative();
-	
-	void StopAlternative();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerStopAlternative();
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StartAiming();
-	
-	UFUNCTION(Server, Unreliable)
-	void ServerStartAiming();
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StopAiming();
 	
-	UFUNCTION(Server, Unreliable)
-	void ServerStopAiming();
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void TryReloadWeapon();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerTryReloadWeapon();
+	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
+	void StartReloadWeapon();
 	
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastReloadWeapon(float ReloadTime);
+	void MulticastStartReloadWeapon(float ReloadTime);
 	
 	void CompleteReloadWeapon();
 	void CancelReloadWeapon();
@@ -191,8 +162,6 @@ public:
 	UAmmoObject* GetAmmoForReload(const UAmmoDefinition* DesiredAmmo) const;
 	
 	const FWeaponBehavior* GetWeaponBehavior(const FName& ItemScriptName) const;
-	
-	FVector GetFireLocation() const;
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
 	
@@ -238,8 +207,15 @@ protected:
 	
 	void EquipOrUnequipSlot(const FString& SlotName, UItemObject* IncomingItem);
 
-	void ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName, UItemObject* ItemObject);
+	void ArmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName,
+	             UItemObject* ItemObject);
 	void DisarmHand(FEquippedWeaponData& HandedItemData, AItemActor*& ReplicatedItemActor);
+
+	UFUNCTION()
+	void OnAttackStart();
+
+	UFUNCTION()
+	void OnAttackStop();
 	
 	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName) const;
 	
@@ -256,6 +232,7 @@ private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	AItemActor* RightHandItemActor = nullptr;
 
+	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	FReloadingData ReloadingData;
 
 	FTimerHandle ReloadTimerHandle;

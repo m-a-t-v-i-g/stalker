@@ -149,8 +149,7 @@ void UWeaponObject::OnBindItemActor()
 
 	if (auto BindWeapon = GetBoundActor<AWeaponActor>())
 	{
-		BindWeapon->OnWeaponStartAttack.BindUObject(this, &UWeaponObject::OnAttack);
-		BindWeapon->OnWeaponStopAttack.BindUObject(this, &UWeaponObject::OnStopAttack);
+		
 	}
 }
 
@@ -160,8 +159,7 @@ void UWeaponObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 
 	if (auto PrevBoundWeapon = Cast<AWeaponActor>(PrevItemActor))
 	{
-		PrevBoundWeapon->OnWeaponStartAttack.Unbind();
-		PrevBoundWeapon->OnWeaponStopAttack.Unbind();
+		
 	}
 }
 
@@ -346,11 +344,6 @@ int UWeaponObject::CalculateRequiredAmmoCount() const
 	return GetMagSize() - AmmoCount;
 }
 
-float UWeaponObject::CalculateFireRate() const
-{
-	return GetDefaultFireRate();
-}
-
 bool UWeaponObject::IsMagFull() const
 {
 	TArray<UAmmoObject*>& AmmoData = GetWeaponInstance()->WeaponData.Rounds;
@@ -399,6 +392,11 @@ float UWeaponObject::GetReloadTime() const
 	return GetWeaponInstance()->WeaponData.ReloadTime;
 }
 
+float UWeaponObject::GetFireRate() const
+{
+	return CalculateFireRate();
+}
+
 float UWeaponObject::GetDefaultFireRate() const
 {
 	int FireRate = GetWeaponInstance()->WeaponData.FireRate;
@@ -433,7 +431,7 @@ void UWeaponObject::SetSingleFireTimer()
 		bInFireRate = true;
 		GetWorldTimerManager().ClearTimer(CanAttackTimer);
 	});
-		
+
 	GetWorldTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, CalculateFireRate(), false);
 }
 
@@ -457,4 +455,9 @@ void UWeaponObject::OnAttack_Implementation()
 void UWeaponObject::OnStopAttack_Implementation()
 {
 	
+}
+
+float UWeaponObject::CalculateFireRate() const
+{
+	return GetDefaultFireRate();
 }

@@ -21,6 +21,9 @@ struct FApplyDamageData
 	TWeakObjectPtr<UAbilitySystemComponent> TargetASC;
 
 	UPROPERTY()
+	TWeakObjectPtr<AActor> SourceActor;
+
+	UPROPERTY()
 	TWeakObjectPtr<AActor> TargetActor;
 
 	UPROPERTY()
@@ -53,6 +56,16 @@ struct FApplyDamageData
 		TargetASC = InTargetASC;
 	}
 	
+	void SetSourceActor(AActor* SourceAct)
+	{
+		SourceActor = SourceAct;
+	}
+	
+	void SetTargetActor(AActor* TargetAct)
+	{
+		TargetActor = TargetAct;
+	}
+	
 	void SetInstigator(AActor* InInstigator, AActor* InDamageCauser)
 	{
 		Instigator = InInstigator;
@@ -82,7 +95,13 @@ class STALKER_API UDamageSystemCore : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	static void TakeDamage(const FApplyDamageData& DamageData);
+	
 	static bool TakeDamageASCtoASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
 	static bool TakeDamageActorToASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
 	static void TakeDamageActorToActor(const FApplyDamageData& DamageData, float& OutResultDamage);
+	
+	static FApplyDamageData GenerateDamageData(AActor* SourceActor, AActor* TargetActor, AActor* DamageCauser,
+	                                           UClass* DamageType, float DamageValue, const FHitResult& SweepResult,
+	                                           const UObject* SourceObject);
 };

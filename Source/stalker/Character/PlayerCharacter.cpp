@@ -63,10 +63,10 @@ void APlayerCharacter::BindKeyInput(UInputComponent* PlayerInputComponent)
 {
 	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
 	{
-		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Inventory, ETriggerEvent::Triggered,
-		                                   this, &APlayerCharacter::IA_Inventory);
-		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Slot, ETriggerEvent::Triggered,
-										   this, &APlayerCharacter::IA_Slot);
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Inventory,
+		                                   ETriggerEvent::Triggered, this, &APlayerCharacter::IA_Inventory);
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Slot,
+		                                   ETriggerEvent::Triggered, this, &APlayerCharacter::IA_Slot);
 		
 		TArray<uint32> BindHandles;
 		StalkerInputComp->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed,
@@ -119,7 +119,7 @@ void APlayerCharacter::IA_Slot(const FInputActionInstance& InputAction)
 
 			if (Mappings[i].Key == *PressedKey)
 			{
-				GetWeaponComponent()->TryToggleSlot(a);
+				GetWeaponComponent()->ToggleSlot(a);
 				OnToggleSlot.Broadcast(a);
 				break;
 			}

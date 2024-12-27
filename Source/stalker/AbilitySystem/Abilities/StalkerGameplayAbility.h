@@ -18,10 +18,20 @@ class STALKER_API UStalkerGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 
+public:
+	UStalkerGameplayAbility(const FObjectInitializer& ObjectInitializer);
+	
+	AController* GetControllerFromActorInfo() const;
+	
+	EAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability|Activation")
 	EAbilityActivationPolicy ActivationPolicy;
 
-public:
-	EAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                             const FGameplayAbilityActivationInfo ActivationInfo,
+	                             const FGameplayEventData* TriggerEventData) override;
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                           const FGameplayAbilityActivationInfo ActivationInfo) override;
 };

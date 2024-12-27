@@ -43,7 +43,6 @@ void AWeaponActor::OnStartAttack()
 	
 	if (HasAuthority())
 	{
-		SpawnBullet();
 		MulticastMakeAttackVisual();
 	}
 }
@@ -74,59 +73,8 @@ void AWeaponActor::OnStopAlternative()
 {
 }
 
-ABulletBase* AWeaponActor::SpawnBullet()
-{
-	if (UWeaponObject* WeaponObject = GetWeaponObject())
-	{
-		TArray<UAmmoObject*> Cartridge = WeaponObject->GetRounds();
-
-		if (!Cartridge.IsEmpty())
-		{
-			if (UAmmoObject* CurrentAmmo = Cartridge[0])
-			{
-				check(Muzzle);
-
-				FRotator BulletRotation = FRotationMatrix::MakeFromX(GetFireLocation() - Muzzle->GetComponentLocation()).Rotator();
-				FTransform SpawnTransform = Muzzle->GetComponentTransform();
-				SpawnTransform.SetRotation(FQuat(BulletRotation));
-				
-				if (ABulletBase* Bullet = GetWorld()->SpawnActorDeferred<ABulletBase>(
-					CurrentAmmo->GetBulletClass(), SpawnTransform, this, GetInstigator(),
-					ESpawnActorCollisionHandlingMethod::AlwaysSpawn))
-				{
-					Bullet->SetupBullet(GetWeaponObject(), CurrentAmmo);
-					OnSetupBullet(Bullet);
-					
-					Bullet->FinishSpawning(SpawnTransform);
-					return Bullet;
-				}
-			}
-		}
-	}
-	return nullptr;
-}
-
 void AWeaponActor::OnSetupBullet(ABulletBase* Bullet)
 {
 	TArray<AActor*> ActorsToIgnore {this, GetOwner()};
 	Bullet->ActorsToIgnore = ActorsToIgnore;
-}
-
-FVector AWeaponActor::GetFireLocation()
-{
-	if (AController* Controller = GetInstigatorController())
-	{
-		FHitResult HitResult;
-		FVector ViewPoint;
-		FRotator ViewRotation;
-
-		Controller->GetPlayerViewPoint(ViewPoint, ViewRotation);
-		
-		FVector StartPoint = ViewPoint;
-		FVector EndPoint = StartPoint + ViewRotation.Vector() * 10000.0f;
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility);
-		return bHit ? HitResult.Location : HitResult.TraceEnd;
-	}
-	return FVector();
 }

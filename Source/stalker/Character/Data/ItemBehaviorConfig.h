@@ -9,16 +9,6 @@
 class UAbilitySet;
 
 UENUM(BlueprintType)
-enum class EMouseButtonReaction : uint8
-{
-	None,
-	Attack,
-	Alternative,
-	Aiming,
-	Power
-};
-
-UENUM(BlueprintType)
 enum class EOccupiedHand : uint8
 {
 	Left,
@@ -47,22 +37,15 @@ struct FWeaponBehavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	FRotator InHandRotation = FRotator::ZeroRotator;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
-		meta = (EditCondition = "OccupiedHand != EOccupiedHand::Left"))
-	EMouseButtonReaction LeftMouseReaction = EMouseButtonReaction::None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior",
-		meta = (EditCondition = "OccupiedHand != EOccupiedHand::Left"))
-	EMouseButtonReaction RightMouseReaction = EMouseButtonReaction::None;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	TObjectPtr<const UAbilitySet> AbilitySet;
 
 	void Clear()
 	{
 		OccupiedHand = EOccupiedHand::Left;
-		LeftMouseReaction = EMouseButtonReaction::None;
-		RightMouseReaction = EMouseButtonReaction::None;
+		InHandOffset = FVector::ZeroVector;
+		InHandRotation = FRotator::ZeroRotator;
+		AbilitySet = nullptr;
 	}
 };
 

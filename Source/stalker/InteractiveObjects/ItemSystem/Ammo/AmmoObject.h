@@ -13,6 +13,12 @@ USTRUCT()
 struct FAmmoInstanceData
 {
 	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "1"))
+	uint8 BulletsPerCartridge = 1;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "1.0"))
+	float BulletSweepRadius = 3.0f;
 };
 
 USTRUCT()
@@ -37,6 +43,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ammo")
 	TSubclassOf<ABulletBase> BulletClass;
 
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "1"))
+	uint8 BulletsPerCartridge = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "0.0"))
+	float BulletSweepRadius = 1.0f;
+	
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ShowOnlyInnerProperties))
 	FAmmoDamageData DamageData;
 };
@@ -77,4 +89,8 @@ public:
 	FORCEINLINE UClass* GetBulletClass() const;
 	FORCEINLINE FAmmoDamageData GetDamageData() const;
 	FORCEINLINE UClass* GetDamageType() const;
+	FORCEINLINE uint8 GetBulletsPerCartridge() const;
+	FORCEINLINE float GetBulletSweepRadius() const;
+
+	FORCEINLINE UAmmoInstance* GetAmmoInstance() const;
 };

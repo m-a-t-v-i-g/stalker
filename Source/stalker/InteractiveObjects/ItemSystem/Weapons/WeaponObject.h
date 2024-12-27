@@ -148,7 +148,7 @@ public:
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
 	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
-	
+
 	void StartAttack();
 	void CallAttack();
 	void StopAttack();
@@ -160,7 +160,6 @@ public:
 	virtual void DecreaseAmmo();
 
 	virtual int CalculateRequiredAmmoCount() const;
-	virtual float CalculateFireRate() const;
 	
 	FORCEINLINE bool IsMagFull() const;
 	FORCEINLINE bool IsMagEmpty() const;
@@ -173,6 +172,7 @@ public:
 	FORCEINLINE TArray<UAmmoObject*> GetRounds() const;
 	FORCEINLINE const UAmmoDefinition* GetCurrentAmmoClass() const;
 	FORCEINLINE float GetReloadTime() const;
+	FORCEINLINE float GetFireRate() const;
 	FORCEINLINE float GetDefaultFireRate() const;
 	FORCEINLINE FWeaponDamageData GetDamageData() const;
 	FORCEINLINE bool IsAutomatic() const;
@@ -189,10 +189,14 @@ protected:
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
 	void OnStopAttack();
+
+	virtual float CalculateFireRate() const;
 	
 private:
 	FTimerHandle CanAttackTimer;
 	FTimerHandle RepeatAttackTimer;
+
+	FHitResult HitLocation;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
 	bool bInFireRate = true;
