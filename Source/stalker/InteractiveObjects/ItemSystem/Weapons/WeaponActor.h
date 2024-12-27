@@ -23,38 +23,14 @@ public:
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;
 
 	UFUNCTION()
-	virtual void OnStartAttack();
-
-	virtual void MakeAttackVisual();
-	
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastMakeAttackVisual();
+	virtual void OnFireStart();
 
 	UFUNCTION()
-	virtual void OnStopAttack();
+	virtual void OnFireStop();
 
-	UFUNCTION()
-	virtual void OnStartAlternative();
-
-	UFUNCTION()
-	virtual void OnStopAlternative();
-
-	UWeaponObject* GetWeaponObject() const { return Cast<UWeaponObject>(GetItemObject()); }
-	
-protected:
-	virtual void OnSetupBullet(ABulletBase* Bullet);
+	FORCEINLINE UWeaponObject* GetWeaponObject() const;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Muzzle;
-
-	TObjectPtr<AController> InstigatorController;
-	
-	FTimerHandle CanAttackTimer;
-	FTimerHandle RepeatAttackTimer;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	bool bInFireRate = true;
-
-	bool bHoldTrigger = false;
 };

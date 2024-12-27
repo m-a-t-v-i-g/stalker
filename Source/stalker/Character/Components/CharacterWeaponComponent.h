@@ -63,51 +63,6 @@ struct FEquippedWeaponData
 	}
 };
 
-USTRUCT()
-struct FReloadingData
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<UWeaponObject> WeaponObject;
-
-	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<UAmmoObject> AmmoObject;
-
-	UPROPERTY(VisibleInstanceOnly)
-	uint16 RequiredAmmoCount = 0;
-
-	UPROPERTY(VisibleInstanceOnly)
-	float ReloadTime = 0.0f;
-
-	UPROPERTY(VisibleInstanceOnly)
-	bool bInProgress = false;
-	
-	FReloadingData()
-	{
-	}
-	
-	FReloadingData(UWeaponObject* WeaponObj, UAmmoObject* AmmoObj, uint16 AmmoAmount, float TimeToReload,
-	               bool bProcessReload) : WeaponObject(WeaponObj), AmmoObject(AmmoObj), RequiredAmmoCount(AmmoAmount),
-	                                      ReloadTime(TimeToReload), bInProgress(bProcessReload)
-	{
-	}
-
-	void Clear()
-	{
-		WeaponObject = nullptr;
-		AmmoObject = nullptr;
-		RequiredAmmoCount = 0;
-		ReloadTime = 0.0f;
-		bInProgress = false;
-	}
-
-	bool IsValid() const
-	{
-		return WeaponObject != nullptr && AmmoObject != nullptr && RequiredAmmoCount > 0;
-	}
-};
-
 UCLASS(meta = (BlueprintSpawnableComponent))
 class STALKER_API UCharacterWeaponComponent : public UCharacterOutfitComponent
 {
@@ -135,31 +90,10 @@ public:
 	void ServerToggleSlot(int8 SlotIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
-	void StartFire();
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
-	void StopFire();
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StartAiming();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
 	void StopAiming();
-	
-	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
-	void StartReloadWeapon();
-	
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastStartReloadWeapon(float ReloadTime);
-	
-	void CompleteReloadWeapon();
-	void CancelReloadWeapon();
-
-	void SetReloadTimer();
-	void ClearReloadingData(bool bWasSuccessful);
-
-	bool HasAmmoForReload() const;
-	UAmmoObject* GetAmmoForReload(const UAmmoDefinition* DesiredAmmo) const;
 	
 	const FWeaponBehavior* GetWeaponBehavior(const FName& ItemScriptName) const;
 	
@@ -231,9 +165,4 @@ private:
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	AItemActor* RightHandItemActor = nullptr;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	FReloadingData ReloadingData;
-
-	FTimerHandle ReloadTimerHandle;
 };

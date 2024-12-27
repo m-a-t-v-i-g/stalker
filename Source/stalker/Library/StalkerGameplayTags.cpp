@@ -15,9 +15,12 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Interaction,			"Ability.Interaction", "Interaction ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Fire,					"Ability.Fire", "Weapon fire ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_FireAuto,				"Ability.FireAuto", "Weapon auto fire ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_MagReload,			"Ability.MagReload", "Magazine reload ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_SingleReload,			"Ability.SingleReload", "Single reload ability.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Aiming,				"Ability.Aiming", "Weapon aiming ability.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(AbilityTag_Reload,				"Ability.Reload", "Reload ability.");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(BlockAbilityTag_NoFiring,		"BlockAbility.NoFiring", "Block firing ability.");
+	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletDamage,			"Effect.Damage.Bullet", "Bullet damage tag.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BulletResistance,		"Effect.Resistance.Bullet", "Bullet resistance effect.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(EffectTag_BlastDamage,			"Effect.Damage.Blast", "Blast damage tag.");

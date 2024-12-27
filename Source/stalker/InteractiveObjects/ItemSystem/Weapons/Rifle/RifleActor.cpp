@@ -18,12 +18,12 @@ void ARifleActor::OnUnbindItem(UItemObject* PrevItemObject)
 	Super::OnUnbindItem(PrevItemObject);
 }
 
-void ARifleActor::OnStartAttack()
+void ARifleActor::OnFireStart()
 {
-	Super::OnStartAttack();
+	Super::OnFireStart();
 }
 
-void ARifleActor::OnStopAttack()
+void ARifleActor::OnFireStop()
 {
-	Super::OnStopAttack();
+	Super::OnFireStop();
 }

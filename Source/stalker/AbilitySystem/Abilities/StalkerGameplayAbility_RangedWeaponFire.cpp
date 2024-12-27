@@ -44,19 +44,21 @@ UWeaponObject* UStalkerGameplayAbility_RangedWeaponFire::GetWeaponObject() const
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                                         const FGameplayAbilityActorInfo* ActorInfo,
-                                                         const FGameplayAbilityActivationInfo ActivationInfo,
-                                                         const FGameplayEventData* TriggerEventData)
+                                                               const FGameplayAbilityActorInfo* ActorInfo,
+                                                               const FGameplayAbilityActivationInfo ActivationInfo,
+                                                               const FGameplayEventData* TriggerEventData)
 {
+	UWeaponObject* WeaponObject = GetWeaponObject();
+	check(WeaponObject);
+
 	UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(AbilityComponent);
 
 	OnTargetDataReadyCallbackDelegateHandle = AbilityComponent->AbilityTargetDataSetDelegate(
-		CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(
-		this, &ThisClass::OnTargetDataReadyCallback);
+		CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
 	if (IsLocallyControlled())
 	{
 		StartWeaponTargeting();
@@ -73,9 +75,9 @@ void UStalkerGameplayAbility_RangedWeaponFire::ActivateAbility(const FGameplayAb
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::EndAbility(const FGameplayAbilitySpecHandle Handle,
-                                                    const FGameplayAbilityActorInfo* ActorInfo,
-                                                    const FGameplayAbilityActivationInfo ActivationInfo,
-                                                    bool bReplicateEndAbility, bool bWasCancelled)
+                                                          const FGameplayAbilityActorInfo* ActorInfo,
+                                                          const FGameplayAbilityActivationInfo ActivationInfo,
+                                                          bool bReplicateEndAbility, bool bWasCancelled)
 {
 	if (IsEndAbilityValid(Handle, ActorInfo))
 	{
@@ -86,6 +88,9 @@ void UStalkerGameplayAbility_RangedWeaponFire::EndAbility(const FGameplayAbility
 			return;
 		}
 
+		UWeaponObject* WeaponObject = GetWeaponObject();
+		check(WeaponObject);
+
 		UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 		check(AbilityComponent);
 
@@ -93,6 +98,8 @@ void UStalkerGameplayAbility_RangedWeaponFire::EndAbility(const FGameplayAbility
 		                                               CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
 		AbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle,
 		                                                    CurrentActivationInfo.GetActivationPredictionKey());
+
+		WeaponObject->StopFire();
 
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	}
@@ -127,7 +134,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::StartWeaponTargeting()
 			TargetData.Add(NewTargetData);
 		}
 	}
-	
+
 	OnTargetDataReadyCallback(TargetData, FGameplayTag::EmptyTag);
 }
 
@@ -135,7 +142,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::PerformLocalTargeting(TArray<FHit
 {
 	APawn* AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 	UWeaponObject* WeaponObject = GetWeaponObject();
-	
+
 	if (AvatarPawn && AvatarPawn->IsLocallyControlled() && WeaponObject)
 	{
 		FRangedWeaponFiringInput InputData;
@@ -151,7 +158,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::PerformLocalTargeting(TArray<FHit
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRangedWeaponFiringInput& InputData,
-                                                                 TArray<FHitResult>& OutHits)
+                                                                       TArray<FHitResult>& OutHits)
 {
 	UWeaponObject* WeaponObject = InputData.WeaponObject;
 	check(WeaponObject);
@@ -173,7 +180,8 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 
 		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
 
-		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians, 0.8f /* TODO: Exponent */);
+		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians,
+		                                                      0.8f /* TODO: Exponent */);
 		const FVector EndTrace = InputData.StartTrace + BulletDir * 10000.0f;
 
 		TArray<FHitResult> AllImpacts;
@@ -183,7 +191,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 		if (Impact.GetActor())
 		{
 			DrawDebugPoint(GetWorld(), Impact.ImpactPoint, 18.0f, FColor::Green, false, 3.0f);
-			
+
 			if (AllImpacts.Num() > 0)
 			{
 				OutHits.Append(AllImpacts);
@@ -198,13 +206,14 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 	}
 }
 
-FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace,
-                                                                   float SweepRadius, bool bIsSimulated,
-                                                                   TArray<FHitResult>& OutHits) const
+FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(
+	const FVector& StartTrace, const FVector& EndTrace,
+	float SweepRadius, bool bIsSimulated,
+	TArray<FHitResult>& OutHits) const
 {
 	static float DebugThickness = 1.0f;
 	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 3.0f, 0, DebugThickness);
-	
+
 	FHitResult Impact;
 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
@@ -250,12 +259,13 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(const F
 }
 
 FHitResult UStalkerGameplayAbility_RangedWeaponFire::BulletTrace(const FVector& StartTrace, const FVector& EndTrace,
-                                                           float SweepRadius, bool bIsSimulated,
-                                                           TArray<FHitResult>& OutHitResults) const
+                                                                 float SweepRadius, bool bIsSimulated,
+                                                                 TArray<FHitResult>& OutHitResults) const
 {
 	TArray<FHitResult> HitResults;
-	
-	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
+
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/
+	                                  GetAvatarActorFromActorInfo());
 	TraceParams.bReturnPhysicalMaterial = true;
 	//AddAdditionalTraceIgnoreActors(TraceParams); TODO
 
@@ -263,7 +273,8 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::BulletTrace(const FVector& 
 
 	if (SweepRadius > 0.0f)
 	{
-		GetWorld()->SweepMultiByChannel(HitResults, StartTrace, EndTrace, FQuat::Identity, TraceChannel, FCollisionShape::MakeSphere(SweepRadius), TraceParams);
+		GetWorld()->SweepMultiByChannel(HitResults, StartTrace, EndTrace, FQuat::Identity, TraceChannel,
+		                                FCollisionShape::MakeSphere(SweepRadius), TraceParams);
 	}
 	else
 	{
@@ -306,7 +317,7 @@ int32 UStalkerGameplayAbility_RangedWeaponFire::FindFirstPawnHitResult(const TAr
 		{
 			return Idx;
 		}
-		
+
 		AActor* HitActor = CurHitResult.HitObjectHandle.FetchActor();
 		if (HitActor != nullptr && HitActor->GetAttachParentActor() != nullptr && Cast<APawn>(
 			HitActor->GetAttachParentActor()) != nullptr)
@@ -318,7 +329,8 @@ int32 UStalkerGameplayAbility_RangedWeaponFire::FindFirstPawnHitResult(const TAr
 	return INDEX_NONE;
 }
 
-FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(APawn* SourcePawn, EWeaponTargetingSource Source) const
+FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(
+	APawn* SourcePawn, EWeaponTargetingSource Source) const
 {
 	check(SourcePawn);
 
@@ -331,7 +343,7 @@ FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(APawn
 		float FocalDistance = 1024.0f;
 		FVector CamLoc;
 		FRotator CamRot;
-		
+
 		APlayerController* PC = Cast<APlayerController>(Controller);
 		if (PC != nullptr)
 		{
@@ -355,30 +367,36 @@ FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(APawn
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
-                                                                   FGameplayTag ApplicationTag)
+                                                                         FGameplayTag ApplicationTag)
 {
+	UWeaponObject* WeaponObject = GetWeaponObject();
+	check(WeaponObject);
+
 	UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(AbilityComponent);
 
 	if (const FGameplayAbilitySpec* AbilitySpec = AbilityComponent->FindAbilitySpecFromHandle(CurrentSpecHandle))
 	{
-		FScopedPredictionWindow	ScopedPrediction(AbilityComponent);
-		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
+		FScopedPredictionWindow ScopedPrediction(AbilityComponent);
+		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(
+			MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
 
 		if (CurrentActorInfo->IsLocallyControlled() && !CurrentActorInfo->IsNetAuthority())
 		{
 			AbilityComponent->CallServerSetReplicatedTargetData(CurrentSpecHandle,
-			                                                      CurrentActivationInfo.GetActivationPredictionKey(),
-			                                                      LocalTargetDataHandle, ApplicationTag,
-			                                                      AbilityComponent->ScopedPredictionKey);
+			                                                    CurrentActivationInfo.GetActivationPredictionKey(),
+			                                                    LocalTargetDataHandle, ApplicationTag,
+			                                                    AbilityComponent->ScopedPredictionKey);
 		}
 
 		if (CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 		{
-			if (HasAuthority(&CurrentActivationInfo))
+			if (CurrentActorInfo->IsNetAuthority())
 			{
 				SpawnBullets(LocalTargetDataHandle);
 			}
+
+			WeaponObject->StartFire();
 		}
 		else
 		{
@@ -386,7 +404,8 @@ void UStalkerGameplayAbility_RangedWeaponFire::OnTargetDataReadyCallback(const F
 		}
 	}
 
-	AbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	AbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle,
+	                                                    CurrentActivationInfo.GetActivationPredictionKey());
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::SpawnBullets(const FGameplayAbilityTargetDataHandle& InData)
@@ -417,7 +436,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::SpawnBullets(const FGameplayAbili
 			FTransform SpawnTransform = GetTargetingTransform(AvatarPawn, EWeaponTargetingSource::CameraTowardsFocus);
 			FRotator BulletRotation = FRotationMatrix::MakeFromX(HitResult->ImpactPoint - SpawnTransform.GetLocation()).Rotator();
 			SpawnTransform.SetRotation(FQuat(BulletRotation));
-				
+
 			if (ABulletBase* Bullet = GetWorld()->SpawnActorDeferred<ABulletBase>(
 				AmmoObject->GetBulletClass(), SpawnTransform, AvatarPawn, AvatarPawn,
 				ESpawnActorCollisionHandlingMethod::AlwaysSpawn))

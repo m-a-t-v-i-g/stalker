@@ -18,8 +18,8 @@ void AWeaponActor::OnBindItem()
 
 	if (auto WeaponObject = GetItemObject<UWeaponObject>())
 	{
-		WeaponObject->OnAttackStart.AddDynamic(this, &AWeaponActor::OnStartAttack);
-		WeaponObject->OnAttackStop.AddDynamic(this, &AWeaponActor::OnStopAttack);
+		WeaponObject->OnAttackStart.AddUObject(this, &AWeaponActor::OnFireStart);
+		WeaponObject->OnAttackStop.AddUObject(this, &AWeaponActor::OnFireStop);
 	}
 }
 
@@ -34,47 +34,16 @@ void AWeaponActor::OnUnbindItem(UItemObject* PrevItemObject)
 	}
 }
 
-void AWeaponActor::OnStartAttack()
+void AWeaponActor::OnFireStart()
 {
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		MakeAttackVisual();
-	}
-	
-	if (HasAuthority())
-	{
-		MulticastMakeAttackVisual();
-	}
 }
 
-void AWeaponActor::MakeAttackVisual()
-{
-	UKismetSystemLibrary::PrintString(this, FString("ATTACK"), true, false, FLinearColor::Green);
-}
-
-void AWeaponActor::MulticastMakeAttackVisual_Implementation()
-{
-	if (GetLocalRole() != ROLE_AutonomousProxy)
-	{
-		MakeAttackVisual();
-	}
-}
-
-void AWeaponActor::OnStopAttack()
+void AWeaponActor::OnFireStop()
 {
 	
 }
 
-void AWeaponActor::OnStartAlternative()
+UWeaponObject* AWeaponActor::GetWeaponObject() const
 {
-}
-
-void AWeaponActor::OnStopAlternative()
-{
-}
-
-void AWeaponActor::OnSetupBullet(ABulletBase* Bullet)
-{
-	TArray<AActor*> ActorsToIgnore {this, GetOwner()};
-	Bullet->ActorsToIgnore = ActorsToIgnore;
+	return Cast<UWeaponObject>(GetItemObject());
 }

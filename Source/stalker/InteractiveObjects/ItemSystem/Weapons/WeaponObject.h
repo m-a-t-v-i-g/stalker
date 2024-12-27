@@ -63,8 +63,6 @@ struct FWeaponPredictedAmmo
 	int Count = 0;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponAttackSignature);
-
 UCLASS()
 class STALKER_API UWeaponDefinition : public UItemDefinition
 {
@@ -131,8 +129,9 @@ class STALKER_API UWeaponObject : public UItemObject
 	GENERATED_BODY()
 
 public:
-	FOnWeaponAttackSignature OnAttackStart;
-	FOnWeaponAttackSignature OnAttackStop;
+	TMulticastDelegate<void()> OnAttackStart;
+	TMulticastDelegate<void()> OnAttackStop;
+	TMulticastDelegate<void()> OnCancelAllActions;
 
 #pragma region Replication
 	
@@ -148,16 +147,14 @@ public:
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
 	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
-
-	void StartAttack();
-	void CallAttack();
-	void StopAttack();
-
-	void StartAlternative();
-	void StopAlternative();
+ 
+	void StartFire();
+	void StopFire();
 	
 	virtual void IncreaseAmmo(UAmmoObject* AmmoObject, int Amount);
 	virtual void DecreaseAmmo();
+
+	virtual void CancelAllActions();
 
 	virtual int CalculateRequiredAmmoCount() const;
 	
@@ -170,8 +167,10 @@ public:
 	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
 	FORCEINLINE int GetMagSize() const;
 	FORCEINLINE TArray<UAmmoObject*> GetRounds() const;
+	FORCEINLINE uint16 GetRemainedRounds() const;
 	FORCEINLINE const UAmmoDefinition* GetCurrentAmmoClass() const;
 	FORCEINLINE float GetReloadTime() const;
+	FORCEINLINE float GetDefaultReloadTime() const;
 	FORCEINLINE float GetFireRate() const;
 	FORCEINLINE float GetDefaultFireRate() const;
 	FORCEINLINE FWeaponDamageData GetDamageData() const;
@@ -181,26 +180,12 @@ public:
 	FORCEINLINE UWeaponInstance* GetWeaponInstance() const;
 
 protected:
-	void SetSingleFireTimer();
-	void SetRepetitiveFireTimer();
-
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnAttack();
+	void OnFireStart();
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnStopAttack();
-
+	void OnFireStop();
+	
+	virtual float CalculateReloadTime() const;
 	virtual float CalculateFireRate() const;
-	
-private:
-	FTimerHandle CanAttackTimer;
-	FTimerHandle RepeatAttackTimer;
-
-	FHitResult HitLocation;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	bool bInFireRate = true;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	bool bHoldTrigger = false;
 };

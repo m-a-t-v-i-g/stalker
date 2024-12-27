@@ -226,64 +226,17 @@ bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
-void UWeaponObject::StartAttack()
+void UWeaponObject::StartFire()
 {
-	if (!CanAttack() || bHoldTrigger)
-	{
-		return;
-	}
-
-	if (bInFireRate)
-	{
-		CallAttack();
-		IsAutomatic() ? SetRepetitiveFireTimer() : SetSingleFireTimer();
-	}
-
-	bHoldTrigger = true;
+	DecreaseAmmo();
+	OnAttackStart.Broadcast();
+	OnFireStart();
 }
 
-void UWeaponObject::CallAttack()
+void UWeaponObject::StopFire()
 {
-	if (!CanAttack())
-	{
-		StopAttack();
-	}
-	else if (bInFireRate)
-	{
-		OnAttackStart.Broadcast();
-		DecreaseAmmo();
-		OnAttack();
-		bInFireRate = false;
-	}
-}
-
-void UWeaponObject::StopAttack()
-{
-	if (!bHoldTrigger)
-	{
-		return;
-	}
-
 	OnAttackStop.Broadcast();
-
-	if (IsAutomatic())
-	{
-		GetWorldTimerManager().ClearTimer(RepeatAttackTimer);
-		SetSingleFireTimer();
-	}
-
-	bHoldTrigger = false;
-	OnStopAttack();
-}
-
-void UWeaponObject::StartAlternative()
-{
-	
-}
-
-void UWeaponObject::StopAlternative()
-{
-	
+	OnFireStop();
 }
 
 void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
@@ -329,6 +282,11 @@ void UWeaponObject::DecreaseAmmo()
 	{
 		GetWeaponInstance()->WeaponData.CurrentAmmoClass = Cast<UAmmoDefinition>(AmmoData[0]->ItemDefinition);
 	}
+}
+
+void UWeaponObject::CancelAllActions()
+{
+	OnCancelAllActions.Broadcast();
 }
 
 int UWeaponObject::CalculateRequiredAmmoCount() const
@@ -382,12 +340,27 @@ TArray<UAmmoObject*> UWeaponObject::GetRounds() const
 	return GetWeaponInstance()->WeaponData.Rounds;
 }
 
+uint16 UWeaponObject::GetRemainedRounds() const
+{
+	uint16 RoundsRemain = 0;
+	for (UAmmoObject* Ammo : GetRounds())
+	{
+		RoundsRemain += Ammo->GetAmount();
+	}
+	return RoundsRemain;
+}
+
 const UAmmoDefinition* UWeaponObject::GetCurrentAmmoClass() const
 {
 	return GetWeaponInstance()->WeaponData.CurrentAmmoClass.Get();
 }
 
 float UWeaponObject::GetReloadTime() const
+{
+	return CalculateReloadTime();
+}
+
+float UWeaponObject::GetDefaultReloadTime() const
 {
 	return GetWeaponInstance()->WeaponData.ReloadTime;
 }
@@ -423,38 +396,19 @@ UWeaponInstance* UWeaponObject::GetWeaponInstance() const
 	return GetItemInstance<UWeaponInstance>();
 }
 
-void UWeaponObject::SetSingleFireTimer()
-{
-	FTimerDelegate CanAttackDelegate;
-	CanAttackDelegate.BindLambda([&, this]
-	{
-		bInFireRate = true;
-		GetWorldTimerManager().ClearTimer(CanAttackTimer);
-	});
-
-	GetWorldTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, CalculateFireRate(), false);
-}
-
-void UWeaponObject::SetRepetitiveFireTimer()
-{
-	FTimerDelegate RepeatAttackDelegate;
-	RepeatAttackDelegate.BindLambda([&, this]
-	{
-		bInFireRate = true;
-		CallAttack();
-	});
-	
-	GetWorldTimerManager().SetTimer(RepeatAttackTimer, RepeatAttackDelegate, CalculateFireRate(), true);
-}
-
-void UWeaponObject::OnAttack_Implementation()
+void UWeaponObject::OnFireStart_Implementation()
 {
 
 }
 
-void UWeaponObject::OnStopAttack_Implementation()
+void UWeaponObject::OnFireStop_Implementation()
 {
 	
+}
+
+float UWeaponObject::CalculateReloadTime() const
+{
+	return GetDefaultReloadTime();
 }
 
 float UWeaponObject::CalculateFireRate() const

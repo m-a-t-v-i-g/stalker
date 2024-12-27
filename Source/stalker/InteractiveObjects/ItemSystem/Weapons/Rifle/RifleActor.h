@@ -17,6 +17,6 @@ public:
 	virtual void OnBindItem() override;
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;
 	
-	virtual void OnStartAttack() override;
-	virtual void OnStopAttack() override;
+	virtual void OnFireStart() override;
+	virtual void OnFireStop() override;
 };
