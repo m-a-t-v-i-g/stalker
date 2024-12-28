@@ -78,7 +78,7 @@ protected:
 	FTransform GetTargetingTransform(APawn* SourcePawn, EWeaponTargetingSource Source) const;
 	
 private:
-	FTimerHandle CanAttackTimer;
+	FTimerHandle EndAbilityTimer;
 	
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 	

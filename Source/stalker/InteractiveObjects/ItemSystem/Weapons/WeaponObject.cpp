@@ -75,7 +75,7 @@ void UWeaponInstance::SetupRounds(const UItemDefinition* Definition, const UItem
 			{
 				continue;
 			}
-					
+
 			uint16 LoadedAmmoCount = 0;
 
 			for (UAmmoObject* AmmoObj : WeaponData.Rounds)
@@ -271,7 +271,7 @@ void UWeaponObject::DecreaseAmmo()
 	if (!AmmoData.IsEmpty() && AmmoData.IsValidIndex(0))
 	{
 		AmmoData[0]->RemoveAmount(1);
-		
+
 		if (AmmoData[0]->GetAmount() == 0)
 		{
 			AmmoData.RemoveAt(0);
@@ -286,7 +286,7 @@ void UWeaponObject::DecreaseAmmo()
 
 void UWeaponObject::CancelAllActions()
 {
-	OnCancelAllActions.Broadcast();
+	CancelAllActionsDelegate.Broadcast();
 }
 
 int UWeaponObject::CalculateRequiredAmmoCount() const

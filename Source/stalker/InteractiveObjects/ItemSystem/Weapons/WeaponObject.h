@@ -131,7 +131,7 @@ class STALKER_API UWeaponObject : public UItemObject
 public:
 	TMulticastDelegate<void()> OnAttackStart;
 	TMulticastDelegate<void()> OnAttackStop;
-	TMulticastDelegate<void()> OnCancelAllActions;
+	TMulticastDelegate<void()> CancelAllActionsDelegate;
 
 #pragma region Replication
 	

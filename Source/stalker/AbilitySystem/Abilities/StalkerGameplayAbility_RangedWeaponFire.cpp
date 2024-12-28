@@ -51,6 +51,12 @@ void UStalkerGameplayAbility_RangedWeaponFire::ActivateAbility(const FGameplayAb
 	UWeaponObject* WeaponObject = GetWeaponObject();
 	check(WeaponObject);
 
+	if (WeaponObject->IsMagEmpty())
+	{
+		K2_CancelAbility();
+		return;
+	}
+
 	UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(AbilityComponent);
 
@@ -64,14 +70,14 @@ void UStalkerGameplayAbility_RangedWeaponFire::ActivateAbility(const FGameplayAb
 		StartWeaponTargeting();
 	}
 
-	FTimerDelegate CanAttackDelegate;
-	CanAttackDelegate.BindLambda([&, this]
+	FTimerDelegate EndAbilityDelegate;
+	EndAbilityDelegate.BindLambda([&, this]
 	{
 		K2_EndAbility();
 	});
 
 	float FireRate = GetWeaponObject()->GetFireRate();
-	GetWorld()->GetTimerManager().SetTimer(CanAttackTimer, CanAttackDelegate, FireRate, false);
+	GetWorld()->GetTimerManager().SetTimer(EndAbilityTimer, EndAbilityDelegate, FireRate, false);
 }
 
 void UStalkerGameplayAbility_RangedWeaponFire::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -99,7 +105,10 @@ void UStalkerGameplayAbility_RangedWeaponFire::EndAbility(const FGameplayAbility
 		AbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle,
 		                                                    CurrentActivationInfo.GetActivationPredictionKey());
 
-		WeaponObject->StopFire();
+		if (!bWasCancelled)
+		{
+			WeaponObject->StopFire();
+		}
 
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	}
@@ -185,8 +194,8 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 		const FVector EndTrace = InputData.StartTrace + BulletDir * 10000.0f;
 
 		TArray<FHitResult> AllImpacts;
-		FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, /* SweepRadius */ 3.0f,
-		                                        /* bIsSimulated */ false, AllImpacts);
+		FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, AmmoObject->GetBulletSweepRadius(),
+		                                        false, AllImpacts);
 
 		if (Impact.GetActor())
 		{
@@ -207,8 +216,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 }
 
 FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(
-	const FVector& StartTrace, const FVector& EndTrace,
-	float SweepRadius, bool bIsSimulated,
+	const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
 	TArray<FHitResult>& OutHits) const
 {
 	static float DebugThickness = 1.0f;
@@ -218,7 +226,7 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(
 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
 	{
-		Impact = BulletTrace(StartTrace, EndTrace, /*SweepRadius=*/ 0.0f, bIsSimulated, /*out*/ OutHits);
+		Impact = BulletTrace(StartTrace, EndTrace, /* SweepRadius */ 0.0f, bIsSimulated, OutHits);
 	}
 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
@@ -226,7 +234,7 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(
 		if (SweepRadius > 0.0f)
 		{
 			TArray<FHitResult> SweepHits;
-			Impact = BulletTrace(StartTrace, EndTrace, SweepRadius, bIsSimulated, /*out*/ SweepHits);
+			Impact = BulletTrace(StartTrace, EndTrace, SweepRadius, bIsSimulated, SweepHits);
 
 			const int32 FirstPawnIdx = FindFirstPawnHitResult(SweepHits);
 			if (SweepHits.IsValidIndex(FirstPawnIdx))
@@ -264,8 +272,7 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::BulletTrace(const FVector& 
 {
 	TArray<FHitResult> HitResults;
 
-	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/
-	                                  GetAvatarActorFromActorInfo());
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), true, GetAvatarActorFromActorInfo());
 	TraceParams.bReturnPhysicalMaterial = true;
 	//AddAdditionalTraceIgnoreActors(TraceParams); TODO
 
@@ -329,8 +336,7 @@ int32 UStalkerGameplayAbility_RangedWeaponFire::FindFirstPawnHitResult(const TAr
 	return INDEX_NONE;
 }
 
-FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(
-	APawn* SourcePawn, EWeaponTargetingSource Source) const
+FTransform UStalkerGameplayAbility_RangedWeaponFire::GetTargetingTransform(APawn* SourcePawn, EWeaponTargetingSource Source) const
 {
 	check(SourcePawn);
 
@@ -378,8 +384,7 @@ void UStalkerGameplayAbility_RangedWeaponFire::OnTargetDataReadyCallback(const F
 	if (const FGameplayAbilitySpec* AbilitySpec = AbilityComponent->FindAbilitySpecFromHandle(CurrentSpecHandle))
 	{
 		FScopedPredictionWindow ScopedPrediction(AbilityComponent);
-		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(
-			MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
+		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
 
 		if (CurrentActorInfo->IsLocallyControlled() && !CurrentActorInfo->IsNetAuthority())
 		{

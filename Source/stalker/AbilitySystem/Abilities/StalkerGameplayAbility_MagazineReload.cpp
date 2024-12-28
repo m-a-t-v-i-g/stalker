@@ -74,7 +74,7 @@ void UStalkerGameplayAbility_MagazineReload::EndAbility(const FGameplayAbilitySp
 
 		if (CurrentActorInfo->IsNetAuthority())
 		{
-			WeaponObject->OnCancelAllActions.RemoveAll(this);
+			WeaponObject->CancelAllActionsDelegate.RemoveAll(this);
 		}
 		
 		AbilityComponent->AbilityReplicatedEventDelegate(EAbilityGenericReplicatedEvent::GenericConfirm,
@@ -107,6 +107,12 @@ void UStalkerGameplayAbility_MagazineReload::TryReloadWeapon()
 	UWeaponObject* WeaponObject = GetWeaponObject();
 	check(WeaponObject);
 
+	if (WeaponObject->IsMagFull() || !HasAmmoForReload())
+	{
+		K2_CancelAbility();
+		return;
+	}
+
 	UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(AbilityComponent);
 	
@@ -114,7 +120,7 @@ void UStalkerGameplayAbility_MagazineReload::TryReloadWeapon()
 	
 	if (CurrentActorInfo->IsNetAuthority())
 	{
-		WeaponObject->OnCancelAllActions.AddUObject(this, &UStalkerGameplayAbility_MagazineReload::CancelReloadWeapon);
+		WeaponObject->CancelAllActionsDelegate.AddUObject(this, &UStalkerGameplayAbility_MagazineReload::CancelReloadWeapon);
 
 		UAmmoObject* Ammo = GetAmmoForReload(WeaponObject->GetCurrentAmmoClass());
 		check(Ammo);
