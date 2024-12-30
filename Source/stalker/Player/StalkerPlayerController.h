@@ -80,10 +80,6 @@ public:
 	
 	static FName InventoryManagerComponentName;
 
-	virtual void OnPossess(APawn* InPawn) override;
-	virtual void OnUnPossess() override;
-	virtual void OnRep_Pawn() override;
-	
 	virtual void SetupInputComponent() override;
 
 	virtual void ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass) override;

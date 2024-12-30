@@ -20,8 +20,9 @@ void UHUDInteractionWidget::ClearInteractionWidget()
 	{
 		OnDetectedActorChanged(nullptr);
 		OwnInteractionComponent->OnDetectedActorChanged.RemoveAll(this);
-		OwnInteractionComponent.Reset();
 	}
+	
+	OwnInteractionComponent.Reset();
 }
 
 void UHUDInteractionWidget::OnDetectedActorChanged(const AActor* DetectedActor)

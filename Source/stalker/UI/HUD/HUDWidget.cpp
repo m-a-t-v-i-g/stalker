@@ -25,6 +25,9 @@ void UHUDWidget::ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo)
 
 void UHUDWidget::DisconnectCharacterHUD()
 {
+	StatsWidget->ClearStatsWidget();
+	InteractionWidget->ClearInteractionWidget();
+	
 	OwnAbilityComponent.Reset();
 	OwnArmorComponent.Reset();
 	OwnInteractionComponent.Reset();

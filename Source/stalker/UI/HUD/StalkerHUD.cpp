@@ -47,7 +47,14 @@ void AStalkerHUD::ClearCharacterHUD()
 			PlayerCharacter->OnToggleInventory.RemoveAll(this);
 			PlayerCharacter->LootInventoryDelegate.RemoveAll(this);
 		}
+		
+		if (MainWidget)
+		{
+			MainWidget->DisconnectCharacterPart();
+		}
 	}
+
+	CharacterRef.Reset();
 }
 
 void AStalkerHUD::OnOpenInventory()

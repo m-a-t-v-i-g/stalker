@@ -52,8 +52,9 @@ void UCharacterEquipmentWidget::ClearCharacterEquipment()
 		BulletResistanceAttrDelegate.RemoveAll(this);
 		BlastResistanceAttrDelegate.RemoveAll(this);
 		
-		AbilityComponentRef.Reset();
 	}
+	
+	AbilityComponentRef.Reset();
 }
 
 TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlots() const

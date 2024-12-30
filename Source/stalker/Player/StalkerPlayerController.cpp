@@ -51,28 +51,6 @@ AStalkerPlayerController::AStalkerPlayerController()
 	InventoryManager = CreateDefaultSubobject<UInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
-void AStalkerPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-	ChooseAndSetupPawn(InPawn);
-}
-
-void AStalkerPlayerController::OnUnPossess()
-{
-	ChooseAndClearPawn(GetPawn());
-	Super::OnUnPossess();
-}
-
-void AStalkerPlayerController::OnRep_Pawn()
-{
-	Super::OnRep_Pawn();
-
-	if (APawn* InPawn = GetPawn())
-	{
-		ChooseAndSetupPawn(InPawn);
-	}
-}
-
 void AStalkerPlayerController::SetupInputComponent()
 {
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
@@ -101,9 +79,12 @@ void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> New
 
 void AStalkerPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (auto PawnAbilityComp = GetPawn()->GetComponentByClass<UOrganicAbilityComponent>())
+	if (GetPawn())
 	{
-		PawnAbilityComp->ProcessAbilityInput(DeltaTime);
+		if (auto PawnAbilityComp = GetPawn()->GetComponentByClass<UOrganicAbilityComponent>())
+		{
+			PawnAbilityComp->ProcessAbilityInput(DeltaTime);
+		}
 	}
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
@@ -131,6 +112,11 @@ void AStalkerPlayerController::ChooseAndSetupPawn(APawn* InPawn)
 {
 	if (InPawn->IsA<AStalkerCharacter>())
 	{
+		if (InPawn != Stalker)
+		{
+			ClearCharacter();
+		}
+
 		if (bIsCharacterInitialized)
 		{
 			return;

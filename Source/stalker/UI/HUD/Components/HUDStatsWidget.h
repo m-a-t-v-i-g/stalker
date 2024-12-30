@@ -19,6 +19,7 @@ class STALKER_API UHUDStatsWidget : public UUserWidget
 
 public:
 	void SetupStatsWidget(UAbilitySystemComponent* AbilityComp, UCharacterArmorComponent* ArmorComp);
+	void ClearStatsWidget();
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -36,9 +37,6 @@ protected:
 	void ForceUpdateArmorBar();
 
 private:
-	FDelegateHandle MaxHealthDelHandle;
-	FDelegateHandle HealthDelHandle;
-
 	TWeakObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
 	TWeakObjectPtr<UCharacterArmorComponent> ArmorComponentRef;
 	

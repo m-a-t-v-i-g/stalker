@@ -39,6 +39,35 @@ void UHUDStatsWidget::SetupStatsWidget(UAbilitySystemComponent* AbilityComp, UCh
 	}
 }
 
+void UHUDStatsWidget::ClearStatsWidget()
+{
+	HealthBar->SetPercent(0.0f);
+	ArmorBar->SetPercent(0.0f);
+
+	if (AbilityComponentRef.IsValid())
+	{
+		if (HealthAttribute.IsValid())
+		{
+			auto& MaxHealthAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+				HealthAttribute->GetMaxHealthAttribute());
+			auto& HealthAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+				HealthAttribute->GetHealthAttribute());
+
+			MaxHealthAttrDelegate.RemoveAll(this);
+			HealthAttrDelegate.RemoveAll(this);
+		}
+	}
+
+	if (ArmorComponentRef.IsValid())
+	{
+		ArmorComponentRef->OnTotalArmorDataChangedDelegate.RemoveAll(this);
+	}
+	
+	AbilityComponentRef.Reset();
+	HealthAttribute.Reset();
+	ArmorComponentRef.Reset();
+}
+
 void UHUDStatsWidget::OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData)
 {
 	float HealthValue = HealthAttribute->GetHealth();
