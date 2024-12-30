@@ -39,8 +39,8 @@ void UCharacterStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 
 	DOREPLIFETIME(ThisClass, MovementAction);
 	DOREPLIFETIME(ThisClass, OverlayState);
-	DOREPLIFETIME_CONDITION(ThisClass, HealthState, COND_SimulatedOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, CombatState, COND_SimulatedOnly);
+	DOREPLIFETIME(ThisClass, HealthState);
+	DOREPLIFETIME(ThisClass, CombatState);
 }
 
 void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacter)
@@ -57,54 +57,43 @@ void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacte
 	
 	MovementComponentRef = CharacterRef->GetCharacterMovement();
 	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
-	WeaponComponentRef = CharacterRef->GetWeaponComponent<UCharacterWeaponComponent>();
-}
-
-void UCharacterStateComponent::InitCharacterInfo(AController* InController)
-{
-	ControllerRef = InController;
+	WeaponComponentRef = CharacterRef->GetWeaponComponent();
 	
-	if (!ControllerRef)
+	if (IsAuthority())
 	{
-		UE_LOG(LogCharacter, Error,
-		       TEXT(
-			       "Unable to setup State Component ('%s') for character '%s': controller ref is null."
-		       ), *GetName(), *GetOwner()->GetName());
-		return;
-	}
-
-	if (AbilityComponentRef)
-	{
-		if (const UHealthAttributeSet* HealthAttribute = Cast<UHealthAttributeSet>(
-			AbilityComponentRef->GetAttributeSet(UHealthAttributeSet::StaticClass())))
+		if (AbilityComponentRef)
 		{
-			HealthAttributeSet = HealthAttribute;
+			if (const UHealthAttributeSet* HealthAttribute = Cast<UHealthAttributeSet>(
+				AbilityComponentRef->GetAttributeSet(UHealthAttributeSet::StaticClass())))
+			{
+				HealthAttributeSet = HealthAttribute;
 
-			FOnGameplayAttributeValueChange& MaxHealthDelegate = AbilityComponentRef->
-				GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetMaxHealthAttribute());
-			MaxHealthDelegate.AddUObject(this, &UCharacterStateComponent::OnMaxHealthChange);
+				FOnGameplayAttributeValueChange& MaxHealthDelegate = AbilityComponentRef->
+					GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetMaxHealthAttribute());
+				MaxHealthDelegate.AddUObject(this, &UCharacterStateComponent::OnMaxHealthChange);
 
-			FOnGameplayAttributeValueChange& HealthDelegate = AbilityComponentRef->
-				GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetHealthAttribute());
-			HealthDelegate.AddUObject(this, &UCharacterStateComponent::OnHealthChange);
+				FOnGameplayAttributeValueChange& HealthDelegate = AbilityComponentRef->
+					GetGameplayAttributeValueChangeDelegate(HealthAttributeSet->GetHealthAttribute());
+				HealthDelegate.AddUObject(this, &UCharacterStateComponent::OnHealthChange);
 
-			SetupHealth();
+				SetupHealth();
+			}
+
+			if (const UResistanceAttributeSet* ResistanceAttribute = Cast<UResistanceAttributeSet>(
+				AbilityComponentRef->GetAttributeSet(UResistanceAttributeSet::StaticClass())))
+			{
+				ResistanceAttributeSet = ResistanceAttribute;
+			}
 		}
 
-		if (const UResistanceAttributeSet* ResistanceAttribute = Cast<UResistanceAttributeSet>(
-			AbilityComponentRef->GetAttributeSet(UResistanceAttributeSet::StaticClass())))
+		if (WeaponComponentRef)
 		{
-			ResistanceAttributeSet = ResistanceAttribute;
+			WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
+			WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
+			WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
+			WeaponComponentRef->OnAimingStop.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
+			WeaponComponentRef->OnOverlayChanged.AddUObject(this, &UCharacterStateComponent::OnOverlayChanged);
 		}
-	}
-
-	if (WeaponComponentRef)
-	{
-		WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
-		WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
-		WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
-		WeaponComponentRef->OnAimingStop.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
-		WeaponComponentRef->OnOverlayChanged.AddUObject(this, &UCharacterStateComponent::OnOverlayChanged);
 	}
 }
 

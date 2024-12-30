@@ -48,7 +48,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void SetupStateComponent(AStalkerCharacter* InCharacter);
-	void InitCharacterInfo(AController* InController);
 
 	void SetMovementAction(ECharacterMovementAction NewAction, bool bForce = false);
 	FORCEINLINE ECharacterMovementAction GetMovementAction() const { return MovementAction; }

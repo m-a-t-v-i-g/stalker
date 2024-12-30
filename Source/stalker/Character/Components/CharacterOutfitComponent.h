@@ -26,7 +26,6 @@ public:
 	UCharacterOutfitComponent();
 
 	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter);
-	virtual void InitCharacterInfo(AController* InController);
 
 	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName);
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
@@ -43,7 +42,6 @@ public:
 	FORCEINLINE FOutfitSlot* FindOutfitSlot(const FString& SlotName);
 
 	AStalkerCharacter* GetCharacter() const { return CharacterRef; }
-	AController* GetController() const { return ControllerRef; }
 
 	UAbilitySystemComponent* GetAbilityComponent() const { return AbilityComponentRef; }
 	UInventoryComponent* GetCharacterInventory() const { return InventoryComponentRef; }
@@ -63,7 +61,6 @@ protected:
 	
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
-	TObjectPtr<AController> ControllerRef;
 
 	TObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
 	TObjectPtr<UInventoryComponent> InventoryComponentRef;

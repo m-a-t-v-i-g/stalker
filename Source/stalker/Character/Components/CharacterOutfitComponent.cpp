@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CharacterOutfitComponent.h"
-
 #include "CharacterStateComponent.h"
 #include "EquipmentComponent.h"
 #include "EquipmentSlot.h"
@@ -34,21 +33,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	EquipmentComponentRef = CharacterRef->GetEquipmentComponent();
 	StateComponentRef = CharacterRef->GetStateComponent();
 	HitScanComponentRef = CharacterRef->GetHitScanComponent();
-}
-
-void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
-{
-	ControllerRef = InController;
 	
-	if (!IsValid(ControllerRef))
-	{
-		UE_LOG(LogCharacter, Error,
-			   TEXT(
-				   "Unable to setup Outfit Component ('%s') for character '%s': controller ref is null."
-			   ), *GetName(), *GetOwner()->GetName());
-		return;
-	}
-
 	if (IsAuthority())
 	{
 		if (EquipmentComponentRef)
@@ -65,7 +50,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 					SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
 													  OutfitSlots[i].SlotName);
 					OnEquipmentSlotChanged(FEquipmentSlotChangeData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
-					                       OutfitSlots[i].SlotName);
+										   OutfitSlots[i].SlotName);
 				}
 			}
 		}

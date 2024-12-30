@@ -117,11 +117,6 @@ void AStalkerPlayerController::ChooseAndSetupPawn(APawn* InPawn)
 			ClearCharacter();
 		}
 
-		if (bIsCharacterInitialized)
-		{
-			return;
-		}
-
 		SetupCharacter();
 	}
 }

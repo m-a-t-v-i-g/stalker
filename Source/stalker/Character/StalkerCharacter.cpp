@@ -58,14 +58,14 @@ void AStalkerCharacter::PostInitializeComponents()
 		}
 	}
 
-	if (GetWeaponComponent())
-	{
-		GetWeaponComponent()->SetupOutfitComponent(this);
-	}
-
 	if (GetStateComponent())
 	{
 		GetStateComponent()->SetupStateComponent(this);
+	}
+
+	if (GetWeaponComponent())
+	{
+		GetWeaponComponent()->SetupOutfitComponent(this);
 	}
 
 	if (GetArmorComponent())
@@ -115,21 +115,6 @@ void AStalkerCharacter::InitCharacterComponents()
 	if (auto AbilitySystemComp = GetAbilitySystemComponent<UOrganicAbilityComponent>())
 	{
 		AbilitySystemComp->SetupAbilitySystem(GetController(), this);
-	}
-	
-	if (GetWeaponComponent())
-	{
-		GetWeaponComponent()->InitCharacterInfo(GetController());
-	}
-	
-	if (GetStateComponent())
-	{
-		GetStateComponent()->InitCharacterInfo(GetController());
-	}
-	
-	if (GetArmorComponent())
-	{
-		GetArmorComponent()->InitCharacterInfo(GetController());
 	}
 }
 
