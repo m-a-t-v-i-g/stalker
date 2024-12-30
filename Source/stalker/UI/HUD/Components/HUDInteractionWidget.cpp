@@ -7,11 +7,21 @@
 void UHUDInteractionWidget::SetupInteractionWidget(UPawnInteractionComponent* InteractionComp)
 {
 	OwnInteractionComponent = InteractionComp;
+	if (OwnInteractionComponent.IsValid())
+	{
+		OnDetectedActorChanged(OwnInteractionComponent->GetDetectedActor());
+		OwnInteractionComponent->OnDetectedActorChanged.AddUObject(this, &UHUDInteractionWidget::OnDetectedActorChanged);
+	}
+}
 
-	check(OwnInteractionComponent.IsValid());
-
-	OnDetectedActorChanged(OwnInteractionComponent->GetDetectedActor());
-	OwnInteractionComponent->OnDetectedActorChanged.AddUObject(this, &UHUDInteractionWidget::OnDetectedActorChanged);
+void UHUDInteractionWidget::ClearInteractionWidget()
+{
+	if (OwnInteractionComponent.IsValid())
+	{
+		OnDetectedActorChanged(nullptr);
+		OwnInteractionComponent->OnDetectedActorChanged.RemoveAll(this);
+		OwnInteractionComponent.Reset();
+	}
 }
 
 void UHUDInteractionWidget::OnDetectedActorChanged(const AActor* DetectedActor)

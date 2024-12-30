@@ -10,17 +10,43 @@ UClass* AStalkerHUD::StaticInventoryWidgetClass {nullptr};
 UClass* AStalkerHUD::StaticItemWidgetClass {nullptr};
 float AStalkerHUD::TileSize {50.0f};
 
-void AStalkerHUD::InitializePlayerHUD(const FPlayerInitInfo& PlayerInitInfo)
+void AStalkerHUD::InitializeHUD(UInventoryManagerComponent* InventoryManagerComp)
 {
-	if (APlayerCharacter* PlayerCharacter = PlayerInitInfo.Character)
-	{
-		PlayerCharacter->OnToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
-		PlayerCharacter->OnLootInventory.AddUObject(this, &AStalkerHUD::OnLootInventory);
-	}
-
 	if (MainWidget)
 	{
-		MainWidget->InitializeMainWidget(PlayerInitInfo);
+		MainWidget->InitializeMainWidget(InventoryManagerComp);
+	}
+}
+
+void AStalkerHUD::ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo)
+{
+	CharacterRef = HUDInitInfo.Character;
+	if (CharacterRef.IsValid())
+	{
+		/* TODO */
+		if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterRef))
+		{
+			PlayerCharacter->OnToggleInventory.AddUObject(this, &AStalkerHUD::OnOpenInventory);
+			PlayerCharacter->LootInventoryDelegate.AddUObject(this, &AStalkerHUD::OnLootInventory);
+		}
+
+		if (MainWidget)
+		{
+			MainWidget->ConnectCharacterPart(HUDInitInfo);
+		}
+	}
+}
+
+void AStalkerHUD::ClearCharacterHUD()
+{
+	if (CharacterRef.IsValid())
+	{
+		/* TODO */
+		if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterRef))
+		{
+			PlayerCharacter->OnToggleInventory.RemoveAll(this);
+			PlayerCharacter->LootInventoryDelegate.RemoveAll(this);
+		}
 	}
 }
 
@@ -62,8 +88,8 @@ void AStalkerHUD::SetupAndOpenOwnInventory()
 {
 	if (MainWidget)
 	{
-		MainWidget->SetupOwnInventory();
-		MainWidget->OpenInventoryTab();
+		MainWidget->SetupAndOpenOwnInventory();
+		MainWidget->ActivateSlotManager();
 	}
 }
 

@@ -9,7 +9,7 @@
 #include "Data/ItemBehaviorConfig.h"
 #include "CharacterWeaponComponent.generated.h"
 
-struct FUpdatedSlotData;
+struct FEquipmentSlotChangeData;
 class UCharacterInventoryComponent;
 class UCharacterStateComponent;
 class UWeaponObject;

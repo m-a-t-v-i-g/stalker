@@ -49,7 +49,7 @@ void UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 	{
 		BoundObject = BindObject;
 		BoundObject->SetEquipped();
-		OnSlotChanged.Broadcast(FUpdatedSlotData(BoundObject, true));
+		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(BoundObject, true));
 	}
 }
 
@@ -57,7 +57,7 @@ void UEquipmentSlot::UnequipSlot()
 {
 	if (BoundObject)
 	{
-		OnSlotChanged.Broadcast(FUpdatedSlotData(BoundObject, false));
+		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(BoundObject, false));
 		BoundObject = nullptr;
 	}
 }
@@ -71,6 +71,6 @@ void UEquipmentSlot::OnRep_BoundObject(UItemObject* PrevItemObject)
 {
 	if (UItemObject* ItemObject = IsEquipped() ? BoundObject.Get() : PrevItemObject)
 	{
-		OnSlotChanged.Broadcast(FUpdatedSlotData(ItemObject, IsEquipped()));
+		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(ItemObject, IsEquipped()));
 	}
 }

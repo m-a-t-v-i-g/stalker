@@ -3,15 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "CharacterEquipmentWidget.generated.h"
 
-class UResistanceAttributeSet;
+class UAbilitySystemComponent;
 class UEquipmentComponent;
 class UInventoryManagerComponent;
-class UEquipmentSlotWidget;
-class UTextBlock;
+class UResistanceAttributeSet;
 
 UCLASS()
 class STALKER_API UCharacterEquipmentWidget : public UUserWidget
@@ -23,7 +21,7 @@ public:
 	                             UInventoryManagerComponent* InventoryManager);
 	void ClearCharacterEquipment();
 	
-	TArray<UEquipmentSlotWidget*> GetAllSlots() const;
+	TArray<class UEquipmentSlotWidget*> GetAllSlots() const;
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -39,12 +37,12 @@ protected:
 	TObjectPtr<UEquipmentSlotWidget> DetectorSlot;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> BulletResistanceText;
+	TObjectPtr<class UTextBlock> BulletResistanceText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> BlastResistanceText;
 
-	void OnBulletResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData);
+	void OnBulletResistanceUpdated(const struct FOnAttributeChangeData& AttributeChangeData);
 	void OnBlastResistanceUpdated(const FOnAttributeChangeData& AttributeChangeData);
 
 	void ForceUpdateResistanceText();
@@ -54,5 +52,5 @@ private:
 	FDelegateHandle BlastResistanceDelHandle;
 
 	TWeakObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
-	TWeakObjectPtr<const UResistanceAttributeSet> ResistanceAttribute;
+	TWeakObjectPtr<const UResistanceAttributeSet> ResistanceAttributeSet;
 };

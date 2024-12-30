@@ -7,30 +7,36 @@
 #include "Components/OrganicAbilityComponent.h"
 #include "Components/ProgressBar.h"
 
-void UHUDStatsWidget::SetupStatsWidget(UOrganicAbilityComponent* AbilityComp, UCharacterArmorComponent* ArmorComp)
+void UHUDStatsWidget::SetupStatsWidget(UAbilitySystemComponent* AbilityComp, UCharacterArmorComponent* ArmorComp)
 {
+	AbilityComponentRef = AbilityComp;
+	if (AbilityComponentRef.IsValid())
+	{
+		HealthAttribute = Cast<UHealthAttributeSet>(AbilityComponentRef->GetAttributeSet(UHealthAttributeSet::StaticClass()));
+		if (!HealthAttribute.IsValid())
+		{
+			return;
+		}
+	
+		auto& MaxHealthAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			HealthAttribute->GetMaxHealthAttribute());
+		auto& HealthAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			HealthAttribute->GetHealthAttribute());
+
+		MaxHealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnMaxHealthUpdated);
+		HealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnHealthUpdated);
+	
+		ForceUpdateHealthBar();
+	}
+
 	ArmorComponentRef = ArmorComp;
-	if (!ArmorComponentRef.IsValid())
+	if (ArmorComponentRef.IsValid())
 	{
-		return;
+		ArmorComponentRef->OnTotalArmorDataChangedDelegate.AddUObject(
+			this, &UHUDStatsWidget::OnTotalArmorEnduranceUpdated);
+
+		ForceUpdateArmorBar();
 	}
-	
-	HealthAttribute = Cast<UHealthAttributeSet>(AbilityComp->GetAttributeSet(UHealthAttributeSet::StaticClass()));
-	if (!HealthAttribute.IsValid())
-	{
-		return;
-	}
-	
-	auto& MaxHealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(HealthAttribute->GetMaxHealthAttribute());
-	auto& HealthAttrDelegate = AbilityComp->GetGameplayAttributeValueChangeDelegate(HealthAttribute->GetHealthAttribute());
-
-	MaxHealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnMaxHealthUpdated);
-	HealthAttrDelegate.AddUObject(this, &UHUDStatsWidget::OnHealthUpdated);
-
-	ArmorComponentRef->OnTotalArmorDataChangedDelegate.AddUObject(this, &UHUDStatsWidget::OnTotalArmorEnduranceUpdated);
-
-	ForceUpdateHealthBar();
-	ForceUpdateArmorBar();
 }
 
 void UHUDStatsWidget::OnMaxHealthUpdated(const FOnAttributeChangeData& AttributeChangeData)

@@ -13,11 +13,10 @@ class UCharacterInventoryComponent;
 class UInventoryComponent;
 
 UENUM()
-enum class EPlayerInventoryTab : uint8
+enum class EHUDTab : uint8
 {
-	Inventory,
-	Looting,
-	Upgrading
+	HUD,
+	Inventory
 };
 
 UCLASS()
@@ -31,7 +30,10 @@ public:
 	
 	static float TileSize;
 	
-	void InitializePlayerHUD(const FPlayerInitInfo& PlayerInitInfo);
+	void InitializeHUD(UInventoryManagerComponent* InventoryManagerComp);
+
+	void ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo);
+	void ClearCharacterHUD();
 
 	void OnOpenInventory();
 	void OnLootInventory(UInventoryComponent* TargetInventory);
@@ -66,5 +68,7 @@ protected:
 	void SetGameAndUIMode();
 	
 private:
+	TWeakObjectPtr<AStalkerCharacter> CharacterRef;
+	
 	EHUDTab ActiveTab = EHUDTab::HUD;
 };

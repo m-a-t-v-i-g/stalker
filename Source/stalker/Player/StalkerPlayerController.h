@@ -8,7 +8,7 @@
 #include "InventoryManagerComponent.h"
 #include "StalkerPlayerController.generated.h"
 
-class UOrganicAbilityComponent;
+class UAbilitySystemComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
 class UCharacterArmorComponent;
@@ -17,32 +17,16 @@ class UPawnInteractionComponent;
 class UPlayerInputConfig;
 class APlayerCharacter;
 
-UENUM()
-enum class EHUDTab : uint8
-{
-	HUD,
-	Inventory
-};
-
-UENUM()
-enum class EInventoryAction : uint8
-{
-	None,
-	Looting,
-	Trading,
-	Upgrading
-};
-
 USTRUCT()
-struct FPlayerInitInfo
+struct FCharacterHUDInitData
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
-	APlayerCharacter* Character = nullptr;
+	AStalkerCharacter* Character = nullptr;
 	
 	UPROPERTY()
-	UOrganicAbilityComponent* AbilitySystemComponent = nullptr;
+	UAbilitySystemComponent* AbilitySystemComponent = nullptr;
 	
 	UPROPERTY()
 	UInventoryComponent* InventoryComponent = nullptr;
@@ -54,30 +38,35 @@ struct FPlayerInitInfo
 	UCharacterArmorComponent* ArmorComponent = nullptr;
 	
 	UPROPERTY()
-	UInventoryManagerComponent* InventoryManager = nullptr;
-	
-	UPROPERTY()
 	UPawnInteractionComponent* InteractionComponent = nullptr;
 
-	FPlayerInitInfo()
+	FCharacterHUDInitData() {}
+
+	FCharacterHUDInitData(AStalkerCharacter* Char);
+
+	void AddAbilitySystemComponent(UAbilitySystemComponent* AbilityComp)
 	{
+		AbilitySystemComponent = AbilityComp;
 	}
 
-	FPlayerInitInfo(APlayerCharacter* Char, UOrganicAbilityComponent* AbilityComp,
-	                UInventoryComponent* InventoryComp, UEquipmentComponent* EquipmentComp,
-	                UPawnInteractionComponent* InteractionComp,
-	                UInventoryManagerComponent* InventoryMgr) : Character(Char),
-	                                                            AbilitySystemComponent(AbilityComp),
-	                                                            InventoryComponent(InventoryComp),
-	                                                            EquipmentComponent(EquipmentComp),
-	                                                            InventoryManager(InventoryMgr),
-	                                                            InteractionComponent(InteractionComp)
+	void AddInventoryComponent(UInventoryComponent* InventoryComp)
 	{
+		InventoryComponent = InventoryComp;
+	}
+
+	void AddEquipmentComponent(UEquipmentComponent* EquipmentComp)
+	{
+		EquipmentComponent = EquipmentComp;
 	}
 
 	void AddArmorComponent(UCharacterArmorComponent* ArmorComp)
 	{
 		ArmorComponent = ArmorComp;
+	}
+	
+	void AddInteractionComponent(UPawnInteractionComponent* InteractionComp)
+	{
+		InteractionComponent = InteractionComp;
 	}
 };
 
@@ -92,6 +81,7 @@ public:
 	static FName InventoryManagerComponentName;
 
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
 	
 	virtual void SetupInputComponent() override;
@@ -100,25 +90,36 @@ public:
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Character")
+	UFUNCTION(BlueprintCallable, Category = "Inventory Manager")
 	FORCEINLINE UInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
-	TObjectPtr<class AStalkerHUD> StalkerHUD;
+	TObjectPtr<class AStalkerHUD> GameHUD;
 	
-	TObjectPtr<APlayerCharacter> Stalker;
+	TObjectPtr<AStalkerCharacter> Stalker;
 
-	void SetupPawn();
-	void ConnectHUD();
+	virtual void PostInitializeComponents() override;
+
+	UFUNCTION()
+	void OnPawnChanged(APawn* InOldPawn, APawn* InNewPawn);
+	
+	void ChooseAndSetupPawn(APawn* InPawn);
+	void ChooseAndClearPawn(APawn* InPawn);
+	
+	void SetupCharacter();
+	void ClearCharacter();
+	void ConnectCharacterHUD();
+	void DisconnectCharacterHUD();
 
 	void InitEssentialComponents();
+	void UnInitEssentialComponents();
 	
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory Manager", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInventoryManagerComponent> InventoryManager;
 	
-	bool bIsPawnInitialized = false;
+	bool bIsCharacterInitialized = false;
 };

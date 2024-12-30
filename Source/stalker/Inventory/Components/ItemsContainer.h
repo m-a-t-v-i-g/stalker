@@ -12,24 +12,28 @@ class UItemDefinition;
 class UItemPredictedData;
 
 USTRUCT()
-struct FUpdatedContainerData
+struct FItemsContainerChangeData
 {
 	GENERATED_USTRUCT_BODY()
-	
+
+	UPROPERTY()
 	UItemObject* AddedItem = nullptr;
-	
+
+	UPROPERTY()
 	UItemObject* RemovedItem = nullptr;
 
-	FUpdatedContainerData() {}
+	FItemsContainerChangeData()
+	{
+	}
 	
-	FUpdatedContainerData(UItemObject* NewItem, UItemObject* OldItem)
+	FItemsContainerChangeData(UItemObject* NewItem, UItemObject* OldItem)
 	{
 		AddedItem = NewItem;
 		RemovedItem = OldItem;
 	}
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerUpdatedDelegate, const FUpdatedContainerData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerUpdatedDelegate, const FItemsContainerChangeData&);
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UItemsContainer : public UObject

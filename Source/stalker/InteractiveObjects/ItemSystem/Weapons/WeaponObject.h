@@ -70,15 +70,12 @@ class STALKER_API UWeaponDefinition : public UItemDefinition
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	bool bMelee = false;
-	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee"))
 	TArray<const UAmmoDefinition*> AmmoClasses;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0"))
 	int MagSize = 0;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "!bMelee", ClampMin = "0.0", ForceUnits = "s"))
+	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
 	float ReloadTime = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
@@ -87,8 +84,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	bool bAutomatic = false;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = "Weapon|Damage", meta = (ShowOnlyInnerProperties))
 	FWeaponDamageData DamageData;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification", meta = (ClampMin = "0.1"))
+	float SpreadExponent = 1.0f;
 };
 
 UCLASS()
@@ -163,9 +163,10 @@ public:
 	FORCEINLINE bool CanAttack() const;
 	
 #pragma endregion Behavior
-	
+
+	FORCEINLINE const UWeaponDefinition* GetWeaponDefinition() const;
 	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
-	FORCEINLINE int GetMagSize() const;
+	FORCEINLINE int GetDefaultMagSize() const;
 	FORCEINLINE TArray<UAmmoObject*> GetRounds() const;
 	FORCEINLINE uint16 GetRemainedRounds() const;
 	FORCEINLINE const UAmmoDefinition* GetCurrentAmmoClass() const;
@@ -173,8 +174,10 @@ public:
 	FORCEINLINE float GetDefaultReloadTime() const;
 	FORCEINLINE float GetFireRate() const;
 	FORCEINLINE float GetDefaultFireRate() const;
-	FORCEINLINE FWeaponDamageData GetDamageData() const;
 	FORCEINLINE bool IsAutomatic() const;
+	FORCEINLINE FWeaponDamageData GetDamageData() const;
+	FORCEINLINE float GetSpreadExponent() const;
+	FORCEINLINE float GetDefaultSpreadExponent() const;
 	
 	FORCEINLINE AWeaponActor* GetWeaponActor() const;
 	FORCEINLINE UWeaponInstance* GetWeaponInstance() const;
@@ -188,4 +191,5 @@ protected:
 	
 	virtual float CalculateReloadTime() const;
 	virtual float CalculateFireRate() const;
+	virtual float CalculateSpreadExponent() const;
 };

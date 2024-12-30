@@ -98,7 +98,7 @@ void UItemsContainer::AddItem(UItemObject* ItemObject)
 	{
 		ItemObject->SetCollected();
 		Items.Add(ItemObject);
-		OnContainerUpdated.Broadcast(FUpdatedContainerData(ItemObject, nullptr));
+		OnContainerUpdated.Broadcast(FItemsContainerChangeData(ItemObject, nullptr));
 	}
 }
 
@@ -124,7 +124,7 @@ void UItemsContainer::RemoveItem(UItemObject* ItemObject)
 	if (ItemObject && Items.Contains(ItemObject))
 	{
 		Items.Remove(ItemObject);
-		OnContainerUpdated.Broadcast(FUpdatedContainerData(nullptr, ItemObject));
+		OnContainerUpdated.Broadcast(FItemsContainerChangeData(nullptr, ItemObject));
 	}
 }
 
@@ -224,5 +224,5 @@ void UItemsContainer::OnRep_Items(TArray<UItemObject*> PrevContainer)
 		break;
 	}
 
-	OnContainerUpdated.Broadcast(FUpdatedContainerData(AddedItem, RemovedItem));
+	OnContainerUpdated.Broadcast(FItemsContainerChangeData(AddedItem, RemovedItem));
 }

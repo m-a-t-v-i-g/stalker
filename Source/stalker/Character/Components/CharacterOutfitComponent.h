@@ -8,7 +8,7 @@
 #include "CharacterOutfitComponent.generated.h"
 
 class UAbilitySystemComponent;
-struct FUpdatedSlotData;
+struct FEquipmentSlotChangeData;
 class UInventoryComponent;
 class UEquipmentComponent;
 class UCharacterStateComponent;
@@ -28,7 +28,7 @@ public:
 	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter);
 	virtual void InitCharacterInfo(AController* InController);
 
-	void OnEquipmentSlotChanged(const FUpdatedSlotData& SlotData, FString SlotName);
+	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName);
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
 	                                const FHitResult& HitResult, float DamageValue);
 	virtual void OnCharacterDead();

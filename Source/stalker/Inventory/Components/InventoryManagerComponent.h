@@ -6,12 +6,11 @@
 #include "Components/ActorComponent.h"
 #include "InventoryManagerComponent.generated.h"
 
-class AStalkerCharacter;
 class UInventoryComponent;
-class UEquipmentSlot;
 class UItemsContainer;
+class UEquipmentSlot;
 class UItemObject;
-class APlayerCharacter;
+class AStalkerCharacter;
 
 UCLASS()
 class STALKER_API UInventoryManagerComponent : public UActorComponent
@@ -24,7 +23,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
-	virtual void SetupInventoryManager(AController* InController, APlayerCharacter* InCharacter);
+	virtual void SetupInventoryManager(AController* InController, AStalkerCharacter* InCharacter);
 	virtual void ResetInventoryManager();
 
 	void AddReplicatedContainer(UItemsContainer* Container);

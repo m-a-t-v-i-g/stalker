@@ -45,7 +45,7 @@ bool UInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOu
 	return bReplicateSomething;
 }
 
-void UInventoryManagerComponent::SetupInventoryManager(AController* InController, APlayerCharacter* InCharacter)
+void UInventoryManagerComponent::SetupInventoryManager(AController* InController, AStalkerCharacter* InCharacter)
 {
 	CharacterRef = InCharacter;
 	ControllerRef = InController;
@@ -57,7 +57,7 @@ void UInventoryManagerComponent::SetupInventoryManager(AController* InController
 	
 	if (CharacterRef)
 	{
-		CharacterRef->OnLootInventory.AddUObject(this, &UInventoryManagerComponent::OnLootInventory);
+		CharacterRef->LootInventoryDelegate.AddUObject(this, &UInventoryManagerComponent::OnLootInventory);
 
 		if (UInventoryComponent* CharInventoryComponent = CharacterRef->GetInventoryComponent())
 		{
@@ -88,7 +88,7 @@ void UInventoryManagerComponent::ResetInventoryManager()
 {
 	if (CharacterRef)
 	{
-		CharacterRef->OnLootInventory.RemoveAll(this);
+		CharacterRef->LootInventoryDelegate.RemoveAll(this);
 	}
 	
 	CharacterRef = nullptr;
@@ -99,7 +99,7 @@ void UInventoryManagerComponent::ResetInventoryManager()
 		return;
 	}
 	
-	RemoveReplicatedContainer(OwnItemsContainer);
+	ReplicatedContainers.Empty();
 	ReplicatedEquipmentSlots.Empty();
 	OwnItemsContainer = nullptr;
 	OwnEquipmentSlots.Empty();

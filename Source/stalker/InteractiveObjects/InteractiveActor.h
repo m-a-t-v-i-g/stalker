@@ -34,6 +34,6 @@ protected:
 	virtual void PostInitializeComponents() override;
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> InteractionSphere;
 };

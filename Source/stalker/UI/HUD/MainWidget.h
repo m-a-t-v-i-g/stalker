@@ -15,16 +15,19 @@ class STALKER_API UMainWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void InitializeMainWidget(const FPlayerInitInfo& CharacterInitInfo);
+	void InitializeMainWidget(UInventoryManagerComponent* InventoryManagerComp);
+
+	void ConnectCharacterPart(const FCharacterHUDInitData& HUDInitData);
+	void DisconnectCharacterPart();
 	
-	void SetupOwnInventory();
+	void SetupAndOpenOwnInventory();
 	void CloseOwnInventory();
 	
 	void OpenEmptyTab();
 	void OpenLootingTab(UInventoryComponent* InventoryToLoot);
 
 	void OpenHUDTab();
-	void OpenInventoryTab();
+	void ActivateSlotManager();
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -37,10 +40,10 @@ protected:
 	TObjectPtr<UNamedSlot> SlotManager;
 
 private:
-	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
-	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
-	TWeakObjectPtr<UEquipmentComponent> OwnEquipmentComponent;
 	TWeakObjectPtr<UInventoryManagerComponent> OwnInventoryManager;
-
 	TObjectPtr<UInventoryManagerWidget> InventoryManagerWidget;
+	
+	TWeakObjectPtr<UAbilitySystemComponent> CharAbilityComponent;
+	TWeakObjectPtr<UInventoryComponent> CharInventoryComponent;
+	TWeakObjectPtr<UEquipmentComponent> CharEquipmentComponent;
 };

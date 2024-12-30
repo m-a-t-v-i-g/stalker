@@ -10,24 +10,25 @@
 class UItemObject;
 
 USTRUCT()
-struct FUpdatedSlotData
+struct FEquipmentSlotChangeData
 {
 	GENERATED_USTRUCT_BODY()
-	
+
+	UPROPERTY()
 	UItemObject* SlotItem = nullptr;
 
 	bool bIsEquipped = false;
 	
-	FUpdatedSlotData() {}
+	FEquipmentSlotChangeData() {}
 	
-	FUpdatedSlotData(UItemObject* Item, bool bEquipped)
+	FEquipmentSlotChangeData(UItemObject* Item, bool bEquipped)
 	{
 		SlotItem = Item;
 		bIsEquipped = bEquipped;
 	}
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, const FUpdatedSlotData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, const FEquipmentSlotChangeData&);
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UEquipmentSlot : public UObject

@@ -299,7 +299,7 @@ int UWeaponObject::CalculateRequiredAmmoCount() const
 		AmmoCount += Ammo->GetAmount();
 	}
 	
-	return GetMagSize() - AmmoCount;
+	return GetDefaultMagSize() - AmmoCount;
 }
 
 bool UWeaponObject::IsMagFull() const
@@ -312,7 +312,7 @@ bool UWeaponObject::IsMagFull() const
 		AmmoCount += Ammo->GetAmount();
 	}
 	
-	return AmmoCount >= GetMagSize();
+	return AmmoCount >= GetDefaultMagSize();
 }
 
 bool UWeaponObject::IsMagEmpty() const
@@ -325,14 +325,19 @@ bool UWeaponObject::CanAttack() const
 	return HasBoundActor() && !IsMagEmpty();
 }
 
+const UWeaponDefinition* UWeaponObject::GetWeaponDefinition() const
+{
+	return Cast<UWeaponDefinition>(GetDefinition());
+}
+
 TArray<const UAmmoDefinition*> UWeaponObject::GetAmmoClasses() const
 {
 	return GetWeaponInstance()->WeaponData.AmmoClasses;
 }
 
-int UWeaponObject::GetMagSize() const
+int UWeaponObject::GetDefaultMagSize() const
 {
-	return GetWeaponInstance()->WeaponData.MagSize;
+	return GetWeaponDefinition()->MagSize;
 }
 
 TArray<UAmmoObject*> UWeaponObject::GetRounds() const
@@ -362,7 +367,7 @@ float UWeaponObject::GetReloadTime() const
 
 float UWeaponObject::GetDefaultReloadTime() const
 {
-	return GetWeaponInstance()->WeaponData.ReloadTime;
+	return GetWeaponDefinition()->ReloadTime;
 }
 
 float UWeaponObject::GetFireRate() const
@@ -376,14 +381,24 @@ float UWeaponObject::GetDefaultFireRate() const
 	return 1.0f / (FireRate / 60.0f);
 }
 
+bool UWeaponObject::IsAutomatic() const
+{
+	return GetWeaponInstance()->WeaponData.bAutomatic;
+}
+
 FWeaponDamageData UWeaponObject::GetDamageData() const
 {
 	return GetWeaponInstance()->DamageData;
 }
 
-bool UWeaponObject::IsAutomatic() const
+float UWeaponObject::GetSpreadExponent() const
 {
-	return GetWeaponInstance()->WeaponData.bAutomatic;
+	return CalculateSpreadExponent();
+}
+
+float UWeaponObject::GetDefaultSpreadExponent() const
+{
+	return GetWeaponDefinition()->SpreadExponent;
 }
 
 AWeaponActor* UWeaponObject::GetWeaponActor() const
@@ -414,4 +429,9 @@ float UWeaponObject::CalculateReloadTime() const
 float UWeaponObject::CalculateFireRate() const
 {
 	return GetDefaultFireRate();
+}
+
+float UWeaponObject::CalculateSpreadExponent() const
+{
+	return GetDefaultSpreadExponent();
 }

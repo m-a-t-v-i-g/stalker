@@ -7,7 +7,7 @@
 #include "Items/ItemsLibrary.h"
 #include "EquipmentSlotWidget.generated.h"
 
-struct FUpdatedSlotData;
+struct FEquipmentSlotChangeData;
 class UEquipmentComponent;
 class UEquipmentSlot;
 class UInventoryManagerComponent;
@@ -41,9 +41,9 @@ protected:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 							  UDragDropOperation* InOperation) override;
 	
-	void OnSlotUpdated(const FUpdatedSlotData& UpdatedData);
+	void OnSlotUpdated(const FEquipmentSlotChangeData& UpdatedData);
 
-	void OnDoubleClick(UItemObject* ClickedItem);
+	void OnDoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* ItemObject);
 	void OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                UDragDropOperation* InOperation);
 

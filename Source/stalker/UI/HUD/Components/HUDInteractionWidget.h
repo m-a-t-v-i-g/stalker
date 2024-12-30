@@ -16,6 +16,7 @@ class STALKER_API UHUDInteractionWidget : public UUserWidget
 
 public:
 	void SetupInteractionWidget(UPawnInteractionComponent* InteractionComp);
+	void ClearInteractionWidget();
 	
 protected:
 	UPROPERTY(meta = (BindWidget))

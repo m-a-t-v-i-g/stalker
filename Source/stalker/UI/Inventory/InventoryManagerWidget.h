@@ -7,10 +7,18 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryManagerWidget.generated.h"
 
-class UOrganicAbilityComponent;
+class UAbilitySystemComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
 class UItemObject;
+
+UENUM()
+enum class EInventoryTab : uint8
+{
+	Inventory,
+	Looting,
+	Upgrading
+};
 
 UCLASS()
 class STALKER_API UInventoryManagerWidget : public UUserWidget
@@ -36,16 +44,17 @@ protected:
 	TObjectPtr<UUserWidget> Upgrading;
 
 private:
-	TWeakObjectPtr<UOrganicAbilityComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UAbilitySystemComponent> OwnAbilityComponent;
 	TWeakObjectPtr<UInventoryComponent> OwnInventoryComponent;
 	TWeakObjectPtr<UEquipmentComponent> OwnEquipmentComponent;
 	TWeakObjectPtr<UInventoryManagerComponent> OwnInventoryManager;
+	
 	TWeakObjectPtr<UInventoryComponent> LootingInventory;
 
-	EPlayerInventoryTab ActiveTab;
+	EInventoryTab ActiveTab;
 
 public:
-	void OpenInventory(UOrganicAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp,
+	void OpenInventory(UAbilitySystemComponent* AbilityComp, UInventoryComponent* InventoryComp,
 	                   UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager);
 	void CloseInventory();
 
@@ -55,7 +64,7 @@ public:
 
 	void ClearTabs();
 
-	void ActivateTab(EPlayerInventoryTab TabToActivate);
+	void ActivateTab(EInventoryTab TabToActivate);
 	
 protected:
 	void OnOwnInventoryItemDoubleClick(UItemObject* ItemObject);

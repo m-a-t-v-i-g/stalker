@@ -6,9 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDStatsWidget.generated.h"
 
-struct FTotalArmorData;
 struct FOnAttributeChangeData;
-class UOrganicAbilityComponent;
+struct FTotalArmorData;
+class UAbilitySystemComponent;
 class UCharacterArmorComponent;
 class UHealthAttributeSet;
 
@@ -18,7 +18,7 @@ class STALKER_API UHUDStatsWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetupStatsWidget(UOrganicAbilityComponent* AbilityComp, UCharacterArmorComponent* ArmorComp);
+	void SetupStatsWidget(UAbilitySystemComponent* AbilityComp, UCharacterArmorComponent* ArmorComp);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -39,6 +39,8 @@ private:
 	FDelegateHandle MaxHealthDelHandle;
 	FDelegateHandle HealthDelHandle;
 
-	TWeakObjectPtr<const UHealthAttributeSet> HealthAttribute;
+	TWeakObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
 	TWeakObjectPtr<UCharacterArmorComponent> ArmorComponentRef;
+	
+	TWeakObjectPtr<const UHealthAttributeSet> HealthAttribute;
 };

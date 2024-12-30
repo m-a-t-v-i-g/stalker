@@ -6,8 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Kismet/KismetTextLibrary.h"
 
-void UCharacterEquipmentWidget::SetupCharacterEquipment(UAbilitySystemComponent* AbilityComp,
-                                                        UEquipmentComponent* EquipmentComp,
+void UCharacterEquipmentWidget::SetupCharacterEquipment(UAbilitySystemComponent* AbilityComp, UEquipmentComponent* EquipmentComp,
                                                         UInventoryManagerComponent* InventoryManager)
 {
 	ArmorSlot->SetupEquipmentSlot(EquipmentComp, InventoryManager);
@@ -16,27 +15,24 @@ void UCharacterEquipmentWidget::SetupCharacterEquipment(UAbilitySystemComponent*
 	DetectorSlot->SetupEquipmentSlot(EquipmentComp, InventoryManager);
 
 	AbilityComponentRef = AbilityComp;
-
-	if (!AbilityComponentRef.IsValid())
+	if (AbilityComponentRef.IsValid())
 	{
-		return;
-	}
-	
-	ResistanceAttribute = Cast<UResistanceAttributeSet>(AbilityComponentRef->GetAttributeSet(UResistanceAttributeSet::StaticClass()));
-	if (!ResistanceAttribute.IsValid())
-	{
-		return;
-	}
+		ResistanceAttributeSet = Cast<UResistanceAttributeSet>(AbilityComponentRef->GetAttributeSet(UResistanceAttributeSet::StaticClass()));
+		if (!ResistanceAttributeSet.IsValid())
+		{
+			return;
+		}
 
-	auto& BulletResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
-		ResistanceAttribute->GetBulletResistanceAttribute());
-	auto& BlastResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
-		ResistanceAttribute->GetBlastResistanceAttribute());
-	
-	BulletResistanceAttrDelegate.AddUObject(this, &UCharacterEquipmentWidget::OnBulletResistanceUpdated);
-	BlastResistanceAttrDelegate.AddUObject(this, &UCharacterEquipmentWidget::OnBlastResistanceUpdated);
+		auto& BulletResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			ResistanceAttributeSet->GetBulletResistanceAttribute());
+		auto& BlastResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			ResistanceAttributeSet->GetBlastResistanceAttribute());
 
-	ForceUpdateResistanceText();
+		BulletResistanceDelHandle = BulletResistanceAttrDelegate.AddUObject(this, &UCharacterEquipmentWidget::OnBulletResistanceUpdated);
+		BlastResistanceDelHandle = BlastResistanceAttrDelegate.AddUObject(this, &UCharacterEquipmentWidget::OnBlastResistanceUpdated);
+
+		ForceUpdateResistanceText();
+	}
 }
 
 void UCharacterEquipmentWidget::ClearCharacterEquipment()
@@ -46,7 +42,18 @@ void UCharacterEquipmentWidget::ClearCharacterEquipment()
 	SecondarySlot->ClearEquipmentSlot();
 	DetectorSlot->ClearEquipmentSlot();
 
-	AbilityComponentRef.Reset();
+	if (AbilityComponentRef.IsValid())
+	{
+		auto& BulletResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			ResistanceAttributeSet->GetBulletResistanceAttribute());
+		auto& BlastResistanceAttrDelegate = AbilityComponentRef->GetGameplayAttributeValueChangeDelegate(
+			ResistanceAttributeSet->GetBlastResistanceAttribute());
+
+		BulletResistanceAttrDelegate.RemoveAll(this);
+		BlastResistanceAttrDelegate.RemoveAll(this);
+		
+		AbilityComponentRef.Reset();
+	}
 }
 
 TArray<UEquipmentSlotWidget*> UCharacterEquipmentWidget::GetAllSlots() const
@@ -74,10 +81,10 @@ void UCharacterEquipmentWidget::OnBlastResistanceUpdated(const FOnAttributeChang
 void UCharacterEquipmentWidget::ForceUpdateResistanceText()
 {
 	FOnAttributeChangeData BulletResValueData;
-	BulletResValueData.NewValue = ResistanceAttribute->GetBulletResistance();
+	BulletResValueData.NewValue = ResistanceAttributeSet->GetBulletResistance();
 
 	FOnAttributeChangeData BlastResValueData;
-	BlastResValueData.NewValue = ResistanceAttribute->GetBlastResistance();
+	BlastResValueData.NewValue = ResistanceAttributeSet->GetBlastResistance();
 
 	OnBulletResistanceUpdated(BulletResValueData);
 	OnBlastResistanceUpdated(BlastResValueData);

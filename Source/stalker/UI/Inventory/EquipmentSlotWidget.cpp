@@ -49,7 +49,7 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UEquipmentComponent* EquipmentComp
 		{
 			if (EquipmentSlotRef->IsEquipped())
 			{
-				OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), true));
+				OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), true));
 			}
 
 			EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
@@ -88,7 +88,7 @@ bool UEquipmentSlotWidget::IsSlotEmpty() const
 	return !EquipmentSlotRef->IsEquipped();
 }
 
-void UEquipmentSlotWidget::OnSlotUpdated(const FUpdatedSlotData& UpdatedData)
+void UEquipmentSlotWidget::OnSlotUpdated(const FEquipmentSlotChangeData& UpdatedData)
 {
 	SlotCanvas->ClearChildren();
 	
@@ -105,7 +105,8 @@ void UEquipmentSlotWidget::OnSlotUpdated(const FUpdatedSlotData& UpdatedData)
 	CreateItemWidget(EquipmentSlotRef->GetBoundObject());
 }
 
-void UEquipmentSlotWidget::OnDoubleClick(UItemObject* ClickedItem)
+void UEquipmentSlotWidget::OnDoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent,
+                                         UItemObject* ItemObject)
 {
 	OnItemWidgetDoubleClick.Broadcast(EquipmentSlotRef.Get());
 }
@@ -117,7 +118,7 @@ void UEquipmentSlotWidget::OnDragItem(const FGeometry& InGeometry, const FPointe
 	{
 		return;
 	}
-	
+
 	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
 	{
 		DragDropOperation->OnDragCancelled.AddDynamic(this, &UEquipmentSlotWidget::OnDragItemCancelled);
@@ -159,7 +160,7 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 		}
 	}
 	
-	OnSlotUpdated(FUpdatedSlotData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
+	OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
 }
 
 UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)

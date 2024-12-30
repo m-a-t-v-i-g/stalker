@@ -8,7 +8,7 @@
 #include "InventoryGridWidget.generated.h"
 
 enum class EDragDropOperationResult : uint8;
-struct FUpdatedContainerData;
+struct FItemsContainerChangeData;
 class UInventoryManagerComponent;
 class UInventoryComponent;
 class UItemsContainer;
@@ -48,7 +48,6 @@ struct FDraggedItemData
 	GENERATED_USTRUCT_BODY()
 
 	FIntPoint Tile = FIntPoint::NoneValue;
-
 	FIntPoint SourceTile = FIntPoint::NoneValue;
 
 	void Clear()
@@ -92,14 +91,12 @@ protected:
 	void UpdateItemsMap();
 	void UpdateGrid();
 
-	void OnContainerUpdated(const FUpdatedContainerData& UpdatedData);
+	void OnContainerUpdated(const FItemsContainerChangeData& UpdatedData);
 
 	void OnItemMouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* HoverItem);
-	void OnItemMouseLeave();
-	
-	void OnItemDoubleClick(UItemObject* ItemObject);
-	
-	void OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation);
+	void OnItemMouseLeave(const FPointerEvent& InMouseEvent);
+	void OnItemDoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* ItemObject);
+	void OnItemDrag(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation);
 
 	UFUNCTION()
 	void OnDragItemCancelled(UDragDropOperation* InOperation);

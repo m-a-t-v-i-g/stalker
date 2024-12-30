@@ -1,19 +1,31 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUDWidget.h"
+#include "AbilitySystemComponent.h"
+#include "CharacterArmorComponent.h"
 #include "HUDInteractionWidget.h"
 #include "HUDStatsWidget.h"
 #include "PawnInteractionComponent.h"
 #include "StalkerPlayerController.h"
-#include "Components/OrganicAbilityComponent.h"
 
-void UHUDWidget::InitializeHUD(const FPlayerInitInfo& CharacterInitInfo)
+void UHUDWidget::InitializeHUDWidget()
 {
-	OwnAbilityComponent = CharacterInitInfo.AbilitySystemComponent;
-	OwnInteractionComponent = CharacterInitInfo.InteractionComponent;
+	
+}
 
-	check(OwnAbilityComponent.IsValid() && OwnInteractionComponent.IsValid());
+void UHUDWidget::ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo)
+{
+	OwnAbilityComponent = HUDInitInfo.AbilitySystemComponent;
+	OwnArmorComponent = HUDInitInfo.ArmorComponent;
+	OwnInteractionComponent = HUDInitInfo.InteractionComponent;
 
-	StatsWidget->SetupStatsWidget(OwnAbilityComponent.Get(), CharacterInitInfo.ArmorComponent);
+	StatsWidget->SetupStatsWidget(OwnAbilityComponent.Get(), OwnArmorComponent.Get());
 	InteractionWidget->SetupInteractionWidget(OwnInteractionComponent.Get());
+}
+
+void UHUDWidget::DisconnectCharacterHUD()
+{
+	OwnAbilityComponent.Reset();
+	OwnArmorComponent.Reset();
+	OwnInteractionComponent.Reset();
 }

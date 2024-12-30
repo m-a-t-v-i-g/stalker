@@ -17,9 +17,6 @@ class UCharacterArmorComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterLootInventorySignature, UInventoryComponent*);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterPickUpItemSignature, UItemObject*);
-
 UCLASS(Abstract)
 class STALKER_API AStalkerCharacter : public ABaseOrganic, public IInteractorInterface
 {
@@ -35,8 +32,8 @@ public:
 	static FName StateComponentName;
 	static FName ArmorComponentName;
 
-	FOnCharacterLootInventorySignature OnLootInventory;
-	FOnCharacterPickUpItemSignature OnPickUpItem;
+	TMulticastDelegate<void(UInventoryComponent*)> LootInventoryDelegate;
+	TMulticastDelegate<void(UItemObject*)> PickUpItemDelegate;
 	
 	virtual void PostInitializeComponents() override;
 	

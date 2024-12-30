@@ -139,12 +139,12 @@ void AStalkerCharacter::SetupCharacterLocally()
 
 void AStalkerCharacter::InteractWithContainer(UInventoryComponent* TargetInventory)
 {
-	OnLootInventory.Broadcast(TargetInventory);
+	LootInventoryDelegate.Broadcast(TargetInventory);
 }
 
 void AStalkerCharacter::InteractWithItem(UItemObject* ItemObject)
 {
-	OnPickUpItem.Broadcast(ItemObject);
+	PickUpItemDelegate.Broadcast(ItemObject);
 }
 
 void AStalkerCharacter::SetCharacterData()

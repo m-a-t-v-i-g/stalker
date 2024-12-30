@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryManagerWidget.h"
+#include "AbilitySystemComponent.h"
 #include "CharacterEquipmentWidget.h"
 #include "EquipmentComponent.h"
 #include "EquipmentSlotWidget.h"
@@ -8,8 +9,6 @@
 #include "InventoryGridWidget.h"
 #include "InventoryManagerComponent.h"
 #include "InventoryWidget.h"
-#include "StalkerHUD.h"
-#include "Components/OrganicAbilityComponent.h"
 #include "Components/WidgetSwitcher.h"
 
 FReply UInventoryManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -17,7 +16,7 @@ FReply UInventoryManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeome
 	return FReply::Handled();
 }
 
-void UInventoryManagerWidget::OpenInventory(UOrganicAbilityComponent* AbilityComp, UInventoryComponent* InventoryComp,
+void UInventoryManagerWidget::OpenInventory(UAbilitySystemComponent* AbilityComp, UInventoryComponent* InventoryComp,
                                             UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager)
 {
 	OwnAbilityComponent = AbilityComp;
@@ -47,11 +46,6 @@ void UInventoryManagerWidget::OpenInventory(UOrganicAbilityComponent* AbilityCom
 
 void UInventoryManagerWidget::CloseInventory()
 {
-	OwnAbilityComponent.Reset();
-	OwnInventoryComponent.Reset();
-	OwnEquipmentComponent.Reset();
-	OwnInventoryManager.Reset();
-
 	Inventory->ClearInventory();
 
 	if (UInventoryGridWidget* GridWidget = Inventory->GetInventoryGridWidget())
@@ -67,11 +61,16 @@ void UInventoryManagerWidget::CloseInventory()
 	}
 
 	ClearTabs();
+	
+	OwnAbilityComponent.Reset();
+	OwnInventoryComponent.Reset();
+	OwnEquipmentComponent.Reset();
+	OwnInventoryManager.Reset();
 }
 
 void UInventoryManagerWidget::OpenEmpty()
 {
-	ActivateTab(EPlayerInventoryTab::Inventory);
+	ActivateTab(EInventoryTab::Inventory);
 }
 
 void UInventoryManagerWidget::OpenLooting(UInventoryComponent* LootItemsContainer)
@@ -87,17 +86,17 @@ void UInventoryManagerWidget::OpenLooting(UInventoryComponent* LootItemsContaine
 		LootingGrid->OnItemWidgetDoubleClick.AddUObject(this, &UInventoryManagerWidget::OnLootingInventoryItemDoubleClick);
 	}
 	
-	ActivateTab(EPlayerInventoryTab::Looting);
+	ActivateTab(EInventoryTab::Looting);
 }
 
 void UInventoryManagerWidget::OpenUpgrading()
 {
-	ActivateTab(EPlayerInventoryTab::Upgrading);
+	ActivateTab(EInventoryTab::Upgrading);
 }
 
 void UInventoryManagerWidget::ClearTabs()
 {
-	ActivateTab(EPlayerInventoryTab::Inventory);
+	ActivateTab(EInventoryTab::Inventory);
 	
 	Looting->ClearInventory();
 	
@@ -109,18 +108,18 @@ void UInventoryManagerWidget::ClearTabs()
 	LootingInventory.Reset();
 }
 
-void UInventoryManagerWidget::ActivateTab(EPlayerInventoryTab TabToActivate)
+void UInventoryManagerWidget::ActivateTab(EInventoryTab TabToActivate)
 {
 	ActiveTab = TabToActivate;
 	switch (ActiveTab)
 	{
-	case EPlayerInventoryTab::Inventory:
+	case EInventoryTab::Inventory:
 		TabSwitcher->SetActiveWidgetIndex(0);
 		break;
-	case EPlayerInventoryTab::Looting:
+	case EInventoryTab::Looting:
 		TabSwitcher->SetActiveWidget(Looting);
 		break;
-	case EPlayerInventoryTab::Upgrading:
+	case EInventoryTab::Upgrading:
 		TabSwitcher->SetActiveWidget(Upgrading);
 		break;
 	default: break;
@@ -136,18 +135,18 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 	
 	switch (ActiveTab)
 	{
-	case EPlayerInventoryTab::Inventory:
+	case EInventoryTab::Inventory:
 		{
 			OwnInventoryManager->ServerTryEquipItem(ItemObject);
 		}
 		break;
-	case EPlayerInventoryTab::Looting:
+	case EInventoryTab::Looting:
 		{
 			OwnInventoryManager->ServerMoveItemToOtherContainer(OwnInventoryComponent->GetItemsContainer(),
 			                                                    LootingInventory->GetItemsContainer(), ItemObject);
 		}
 		break;
-	case EPlayerInventoryTab::Upgrading:
+	case EInventoryTab::Upgrading:
 		break;
 	default: break;
 	}

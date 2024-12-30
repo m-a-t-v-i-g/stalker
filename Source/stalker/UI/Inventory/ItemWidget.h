@@ -8,9 +8,6 @@
 
 class UItemObject;
 
-DECLARE_DELEGATE_ThreeParams(FMouseEnterSignature, const FGeometry&, const FPointerEvent&, UItemObject*);
-DECLARE_DELEGATE(FMouseLeaveSignature);
-DECLARE_DELEGATE_OneParam(FDoubleClickSignature, UItemObject*);
 DECLARE_DELEGATE_ThreeParams(FDragDropOperationSignature, const FGeometry&, const FPointerEvent&, UDragDropOperation*);
 
 UCLASS()
@@ -45,16 +42,18 @@ private:
 	TWeakObjectPtr<UItemObject> BoundObject;
 
 public:
-	FMouseEnterSignature OnMouseEnter;
-	FMouseLeaveSignature OnMouseLeave;
-	FDoubleClickSignature OnDoubleClick;
-	FDragDropOperationSignature OnDragItem;
+	TDelegate<void(const FGeometry&, const FPointerEvent&, UItemObject*)> OnMouseEnter;
+	TDelegate<void(const FPointerEvent&)> OnMouseLeave;
+	TDelegate<void(const FGeometry&, const FPointerEvent&, UItemObject*)> OnDoubleClick;
+	TDelegate<void(const FGeometry&, const FPointerEvent&, UDragDropOperation*)> OnDragItem;
 
 	virtual void InitItemWidget(const UObject* Owner, UItemObject* BindObject, FIntPoint Size);
+	virtual void ClearItemWidget();
 
 protected:
 	virtual FReply HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey);
-	virtual FReply HandleLeftMouseButtonDownDoubleClick(const FPointerEvent& InMouseEvent, const FKey& DragKey);
+	virtual FReply HandleLeftMouseButtonDownDoubleClick(const FGeometry& InLocalGeometry,
+	                                                    const FPointerEvent& InMouseEvent, const FKey& DragKey);
 	virtual FReply HandleRightMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey);
 
 public:
@@ -62,8 +61,8 @@ public:
 	void UnRotateItem();
 
 	void MouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent);
-	void MouseLeave();
-	void DoubleClick();
+	void MouseLeave(const FPointerEvent& InMouseEvent);
+	void DoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent);
 
 	void BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation* InOperation);
 

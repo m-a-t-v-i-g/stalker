@@ -18,7 +18,7 @@ void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointer
 void UItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
-	MouseLeave();
+	MouseLeave(InMouseEvent);
 }
 
 FReply UItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -38,7 +38,7 @@ FReply UItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, 
 {
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
-		return HandleLeftMouseButtonDownDoubleClick(InMouseEvent, EKeys::LeftMouseButton);
+		return HandleLeftMouseButtonDownDoubleClick(InGeometry, InMouseEvent, EKeys::LeftMouseButton);
 	}
 	return Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
 }
@@ -58,8 +58,7 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 
 	if (auto DragVisual = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass)) // TODO: класс виджета для драг дропа
 	{
-		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(),
-		                           {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
+		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(), {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
 		DragDropOperation->DefaultDragVisual = DragVisual;
 	}
 	
@@ -77,12 +76,21 @@ void UItemWidget::InitItemWidget(const UObject* Owner, UItemObject* BindObject, 
 
 	SizeBox->SetWidthOverride(GridSize.X);
 	SizeBox->SetHeightOverride(GridSize.Y);
+	
+	TextAmount->VisibilityDelegate.BindDynamic(this, &UItemWidget::GetAmountVisibility); // TODO
+	TextAmount->TextDelegate.BindDynamic(this, &UItemWidget::GetAmountText); // TODO
 
-	TextAmount->VisibilityDelegate.BindDynamic(this, &UItemWidget::GetAmountVisibility);
-	TextAmount->TextDelegate.BindDynamic(this, &UItemWidget::GetAmountText);
-
-	auto Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
+	FSlateBrush Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
 	ItemImage->SetBrush(Icon);
+}
+
+void UItemWidget::ClearItemWidget()
+{
+	OwnerPrivate.Reset();
+	BoundObject.Reset();
+	
+	TextAmount->VisibilityDelegate.Unbind();
+	TextAmount->TextDelegate.Unbind();
 }
 
 FReply UItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
@@ -99,12 +107,13 @@ FReply UItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent,
 	return Reply.NativeReply;
 }
 
-FReply UItemWidget::HandleLeftMouseButtonDownDoubleClick(const FPointerEvent& InMouseEvent, const FKey& DragKey)
+FReply UItemWidget::HandleLeftMouseButtonDownDoubleClick(const FGeometry& InLocalGeometry,
+                                                         const FPointerEvent& InMouseEvent, const FKey& DragKey)
 {
 	FEventReply Reply(true);
 	if (InMouseEvent.GetEffectingButton() == DragKey)
 	{
-		DoubleClick();
+		DoubleClick(InLocalGeometry, InMouseEvent);
 	}
 	return Reply.NativeReply;
 }
@@ -130,24 +139,37 @@ void UItemWidget::UnRotateItem()
 
 void UItemWidget::MouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnMouseEnter.ExecuteIfBound(InLocalGeometry, InMouseEvent, BoundObject.Get());
+	if (OnMouseEnter.IsBound())
+	{
+		OnMouseEnter.Execute(InLocalGeometry, InMouseEvent, BoundObject.Get());
+	}
 }
 
-void UItemWidget::MouseLeave()
+void UItemWidget::MouseLeave(const FPointerEvent& InMouseEvent)
 {
-	OnMouseLeave.ExecuteIfBound();
+	if (OnMouseLeave.IsBound())
+	{
+		OnMouseLeave.Execute(InMouseEvent);
+	}
 }
 
-void UItemWidget::DoubleClick()
+void UItemWidget::DoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnDoubleClick.ExecuteIfBound(BoundObject.Get());
+	if (OnDoubleClick.IsBound())
+	{
+		OnDoubleClick.Execute(InLocalGeometry, InMouseEvent, BoundObject.Get());
+	}
 }
 
 void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                      UDragDropOperation* InOperation)
 {
 	RemoveFromParent();
-	OnDragItem.ExecuteIfBound(InGeometry, InMouseEvent, InOperation);
+
+	if (OnDragItem.IsBound())
+	{
+		OnDragItem.Execute(InGeometry, InMouseEvent, InOperation);
+	}
 }
 
 ESlateVisibility UItemWidget::GetAmountVisibility()

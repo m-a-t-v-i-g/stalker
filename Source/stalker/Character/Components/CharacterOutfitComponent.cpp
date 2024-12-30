@@ -64,7 +64,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 				{
 					SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
 													  OutfitSlots[i].SlotName);
-					OnEquipmentSlotChanged(FUpdatedSlotData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
+					OnEquipmentSlotChanged(FEquipmentSlotChangeData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
 					                       OutfitSlots[i].SlotName);
 				}
 			}
@@ -82,7 +82,7 @@ void UCharacterOutfitComponent::InitCharacterInfo(AController* InController)
 	}
 }
 
-void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FUpdatedSlotData& SlotData, FString SlotName)
+void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName)
 {
 	if (!IsValid(SlotData.SlotItem) || SlotName.IsEmpty())
 	{
