@@ -20,6 +20,8 @@ public:
 	
 	virtual bool OnInteract(AActor* Interactor) override;
 
+	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
 protected:
 	
 private:

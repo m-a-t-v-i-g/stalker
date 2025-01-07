@@ -4,14 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "GenPawn.h"
 #include "BaseOrganic.generated.h"
 
+struct FInputActionValue;
+struct FInputActionInstance;
 class UCapsuleComponent;
 class UOrganicAbilityComponent;
 class UHitScanComponent;
+class UInputMappingContext;
+class UInputConfig;
+class UAbilitySet;
 
-UCLASS()
+UCLASS(Abstract)
 class STALKER_API ABaseOrganic : public AGenPawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
@@ -25,6 +31,7 @@ public:
 	static FName HitScanComponentName;
 	
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
 	
 	FORCEINLINE virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -50,11 +57,33 @@ public:
 	FORCEINLINE UHitScanComponent* GetHitScanComponent() const { return HitScanComponent; }
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<const UInputConfig> InputConfig;
+
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
 	TObjectPtr<class UHealthAttributeSet> HealthAttributeSet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Attributes")
 	TObjectPtr<class UResistanceAttributeSet> ResistanceAttributeSet;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TObjectPtr<const UAbilitySet> AbilitySet;
+
+	virtual void PostInitializeComponents() override;
+	
+	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
+	virtual void BindViewInput(UInputComponent* PlayerInputComponent) override;
+	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
+
+	virtual void InitEssentialComponents();
+	virtual void InitEssentialData();
+	virtual void InitLocalData();
+
+	virtual void Moving(const FInputActionValue& Value);
+	virtual void Viewing(const FInputActionValue& Value);
+
+	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
+	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Organic", meta = (AllowPrivateAccess = "true"))

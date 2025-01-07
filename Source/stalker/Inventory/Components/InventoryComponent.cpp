@@ -23,6 +23,11 @@ void UInventoryComponent::BeginPlay()
 	}
 }
 
+void UInventoryComponent::SetItemsContainer(UItemsContainer* InItemsContainer)
+{
+	ItemsContainerRef = InItemsContainer;
+}
+
 void UInventoryComponent::FindAvailablePlace(UItemObject* ItemObject)
 {
 	if (IsAuthority())

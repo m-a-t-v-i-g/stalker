@@ -2,7 +2,7 @@
 
 #include "CharacterArtifactComponent.h"
 
-UCharacterArtifactComponent::UCharacterArtifactComponent()
+UCharacterArtifactComponent::UCharacterArtifactComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

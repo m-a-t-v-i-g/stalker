@@ -14,6 +14,8 @@
 UCharacterStateComponent::UCharacterStateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	bWantsInitializeComponent = true;
+	
 	SetIsReplicatedByDefault(true);
 }
 
@@ -208,6 +210,19 @@ void UCharacterStateComponent::OnMaxHealthChange(const FOnAttributeChangeData& H
 	if (!HealthAttributeSet)
 	{
 		return;
+	}
+}
+
+void UCharacterStateComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	
+	if (GetOwner())
+	{
+		if (auto Character = GetOwner<AStalkerCharacter>())
+		{
+			SetupStateComponent(Character);
+		}
 	}
 }
 

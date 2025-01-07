@@ -10,7 +10,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "HUD/HUDWidget.h"
 
-void UMainWidget::InitializeMainWidget(UInventoryManagerComponent* InventoryManagerComp)
+void UMainWidget::InitializeGameWidget(UInventoryManagerComponent* InventoryManagerComp)
 {
 	OwnInventoryManager = InventoryManagerComp;
 	
@@ -39,7 +39,7 @@ void UMainWidget::SetupAndOpenOwnInventory()
 {
 	if (!InventoryManagerWidget)
 	{
-		InventoryManagerWidget = CreateWidget<UInventoryManagerWidget>(GetOwningPlayer(), AStalkerHUD::StaticInventoryWidgetClass);
+		InventoryManagerWidget = CreateWidget<UInventoryManagerWidget>(GetOwningPlayer(), AGameHUD::StaticInventoryWidgetClass);
 		
 		if (InventoryManagerWidget)
 		{

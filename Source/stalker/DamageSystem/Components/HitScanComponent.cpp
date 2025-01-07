@@ -7,6 +7,11 @@ UHitScanComponent::UHitScanComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UHitScanComponent::AddBoneToScanMap(FName BoneName, FGameplayTag Tag)
+{
+	HitScanMap.Add(BoneName, Tag);
+}
+
 void UHitScanComponent::HitOwnerPart(const FGameplayTag& DamageTag, const FHitResult& HitResult, float DamageValue)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Hit part: %s"), *HitResult.BoneName.ToString()));

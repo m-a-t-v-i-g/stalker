@@ -8,9 +8,10 @@
 #include "Components/HitScanComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-UCharacterOutfitComponent::UCharacterOutfitComponent()
+UCharacterOutfitComponent::UCharacterOutfitComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 	
 	SetIsReplicatedByDefault(true);
 }
@@ -38,19 +39,23 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	{
 		if (EquipmentComponentRef)
 		{
-			for (uint8 i = 0; i < OutfitSlots.Num(); i++)
+			if (!EquipmentComponentRef->GetEquipmentSlots().IsEmpty())
 			{
-				if (OutfitSlots[i].SlotName.IsEmpty())
+				for (uint8 i = 0; i < OutfitSlots.Num(); i++)
 				{
-					continue;
-				}
+					if (OutfitSlots[i].SlotName.IsEmpty())
+					{
+						continue;
+					}
 
-				if (UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName))
-				{
-					SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
-													  OutfitSlots[i].SlotName);
-					OnEquipmentSlotChanged(FEquipmentSlotChangeData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
-										   OutfitSlots[i].SlotName);
+					UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName);
+					if (IsValid(SlotPtr))
+					{
+						SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
+														  OutfitSlots[i].SlotName);
+						OnEquipmentSlotChanged(FEquipmentSlotChangeData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
+											   OutfitSlots[i].SlotName);
+					}
 				}
 			}
 		}
@@ -161,6 +166,19 @@ FOutfitSlot* UCharacterOutfitComponent::FindOutfitSlot(const FString& SlotName)
 		}
 	}
 	return nullptr;
+}
+
+void UCharacterOutfitComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	if (GetOwner())
+	{
+		if (auto Character = GetOwner<AStalkerCharacter>())
+		{
+			SetupOutfitComponent(Character);
+		}
+	}
 }
 
 void UCharacterOutfitComponent::OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem)

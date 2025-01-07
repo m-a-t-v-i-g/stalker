@@ -215,7 +215,7 @@ void UItemObject::RemoveAmount(uint32 Amount)
 
 void UItemObject::UpdateAmount(uint32 NewAmount, uint32 PrevAmount)
 {
-	OnAmountChangedDelegate.Broadcast(NewAmount);
+	OnAmountChangeDelegate.Broadcast(NewAmount);
 	OnAmountUpdated(NewAmount, PrevAmount);
 }
 
@@ -255,7 +255,7 @@ void UItemObject::SpoilEndurance(const FGameplayTag& DamageTag, float DamageValu
 
 void UItemObject::UpdateEndurance(float NewEndurance, float PrevEndurance)
 {
-	OnEnduranceChangedDelegate.Broadcast(NewEndurance);
+	OnEnduranceChangeDelegate.Broadcast(NewEndurance);
 	OnEnduranceUpdated(NewEndurance, PrevEndurance);
 }
 
@@ -334,7 +334,7 @@ void UItemObject::SetEquipped()
 
 void UItemObject::UpdateMode(EItemMode NewMode, EItemMode PrevMode)
 {
-	OnModeChangedDelegate.Broadcast(NewMode);
+	OnModeChangeDelegate.Broadcast(NewMode);
 	OnModeUpdated(NewMode, PrevMode);
 }
 

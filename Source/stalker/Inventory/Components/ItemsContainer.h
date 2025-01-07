@@ -47,6 +47,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
 	
+	void SetupItemsContainer(FGameplayTagContainer ContainerTags);
+	
 	void AddStartingData();
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);

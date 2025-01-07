@@ -3,11 +3,14 @@
 #include "ItemWidget.h"
 #include "ItemDragDropOperation.h"
 #include "ItemObject.h"
-#include "StalkerHUD.h"
+#include "GameHUD.h"
+#include "Ammo/AmmoObject.h"
+#include "Armor/ArmorObject.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "Weapons/WeaponObject.h"
 
 void UItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -56,9 +59,13 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	DragDropOperation->Payload = BoundObject.Get();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
 
-	if (auto DragVisual = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass)) // TODO: класс виджета для драг дропа
+	if (auto DragVisual = CreateWidget<UItemWidget>(this, AGameHUD::StaticItemWidgetClass)) // TODO: класс виджета для драг дропа
 	{
-		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(), {BoundObject->GetItemSize().X, BoundObject->GetItemSize().Y});
+		DragVisual->SetRenderOpacity(DragOpacity);
+		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(), {
+			                           BoundObject->GetItemSize().X * 0.7, BoundObject->GetItemSize().Y * 0.7
+		                           });
+		DragVisual->HideAmount();
 		DragDropOperation->DefaultDragVisual = DragVisual;
 	}
 	
@@ -67,21 +74,24 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	BeginDragOperation(InGeometry, InMouseEvent, OutOperation);
 }
 
-void UItemWidget::InitItemWidget(const UObject* Owner, UItemObject* BindObject, FIntPoint Size)
+void UItemWidget::InitItemWidget(const UObject* Owner, UItemObject* BindObject, FVector2D Size)
 {
 	OwnerPrivate = Owner;
 	BoundObject = BindObject;
 
-	FVector2D GridSize = {Size.X * AStalkerHUD::TileSize, Size.Y * AStalkerHUD::TileSize};
+	if (BoundObject.IsValid())
+	{
+		FSlateBrush Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
+		ItemImage->SetBrush(Icon);
+
+		BoundObject->OnAmountChangeDelegate.AddUObject(this, &UItemWidget::OnChangeAmount);
+		OnChangeAmount(BoundObject->GetAmount());
+	}
+	
+	FVector2D GridSize = {Size.X * AGameHUD::TileSize, Size.Y * AGameHUD::TileSize};
 
 	SizeBox->SetWidthOverride(GridSize.X);
 	SizeBox->SetHeightOverride(GridSize.Y);
-	
-	TextAmount->VisibilityDelegate.BindDynamic(this, &UItemWidget::GetAmountVisibility); // TODO
-	TextAmount->TextDelegate.BindDynamic(this, &UItemWidget::GetAmountText); // TODO
-
-	FSlateBrush Icon = UWidgetBlueprintLibrary::MakeBrushFromTexture(BoundObject->GetThumbnail());
-	ItemImage->SetBrush(Icon);
 }
 
 void UItemWidget::ClearItemWidget()
@@ -91,6 +101,44 @@ void UItemWidget::ClearItemWidget()
 	
 	TextAmount->VisibilityDelegate.Unbind();
 	TextAmount->TextDelegate.Unbind();
+}
+
+void UItemWidget::OnChangeAmount(uint32 Amount)
+{
+	if (!BoundObject.IsValid())
+	{
+		return;
+	}
+
+	BoundObject->IsCollected() ? ShowAmount() : HideAmount();
+
+	FString AmountString = FString::Printf(TEXT("x%d"), Amount);
+	if (BoundObject->IsA<UAmmoObject>())
+	{
+		AmountString = AmountString.RightChop(1);
+	}
+	
+	FText AmountText = FText::FromString(AmountString);
+	TextAmount->SetText(AmountText);
+}
+
+void UItemWidget::ShowAmount()
+{
+	if (BoundObject->IsA<UWeaponObject>() || BoundObject->IsA<UArmorObject>())
+	{
+		if (BoundObject->GetAmount() <= 1)
+		{
+			TextAmount->SetVisibility(ESlateVisibility::Collapsed);
+			return;
+		}
+	}
+
+	TextAmount->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+void UItemWidget::HideAmount()
+{
+	TextAmount->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 FReply UItemWidget::HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey)
@@ -170,29 +218,4 @@ void UItemWidget::BeginDragOperation(const FGeometry& InGeometry, const FPointer
 	{
 		OnDragItem.Execute(InGeometry, InMouseEvent, InOperation);
 	}
-}
-
-ESlateVisibility UItemWidget::GetAmountVisibility()
-{
-	ESlateVisibility AmountVisibility = ESlateVisibility::Collapsed;
-
-	if (auto ItemObject = GetBoundObject<UItemObject>())
-	{
-		if (ItemObject->IsCollected())
-		{
-			AmountVisibility = ESlateVisibility::SelfHitTestInvisible;
-		}
-	}
-	
-	return AmountVisibility;
-}
-
-FText UItemWidget::GetAmountText()
-{
-	FText AmountText;
-	if (auto ItemObject = GetBoundObject<UItemObject>())
-	{
-		AmountText = FText::FromString(FString::Printf(TEXT("x%d"), ItemObject->GetAmount()));
-	}
-	return AmountText;
 }

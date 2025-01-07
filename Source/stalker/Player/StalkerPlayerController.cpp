@@ -1,14 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StalkerPlayerController.h"
-
 #include "CharacterArmorComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EquipmentComponent.h"
+#include "GameHUD.h"
 #include "InventoryComponent.h"
 #include "PawnInteractionComponent.h"
-#include "PlayerCharacter.h"
-#include "StalkerHUD.h"
+#include "StalkerCharacter.h"
 #include "Components/OrganicAbilityComponent.h"
 
 FName AStalkerPlayerController::InventoryManagerComponentName {"Inventory Manager Component"};
@@ -51,29 +50,15 @@ AStalkerPlayerController::AStalkerPlayerController()
 	InventoryManager = CreateDefaultSubobject<UInventoryManagerComponent>(InventoryManagerComponentName);
 }
 
-void AStalkerPlayerController::SetupInputComponent()
-{
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-		GetLocalPlayer()))
-	{
-		FModifyContextOptions Options;
-		Options.bForceImmediately = 1;
-		
-		Subsystem->AddMappingContext(InputMappingContext, 2, Options);
-	}
-	
-	Super::SetupInputComponent();
-}
-
 void AStalkerPlayerController::ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass)
 {
 	Super::ClientSetHUD_Implementation(NewHUDClass);
 
-	GameHUD = GetHUD<AStalkerHUD>();
+	GameHUD = GetHUD<AGameHUD>();
 
 	if (GameHUD)
 	{
-		GameHUD->InitializeHUD(InventoryManager);
+		GameHUD->InitializeHUD(InventoryManager, InputComponent);
 	}
 }
 
@@ -96,6 +81,20 @@ void AStalkerPlayerController::PostInitializeComponents()
 	OnPossessedPawnChanged.AddDynamic(this, &AStalkerPlayerController::OnPawnChanged);
 }
 
+void AStalkerPlayerController::SetupInputComponent()
+{
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		FModifyContextOptions Options;
+		Options.bForceImmediately = 1;
+		
+		Subsystem->AddMappingContext(CharacterMappingContext, 1, Options);
+		Subsystem->AddMappingContext(UIMappingContext, 0, Options);
+	}
+	
+	Super::SetupInputComponent();
+}
+
 void AStalkerPlayerController::OnPawnChanged(APawn* InOldPawn, APawn* InNewPawn)
 {
 	if (InNewPawn)
@@ -112,33 +111,35 @@ void AStalkerPlayerController::ChooseAndSetupPawn(APawn* InPawn)
 {
 	if (InPawn->IsA<AStalkerCharacter>())
 	{
-		if (InPawn != Stalker)
+		if (InPawn != Character)
 		{
 			ClearCharacter();
 		}
 
 		SetupCharacter();
 	}
+
+	InitEssentialComponents();
 }
 
 void AStalkerPlayerController::ChooseAndClearPawn(APawn* InPawn)
 {
-	if (InPawn == Stalker)
+	if (InPawn == Character)
 	{
 		ClearCharacter();
 	}
+	
+	UnInitEssentialComponents();
 }
 
 void AStalkerPlayerController::SetupCharacter()
 {
 	if (!bIsCharacterInitialized)
 	{
-		Stalker = GetPawn<AStalkerCharacter>();
+		Character = GetPawn<AStalkerCharacter>();
 
-		if (Stalker)
+		if (Character)
 		{
-			InitEssentialComponents();
-			
 			if (IsLocalController())
 			{
 				ConnectCharacterHUD();
@@ -151,34 +152,32 @@ void AStalkerPlayerController::SetupCharacter()
 
 void AStalkerPlayerController::ClearCharacter()
 {
-	if (Stalker && bIsCharacterInitialized)
+	if (Character && bIsCharacterInitialized)
 	{
-		UnInitEssentialComponents();
-
 		if (IsLocalController())
 		{
 			DisconnectCharacterHUD();
 		}
 		
-		Stalker = nullptr;
+		Character = nullptr;
 		bIsCharacterInitialized = false;
 	}
 }
 
 void AStalkerPlayerController::ConnectCharacterHUD()
 {
-	if (!Stalker || !GameHUD)
+	if (!Character || !GameHUD)
 	{
 		return;
 	}
 	
-	FCharacterHUDInitData UIData(Stalker);
+	FCharacterHUDInitData UIData(Character);
 	GameHUD->ConnectCharacterHUD(UIData);
 }
 
 void AStalkerPlayerController::DisconnectCharacterHUD()
 {
-	if (!Stalker || !GameHUD)
+	if (!Character || !GameHUD)
 	{
 		return;
 	}
@@ -190,7 +189,7 @@ void AStalkerPlayerController::InitEssentialComponents()
 {
 	if (InventoryManager)
 	{
-		InventoryManager->SetupInventoryManager(this, Stalker);
+		InventoryManager->SetupInventoryManager(GetPawn(), this);
 	}
 }
 

@@ -12,5 +12,5 @@ class STALKER_API UCharacterArtifactComponent : public UCharacterOutfitComponent
 	GENERATED_BODY()
 
 public:
-	UCharacterArtifactComponent();
+	UCharacterArtifactComponent(const FObjectInitializer& ObjectInitializer);
 };

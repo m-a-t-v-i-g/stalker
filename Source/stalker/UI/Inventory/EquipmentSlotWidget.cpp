@@ -6,7 +6,7 @@
 #include "ItemDragDropOperation.h"
 #include "ItemObject.h"
 #include "ItemWidget.h"
-#include "StalkerHUD.h"
+#include "GameHUD.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 
@@ -165,7 +165,7 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 
 UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
 {
-	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass);
+	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AGameHUD::StaticItemWidgetClass);
 	if (ItemWidget)
 	{
 		ItemWidget->InitItemWidget(EquipmentSlotRef.Get(), ItemObject, ItemObject->GetItemSize());
@@ -180,7 +180,7 @@ UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
 				ItemWidget->RotateItem();
 			}
 			
-			FVector2D ItemSize = ItemObject->GetItemSize() * AStalkerHUD::TileSize;
+			FVector2D ItemSize = ItemObject->GetItemSize() * AGameHUD::TileSize;
 			CanvasPanelSlot->SetSize(ItemSize);
 			CanvasPanelSlot->SetAnchors(FAnchors(0.5f));
 			CanvasPanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));

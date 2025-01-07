@@ -14,7 +14,10 @@ class STALKER_API UPawnInteractionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	FOnDetectedActorChanged OnDetectedActorChanged;
+	FOnDetectedActorChanged OnDetectedActorChange;
+	TMulticastDelegate<void(AActor*)> OnPossibleInteractionAdd;
+	TMulticastDelegate<void(AActor*)> OnPossibleInteractionRemove;
+	TMulticastDelegate<void(AActor*)> PreInteractionDelegate;
 	
 	UPawnInteractionComponent();
 

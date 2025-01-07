@@ -23,16 +23,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
-	virtual void SetupInventoryManager(AController* InController, AStalkerCharacter* InCharacter);
+	virtual void SetupInventoryManager(APawn* InPawn, AController* InController);
 	virtual void ResetInventoryManager();
 
 	void AddReplicatedContainer(UItemsContainer* Container);
 	void RemoveReplicatedContainer(UItemsContainer* Container);
 	void AddReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 	void RemoveReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
-
-	void OnLootInventory(UInventoryComponent* InventoryComponent);
-	void OnStopLootInventory(UInventoryComponent* InventoryComponent);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
@@ -76,12 +73,15 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
 	TArray<UEquipmentSlot*> ReplicatedEquipmentSlots;
 
+	void OnPossibleInteractionAdd(AActor* TargetActor);
+	void OnPossibleInteractionRemove(AActor* TargetActor);
+	
 	bool IsItemObjectValid(uint32 ItemId) const;
 
 	UItemObject* GetItemObjectById(uint32 ItemId) const;
 
 private:
-	TObjectPtr<AStalkerCharacter> CharacterRef;
+	TObjectPtr<APawn> PawnRef;
 	TObjectPtr<AController> ControllerRef;
 	
 	TObjectPtr<UItemsContainer> OwnItemsContainer;

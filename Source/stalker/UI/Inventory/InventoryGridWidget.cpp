@@ -7,7 +7,7 @@
 #include "ItemObject.h"
 #include "ItemsContainer.h"
 #include "ItemWidget.h"
-#include "StalkerHUD.h"
+#include "GameHUD.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -62,9 +62,9 @@ int32 UInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry&
 		FPaintContext Context {AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled};
 		if (!UWidgetBlueprintLibrary::IsDragDropping() && HoveredData.HasValidData())
 		{
-			UWidgetBlueprintLibrary::DrawBox(Context, HoveredData.Tile * AStalkerHUD::TileSize, {
-				                                 HoveredData.Size.X * AStalkerHUD::TileSize,
-				                                 HoveredData.Size.Y * AStalkerHUD::TileSize
+			UWidgetBlueprintLibrary::DrawBox(Context, HoveredData.TilePoint * AGameHUD::TileSize, {
+				                                 HoveredData.Size.X * AGameHUD::TileSize,
+				                                 HoveredData.Size.Y * AGameHUD::TileSize
 			                                 }, GridFillingBrush, GridHighlightColor);
 		}
 	}
@@ -187,7 +187,7 @@ void UInventoryGridWidget::UpdateGrid()
 			continue;
 		}
 
-		CreateItemWidget(ItemObject, {Tile.X * AStalkerHUD::TileSize, Tile.Y * AStalkerHUD::TileSize});
+		CreateItemWidget(ItemObject, {Tile.X * AGameHUD::TileSize, Tile.Y * AGameHUD::TileSize});
 	}
 }
 
@@ -210,7 +210,7 @@ void UInventoryGridWidget::OnContainerUpdated(const FItemsContainerChangeData& U
 				const FIntPoint ItemSize = {Tile.X + (ItemObject->GetItemSize().X - 1), Tile.Y + (ItemObject->GetItemSize().Y - 1)};
 			
 				FillRoom(ItemObject->GetItemId(), Tile, ItemSize, Columns);
-				CreateItemWidget(ItemObject, {Tile.X * AStalkerHUD::TileSize, Tile.Y * AStalkerHUD::TileSize});
+				CreateItemWidget(ItemObject, {Tile.X * AGameHUD::TileSize, Tile.Y * AGameHUD::TileSize});
 				UpdateItemsMap();
 			}
 		}
@@ -232,9 +232,9 @@ void UInventoryGridWidget::OnContainerUpdated(const FItemsContainerChangeData& U
 void UInventoryGridWidget::OnItemMouseEnter(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent,
                                             UItemObject* HoverItem)
 {
-	HoveredData.bHighlightItem = true;
+	HoveredData.bNeedHighlight = true;
 	HoveredData.ItemRef = HoverItem;
-	HoveredData.Tile = *ItemsMap.Find(HoverItem->GetItemId());
+	HoveredData.TilePoint = *ItemsMap.Find(HoverItem->GetItemId());
 	HoveredData.Size = HoverItem->GetItemSize();
 }
 
@@ -332,7 +332,7 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 
 UItemWidget* UInventoryGridWidget::CreateItemWidget(UItemObject* ItemObject, const FVector2D& PositionOnGrid)
 {
-	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AStalkerHUD::StaticItemWidgetClass);
+	UItemWidget* ItemWidget = CreateWidget<UItemWidget>(this, AGameHUD::StaticItemWidgetClass);
 	if (ItemWidget)
 	{
 		ItemWidget->InitItemWidget(ItemsContainerRef.Get(), ItemObject, ItemObject->GetItemSize());
@@ -457,7 +457,7 @@ uint32 UInventoryGridWidget::IndexFromTile(const FIntPoint& Tile, uint8 Width)
 
 bool UInventoryGridWidget::IsMouseOnTile(float MousePosition)
 {
-	if (FGenericPlatformMath::Fmod(MousePosition, AStalkerHUD::TileSize) > AStalkerHUD::TileSize / 2.0f)
+	if (FGenericPlatformMath::Fmod(MousePosition, AGameHUD::TileSize) > AGameHUD::TileSize / 2.0f)
 	{
 		return true;
 	}
@@ -474,7 +474,7 @@ FIntPoint UInventoryGridWidget::GetTileFromMousePosition(const FGeometry& InGeom
 	int8 SelectX = bPosRight ? 1 : 0;
 	int8 SelectY = bPosDown ? 1 : 0;
 
-	FIntPoint MousePosOnTile (MousePosition.X / AStalkerHUD::TileSize, MousePosition.Y / AStalkerHUD::TileSize);
+	FIntPoint MousePosOnTile (MousePosition.X / AGameHUD::TileSize, MousePosition.Y / AGameHUD::TileSize);
 	FIntPoint Dimension (SelectX / 2, SelectY / 2);
 	return MousePosOnTile - Dimension;
 }
@@ -494,6 +494,6 @@ FIntPoint UInventoryGridWidget::GetTileFromMousePosition(const FGeometry& InGeom
 	int8 DimensionY = FMath::Clamp(ItemObject->GetItemSize().X - SelectX, 0, ItemObject->GetItemSize().Y - SelectY);
 
 	FIntPoint MakeIntPoint (DimensionX / 2, DimensionY / 2);
-	FIntPoint Dimension (MousePosition.X / AStalkerHUD::TileSize, MousePosition.Y / AStalkerHUD::TileSize);
+	FIntPoint Dimension (MousePosition.X / AGameHUD::TileSize, MousePosition.Y / AGameHUD::TileSize);
 	return Dimension - MakeIntPoint;
 }

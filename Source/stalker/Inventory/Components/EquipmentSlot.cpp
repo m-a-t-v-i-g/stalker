@@ -25,22 +25,39 @@ bool UEquipmentSlot::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunc
 	return bReplicateSomething;
 }
 
+void UEquipmentSlot::SetupEquipmentSlot(FString InSlotName, FGameplayTagContainer InSlotTags)
+{
+	SlotName = InSlotName;
+	CategoryTags = InSlotTags;
+}
+
 void UEquipmentSlot::AddStartingData()
 {
-	if (!StartingData.IsValid())
+	if (StartingData.IsEmpty())
 	{
 		return;
 	}
 	
-	if (CanEquipItem(StartingData.Definition))
+	int RandIndex = FMath::RandRange(0, StartingData.Num() - 1);
+	
+	if (StartingData.IsValidIndex(RandIndex))
 	{
-		UItemPredictedData* PredictedData = StartingData.bUsePredictedData ? StartingData.PredictedData : nullptr;
-		if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), StartingData.Definition, PredictedData))
+		const FItemStartingData& ItemData = StartingData[RandIndex];
+		if (ItemData.IsValid())
 		{
-			EquipSlot(ItemObject);
+			if (CanEquipItem(ItemData.Definition))
+			{
+				UItemPredictedData* PredictedData = ItemData.bUsePredictedData ? ItemData.PredictedData : nullptr;
+				if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(
+					GetWorld(), ItemData.Definition, PredictedData))
+				{
+					EquipSlot(ItemObject);
+				}
+			}
 		}
 	}
-	StartingData.Clear();
+	
+	StartingData.Empty();
 }
 
 void UEquipmentSlot::EquipSlot(UItemObject* BindObject)

@@ -2,11 +2,12 @@
 
 #include "InventoryManagerComponent.h"
 #include "ItemSystemCore.h"
-#include "Character/PlayerCharacter.h"
+#include "PawnInteractionComponent.h"
 #include "Components/EquipmentComponent.h"
 #include "Components/EquipmentSlot.h"
 #include "Components/InventoryComponent.h"
 #include "Components/ItemsContainer.h"
+#include "Containers/ContainerActor.h"
 #include "Engine/ActorChannel.h"
 #include "Inventory/InventorySystemCore.h"
 #include "Net/UnrealNetwork.h"
@@ -22,8 +23,8 @@ void UInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UInventoryManagerComponent, ReplicatedContainers,		COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UInventoryManagerComponent, ReplicatedEquipmentSlots,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedContainers,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedEquipmentSlots,	COND_OwnerOnly);
 }
 
 bool UInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -45,9 +46,9 @@ bool UInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOu
 	return bReplicateSomething;
 }
 
-void UInventoryManagerComponent::SetupInventoryManager(AController* InController, AStalkerCharacter* InCharacter)
+void UInventoryManagerComponent::SetupInventoryManager(APawn* InPawn, AController* InController)
 {
-	CharacterRef = InCharacter;
+	PawnRef = InPawn;
 	ControllerRef = InController;
 
 	if (!IsAuthority())
@@ -55,22 +56,20 @@ void UInventoryManagerComponent::SetupInventoryManager(AController* InController
 		return;
 	}
 	
-	if (CharacterRef)
+	if (PawnRef)
 	{
-		CharacterRef->LootInventoryDelegate.AddUObject(this, &UInventoryManagerComponent::OnLootInventory);
-
-		if (UInventoryComponent* CharInventoryComponent = CharacterRef->GetInventoryComponent())
+		if (auto InventoryComponent = PawnRef->GetComponentByClass<UInventoryComponent>())
 		{
-			if (UItemsContainer* CharContainer = CharInventoryComponent->GetItemsContainer())
+			if (UItemsContainer* ItemsContainer = InventoryComponent->GetItemsContainer())
 			{
-				OwnItemsContainer = CharContainer;
-				AddReplicatedContainer(CharContainer);
+				OwnItemsContainer = ItemsContainer;
+				AddReplicatedContainer(ItemsContainer);
 			}
 		}
 
-		if (UEquipmentComponent* CharEquipmentComponent = CharacterRef->GetEquipmentComponent())
+		if (auto EquipmentComponent = PawnRef->GetComponentByClass<UEquipmentComponent>())
 		{
-			TArray<UEquipmentSlot*> Slots = CharEquipmentComponent->GetEquipmentSlots();
+			TArray<UEquipmentSlot*> Slots = EquipmentComponent->GetEquipmentSlots();
 			if (!Slots.IsEmpty())
 			{
 				OwnEquipmentSlots = Slots;
@@ -81,17 +80,27 @@ void UInventoryManagerComponent::SetupInventoryManager(AController* InController
 				}
 			}
 		}
+
+		if (auto InteractionComponent = PawnRef->GetComponentByClass<UPawnInteractionComponent>())
+		{
+			InteractionComponent->OnPossibleInteractionAdd.AddUObject(this, &UInventoryManagerComponent::OnPossibleInteractionAdd);
+			InteractionComponent->OnPossibleInteractionRemove.AddUObject(this, &UInventoryManagerComponent::OnPossibleInteractionRemove);
+		}
 	}
 }
 
 void UInventoryManagerComponent::ResetInventoryManager()
 {
-	if (CharacterRef)
+	if (PawnRef)
 	{
-		CharacterRef->LootInventoryDelegate.RemoveAll(this);
+		if (auto CharInteractionComponent = PawnRef->GetComponentByClass<UPawnInteractionComponent>())
+		{
+			CharInteractionComponent->OnPossibleInteractionAdd.RemoveAll(this);
+			CharInteractionComponent->OnPossibleInteractionRemove.RemoveAll(this);
+		}
 	}
 	
-	CharacterRef = nullptr;
+	PawnRef = nullptr;
 	ControllerRef = nullptr;
 	
 	if (!IsAuthority())
@@ -128,22 +137,6 @@ void UInventoryManagerComponent::RemoveReplicatedEquipmentSlot(UEquipmentSlot* E
 	if (ReplicatedEquipmentSlots.Contains(EquipmentSlot))
 	{
 		ReplicatedEquipmentSlots.Remove(EquipmentSlot);
-	}
-}
-
-void UInventoryManagerComponent::OnLootInventory(UInventoryComponent* InventoryComponent)
-{
-	if (UItemsContainer* Container = InventoryComponent->GetItemsContainer())
-	{
-		AddReplicatedContainer(Container);
-	}
-}
-
-void UInventoryManagerComponent::OnStopLootInventory(UInventoryComponent* InventoryComponent)
-{
-	if (UItemsContainer* Container = InventoryComponent->GetItemsContainer())
-	{
-		RemoveReplicatedContainer(Container);
 	}
 }
 
@@ -270,6 +263,40 @@ bool UInventoryManagerComponent::IsAuthority() const
 		return false;
 	}
 	return GetOwner()->HasAuthority();
+}
+
+void UInventoryManagerComponent::OnPossibleInteractionAdd(AActor* TargetActor)
+{
+	if (auto Container = Cast<AContainerActor>(TargetActor))
+	{
+		UInventoryComponent* InventoryComponent = Container->GetInventoryComponent();
+		if (!InventoryComponent)
+		{
+			return;
+		}
+		
+		if (UItemsContainer* ItemsContainer = InventoryComponent->GetItemsContainer())
+		{
+			AddReplicatedContainer(ItemsContainer);
+		}
+	}
+}
+
+void UInventoryManagerComponent::OnPossibleInteractionRemove(AActor* TargetActor)
+{
+	if (auto Container = Cast<AContainerActor>(TargetActor))
+	{
+		UInventoryComponent* InventoryComponent = Container->GetInventoryComponent();
+		if (!InventoryComponent)
+		{
+			return;
+		}
+		
+		if (UItemsContainer* ItemsContainer = InventoryComponent->GetItemsContainer())
+		{
+			RemoveReplicatedContainer(ItemsContainer);
+		}
+	}
 }
 
 bool UInventoryManagerComponent::IsItemObjectValid(uint32 ItemId) const

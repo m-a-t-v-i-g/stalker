@@ -37,12 +37,14 @@ class STALKER_API UEquipmentComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UEquipmentComponent();
+	UEquipmentComponent(const FObjectInitializer& ObjectInitializer);
 	
 	virtual void BeginPlay() override;
 
 	void EquipSlot(const FString& SlotName, UItemObject* ItemObject, UItemsContainer* SourceContainer = nullptr);
 	void UnequipSlot(const FString& SlotName);
+
+	void AddEquipmentSlot(UEquipmentSlot* NewSlot);
 	
 	bool IsAuthority() const;
 

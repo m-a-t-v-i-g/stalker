@@ -4,7 +4,7 @@
 #include "EquipmentSlot.h"
 #include "InventorySystemCore.h"
 
-UEquipmentComponent::UEquipmentComponent()
+UEquipmentComponent::UEquipmentComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -42,6 +42,11 @@ void UEquipmentComponent::UnequipSlot(const FString& SlotName)
 			UInventorySystemCore::UnequipSlot(EquipmentSlot);
 		}
 	}
+}
+
+void UEquipmentComponent::AddEquipmentSlot(UEquipmentSlot* NewSlot)
+{
+	EquipmentSlots.AddUnique(NewSlot);
 }
 
 bool UEquipmentComponent::IsAuthority() const

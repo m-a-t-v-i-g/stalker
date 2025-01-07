@@ -14,7 +14,7 @@ class UEquipmentComponent;
 class UCharacterArmorComponent;
 class UInventoryManagerComponent;
 class UPawnInteractionComponent;
-class UPlayerInputConfig;
+class UInputConfig;
 class APlayerCharacter;
 
 USTRUCT()
@@ -80,8 +80,6 @@ public:
 	
 	static FName InventoryManagerComponentName;
 
-	virtual void SetupInputComponent() override;
-
 	virtual void ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass) override;
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
@@ -91,13 +89,17 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UInputMappingContext> InputMappingContext;
+	TObjectPtr<const UInputMappingContext> CharacterMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input", DisplayName = "UI Mapping Context")
+	TObjectPtr<const UInputMappingContext> UIMappingContext;
+
+	TObjectPtr<class AGameHUD> GameHUD;
 	
-	TObjectPtr<class AStalkerHUD> GameHUD;
-	
-	TObjectPtr<AStalkerCharacter> Stalker;
+	TObjectPtr<AStalkerCharacter> Character;
 
 	virtual void PostInitializeComponents() override;
+	virtual void SetupInputComponent() override;
 
 	UFUNCTION()
 	void OnPawnChanged(APawn* InOldPawn, APawn* InNewPawn);
@@ -116,6 +118,6 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory Manager", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInventoryManagerComponent> InventoryManager;
-	
+
 	bool bIsCharacterInitialized = false;
 };

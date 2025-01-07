@@ -47,8 +47,12 @@ public:
 	TDelegate<void(const FGeometry&, const FPointerEvent&, UItemObject*)> OnDoubleClick;
 	TDelegate<void(const FGeometry&, const FPointerEvent&, UDragDropOperation*)> OnDragItem;
 
-	virtual void InitItemWidget(const UObject* Owner, UItemObject* BindObject, FIntPoint Size);
+	virtual void InitItemWidget(const UObject* Owner, UItemObject* BindObject, FVector2D Size);
 	virtual void ClearItemWidget();
+
+	void OnChangeAmount(uint32 Amount);
+	void ShowAmount();
+	void HideAmount();
 
 protected:
 	virtual FReply HandleLeftMouseButtonDown(const FPointerEvent& InMouseEvent, const FKey& DragKey);
@@ -70,11 +74,4 @@ public:
 
 	template <class T>
 	const T* GetBoundObject() const { return Cast<T>(GetBoundObject()); }
-	
-protected:
-	UFUNCTION()
-	ESlateVisibility GetAmountVisibility();
-	
-	UFUNCTION()
-	FText GetAmountText();
 };

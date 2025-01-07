@@ -9,8 +9,15 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-UCharacterArmorComponent::UCharacterArmorComponent()
+UCharacterArmorComponent::UCharacterArmorComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	FOutfitSlot HelmetSlot;
+	HelmetSlot.SlotName = "Helmet";
+	OutfitSlots.Add(HelmetSlot);
+	
+	FOutfitSlot BodySlot;
+	BodySlot.SlotName = "Body";
+	OutfitSlots.Add(BodySlot);
 }
 
 void UCharacterArmorComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -64,7 +71,7 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 	}
 
 	ApplyItemEffectSpec(ArmorObject);
-	ArmorObject->OnEnduranceChangedDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
+	ArmorObject->OnEnduranceChangeDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
 	                                                   ItemObject);
 	ArmorData = FEquippedArmorPartData(ArmorObject, *ArmorBehConfig);
 	return true;
@@ -84,7 +91,7 @@ void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedAr
 	}
 
 	RemoveItemEffectSpec(ArmorObject);
-	ArmorObject->OnEnduranceChangedDelegate.RemoveAll(this);
+	ArmorObject->OnEnduranceChangeDelegate.RemoveAll(this);
 	ArmorData.Clear();
 }
 

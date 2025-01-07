@@ -20,24 +20,23 @@ struct FHoveredItemData
 {
 	GENERATED_USTRUCT_BODY()
 
-	TWeakObjectPtr<const UItemObject> ItemRef = nullptr;
+	TWeakObjectPtr<const UItemObject> ItemRef;
 
-	bool bHighlightItem = false;
+	bool bNeedHighlight = false;
 	
-	FIntPoint Tile = FIntPoint::NoneValue;
-
+	FIntPoint TilePoint = FIntPoint::NoneValue;
 	FIntPoint Size = FIntPoint::NoneValue;
 
 	bool HasValidData() const
 	{
-		return ItemRef.IsValid() && bHighlightItem;
+		return ItemRef.IsValid() && bNeedHighlight;
 	}
 	
 	void Clear()
 	{
 		ItemRef.Reset();
-		bHighlightItem = false;
-		Tile = FIntPoint::NoneValue;
+		bNeedHighlight = false;
+		TilePoint = FIntPoint::NoneValue;
 		Size = FIntPoint::NoneValue;
 	}
 };

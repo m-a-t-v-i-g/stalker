@@ -26,9 +26,14 @@ bool UItemsContainer::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bun
 	return bReplicateSomething;
 }
 
+void UItemsContainer::SetupItemsContainer(FGameplayTagContainer ContainerTags)
+{
+	CategoryTags = ContainerTags;
+}
+
 void UItemsContainer::AddStartingData()
 {
-	for (auto ItemData : StartingData)
+	for (const FItemStartingData& ItemData : StartingData)
 	{
 		if (!ItemData.IsValid())
 		{

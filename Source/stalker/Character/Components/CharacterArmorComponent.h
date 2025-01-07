@@ -57,7 +57,7 @@ class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
 	GENERATED_BODY()
 
 public:
-	UCharacterArmorComponent();
+	UCharacterArmorComponent(const FObjectInitializer& ObjectInitializer);
 
 	TMulticastDelegate<void(const FTotalArmorData&)> OnTotalArmorDataChangedDelegate;
 	

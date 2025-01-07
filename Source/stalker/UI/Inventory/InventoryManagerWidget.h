@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "StalkerHUD.h"
+#include "GameHUD.h"
 #include "Blueprint/UserWidget.h"
 #include "InventoryManagerWidget.generated.h"
 

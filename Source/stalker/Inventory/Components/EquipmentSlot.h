@@ -41,6 +41,8 @@ public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
+
+	void SetupEquipmentSlot(FString InSlotName, FGameplayTagContainer InSlotTags);
 	
 	void AddStartingData();
 	
@@ -63,7 +65,7 @@ protected:
 	FGameplayTagContainer CategoryTags;
 	
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
-	FItemStartingData StartingData;
+	TArray<FItemStartingData> StartingData;
 
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundObject", Category = "Equipment Slot")
 	TObjectPtr<UItemObject> BoundObject;

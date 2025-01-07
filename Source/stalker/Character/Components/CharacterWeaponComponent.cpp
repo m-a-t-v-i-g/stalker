@@ -10,8 +10,20 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponObject.h"
 
-UCharacterWeaponComponent::UCharacterWeaponComponent()
+UCharacterWeaponComponent::UCharacterWeaponComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	FOutfitSlot KnifeSlot;
+	KnifeSlot.SlotName = "Knife";
+	OutfitSlots.Add(KnifeSlot);
+	
+	FOutfitSlot SecondarySlot;
+	SecondarySlot.SlotName = "Secondary";
+	OutfitSlots.Add(SecondarySlot);
+	
+	FOutfitSlot PrimarySlot;
+	PrimarySlot.SlotName = "Primary";
+	OutfitSlots.Add(PrimarySlot);
+	
 	PrimaryComponentTick.bCanEverTick = true;
 }
 

@@ -1,17 +1,21 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Organic/BaseOrganic.h"
+#include "AbilitySet.h"
+#include "EnhancedInputSubsystems.h"
 #include "GenCapsuleComponent.h"
+#include "StalkerGameplayTags.h"
+#include "StalkerInputComponent.h"
 #include "Attributes/HealthAttributeSet.h"
 #include "Attributes/ResistanceAttributeSet.h"
-#include "Components/OrganicAbilityComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/HitScanComponent.h"
+#include "Components/OrganicAbilityComponent.h"
 
-FName ABaseOrganic::MeshName {"Mesh0"};
-FName ABaseOrganic::CapsuleName {"Capsule Collision"};
-FName ABaseOrganic::AbilitySystemComponentName {"Ability Component"};
-FName ABaseOrganic::HitScanComponentName {"Hit Scan Component"};
+FName ABaseOrganic::MeshName					{"Mesh0"};
+FName ABaseOrganic::CapsuleName					{"Capsule Collision"};
+FName ABaseOrganic::AbilitySystemComponentName	{"Ability Component"};
+FName ABaseOrganic::HitScanComponentName		{"Hit Scan Component"};
 
 ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.Get())
 {
@@ -71,6 +75,9 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 
 	HitScanComponent = CreateDefaultSubobject<UHitScanComponent>(HitScanComponentName);
 	
+	bReplicates = true;
+	SetReplicatingMovement(false);
+	
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>("Arrow");
 	if (ArrowComponent)
@@ -84,22 +91,129 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		ArrowComponent->SetSimulatePhysics(false);
 	}
 #endif
-	
-	bReplicates = true;
-	SetReplicatingMovement(false);
 }
 
 void ABaseOrganic::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (auto ASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	InitEssentialComponents();
+	
+	if (IsLocallyControlled())
 	{
-		ASC->SetupAbilitySystem(NewController, this);
+		InitLocalData();
+	}
+}
+
+void ABaseOrganic::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	InitEssentialComponents();
+	
+	if (IsLocallyControlled())
+	{
+		InitLocalData();
 	}
 }
 
 UAbilitySystemComponent* ABaseOrganic::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent.Get();
+}
+
+void ABaseOrganic::PostInitializeComponents()
+{
+	if (HasAuthority())
+	{
+		InitEssentialData();
+	}
+	
+	Super::PostInitializeComponents();
+}
+
+void ABaseOrganic::BindDirectionalInput(UInputComponent* PlayerInputComponent)
+{
+	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
+	{
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Move, ETriggerEvent::Triggered,
+										   this, &ThisClass::Moving);
+	}
+}
+
+void ABaseOrganic::BindViewInput(UInputComponent* PlayerInputComponent)
+{
+	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
+	{
+		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_View, ETriggerEvent::Triggered,
+										   this, &ThisClass::Viewing);
+	}
+}
+
+void ABaseOrganic::BindKeyInput(UInputComponent* PlayerInputComponent)
+{
+	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(PlayerInputComponent))
+	{
+		TArray<uint32> BindHandles;
+		StalkerInputComp->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed,
+											 &ThisClass::Input_AbilityInputTagReleased, BindHandles);
+	}
+}
+
+void ABaseOrganic::InitEssentialComponents()
+{
+	if (GetController())
+	{
+		if (auto ASC = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+		{
+			ASC->SetupAbilitySystem(GetController(), this);
+		}
+	}
+}
+
+void ABaseOrganic::InitEssentialData()
+{
+	auto AbilityComp = GetAbilitySystemComponent<UOrganicAbilityComponent>();
+	if (!AbilityComp)
+	{
+		return;
+	}
+	
+	if (AbilitySet)
+	{
+		TArray<FGameplayAbilitySpecHandle> OutHandles;
+		AbilitySet->GiveToAbilitySystem(AbilityComp, OutHandles);
+	}
+}
+
+void ABaseOrganic::InitLocalData()
+{
+}
+
+void ABaseOrganic::Moving(const FInputActionValue& Value)
+{
+	Super::MoveForward(Value.Get<FVector2D>().X);
+	Super::MoveRight(Value.Get<FVector2D>().Y);
+}
+
+void ABaseOrganic::Viewing(const FInputActionValue& Value)
+{
+	Super::TurnView(Value.Get<FVector2D>().X);
+	Super::PitchView(Value.Get<FVector2D>().Y);
+}
+
+void ABaseOrganic::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	if (UOrganicAbilityComponent* AbilityComponent = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	{
+		AbilityComponent->AbilityInputTagPressed(InputTag);
+	}
+}
+
+void ABaseOrganic::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	if (UOrganicAbilityComponent* AbilityComponent = GetAbilitySystemComponent<UOrganicAbilityComponent>())
+	{
+		AbilityComponent->AbilityInputTagReleased(InputTag);
+	}
 }

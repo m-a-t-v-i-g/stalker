@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "EnhancedInputComponent.h"
 #include "GameplayTagContainer.h"
-#include "Input/PlayerInputConfig.h"
+#include "Input/InputConfig.h"
 #include "StalkerInputComponent.generated.h"
 
-class UPlayerInputConfig;
+class UInputConfig;
 
 UCLASS(ClassGroup = "Stalker")
 class STALKER_API UStalkerInputComponent : public UEnhancedInputComponent
@@ -19,16 +19,16 @@ public:
 	UStalkerInputComponent(const FObjectInitializer& ObjectInitializer);
 
 	template <class UserClass, typename FuncType>
-	void BindNativeAction(const UPlayerInputConfig* InputConfig, const FGameplayTag& InputTag,
+	void BindNativeAction(const UInputConfig* InputConfig, const FGameplayTag& InputTag,
 	                      ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func);
 
 	template <class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-	void BindAbilityActions(const UPlayerInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc,
+	void BindAbilityActions(const UInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc,
 	                        ReleasedFuncType ReleasedFunc, TArray<uint32>& BindHandles);
 };
 
 template <class UserClass, typename FuncType>
-void UStalkerInputComponent::BindNativeAction(const UPlayerInputConfig* InputConfig, const FGameplayTag& InputTag,
+void UStalkerInputComponent::BindNativeAction(const UInputConfig* InputConfig, const FGameplayTag& InputTag,
                                               ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func)
 {
 	check(InputConfig);
@@ -39,12 +39,12 @@ void UStalkerInputComponent::BindNativeAction(const UPlayerInputConfig* InputCon
 }
 
 template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-void UStalkerInputComponent::BindAbilityActions(const UPlayerInputConfig* InputConfig, UserClass* Object,
+void UStalkerInputComponent::BindAbilityActions(const UInputConfig* InputConfig, UserClass* Object,
                                                 PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc,
                                                 TArray<uint32>& BindHandles)
 {
 	check(InputConfig);
-	for (const FPlayerInputInfo& Action : InputConfig->AbilityActions)
+	for (const FInputConfigData& Action : InputConfig->AbilityActions)
 	{
 		if (Action.InputAction && Action.InputTag.IsValid())
 		{

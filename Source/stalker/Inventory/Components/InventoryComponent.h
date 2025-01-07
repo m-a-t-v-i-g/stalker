@@ -24,6 +24,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void SetItemsContainer(UItemsContainer* InItemsContainer);
+
 	void FindAvailablePlace(UItemObject* ItemObject);
 	void StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
 	void AddItem(UItemObject* ItemObject);

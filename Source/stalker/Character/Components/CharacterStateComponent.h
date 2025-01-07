@@ -98,6 +98,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character State|Movement Models")
 	TObjectPtr<const UMovementModelConfig> InjuredMovementModel;
 
+	virtual void InitializeComponent() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Character State|Ragdoll")
 	void StartRagdoll();
 

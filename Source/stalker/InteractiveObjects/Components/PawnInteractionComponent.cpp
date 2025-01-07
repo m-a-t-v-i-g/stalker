@@ -6,6 +6,7 @@
 UPawnInteractionComponent::UPawnInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 }
 
 void UPawnInteractionComponent::SetupInteractionComponent()
@@ -14,7 +15,7 @@ void UPawnInteractionComponent::SetupInteractionComponent()
 	{
 		PawnRef = Pawn;
 		
-		if (auto Controller = Pawn->GetController())
+		if (AController* Controller = Pawn->GetController())
 		{
 			ControllerRef = Controller;
 		}
@@ -34,6 +35,7 @@ void UPawnInteractionComponent::AddPossibleInteraction(AActor* NewActor)
 		
 		UpdateFindActorTimer();
 		bActive = !PossibleInteractions.IsEmpty();
+		OnPossibleInteractionAdd.Broadcast(NewActor);
 	}
 }
 
@@ -50,6 +52,7 @@ void UPawnInteractionComponent::RemovePossibleInteraction(AActor* OldActor)
 		
 		UpdateFindActorTimer();
 		bActive = !PossibleInteractions.IsEmpty();
+		OnPossibleInteractionRemove.Broadcast(OldActor);
 	}
 }
 
@@ -64,6 +67,11 @@ void UPawnInteractionComponent::Interact()
 	{
 		if (ActorUnderTrace->Implements<UInteractableInterface>())
 		{
+			if (!PawnRef->HasAuthority() && PawnRef->IsLocallyControlled())
+			{
+				PreInteractionDelegate.Broadcast(ActorUnderTrace);
+			}
+
 			ServerInteract(ActorUnderTrace);
 		}
 	}
@@ -73,6 +81,7 @@ void UPawnInteractionComponent::ServerInteract_Implementation(AActor* ActorToInt
 {
 	if (auto InteractableActor = Cast<IInteractableInterface>(ActorToInteract))
 	{
+		PreInteractionDelegate.Broadcast(ActorToInteract);
 		InteractableActor->OnInteract(GetOwner());
 	}
 }
@@ -110,7 +119,7 @@ void UPawnInteractionComponent::FindInteract()
 	if (DetectedActor != FoundActor)
 	{
 		DetectedActor = FoundActor;
-		OnDetectedActorChanged.Broadcast(DetectedActor.Get());
+		OnDetectedActorChange.Broadcast(DetectedActor.Get());
 	}
 }
 

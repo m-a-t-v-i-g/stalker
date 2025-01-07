@@ -164,9 +164,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Replicated, Category = "Definition")
 	TObjectPtr<const UItemDefinition> ItemDefinition;
 
-	TMulticastDelegate<void(float)> OnEnduranceChangedDelegate;
-	TMulticastDelegate<void(uint32)> OnAmountChangedDelegate;
-	TMulticastDelegate<void(EItemMode)> OnModeChangedDelegate;
+	TMulticastDelegate<void(float)> OnEnduranceChangeDelegate;
+	TMulticastDelegate<void(uint32)> OnAmountChangeDelegate;
+	TMulticastDelegate<void(EItemMode)> OnModeChangeDelegate;
 	
 #pragma region Replication
 	

@@ -69,7 +69,7 @@ class STALKER_API UCharacterWeaponComponent : public UCharacterOutfitComponent
 	GENERATED_BODY()
 
 public:
-	UCharacterWeaponComponent();
+	UCharacterWeaponComponent(const FObjectInitializer& ObjectInitializer);
 
 	FCharacterFireDelegate OnFireStart;
 	FCharacterFireDelegate OnFireStop;

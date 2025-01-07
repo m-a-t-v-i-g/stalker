@@ -7,8 +7,8 @@
 #include "Components/ActorComponent.h"
 #include "CharacterOutfitComponent.generated.h"
 
-class UAbilitySystemComponent;
 struct FEquipmentSlotChangeData;
+class UAbilitySystemComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
 class UCharacterStateComponent;
@@ -23,7 +23,7 @@ class STALKER_API UCharacterOutfitComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UCharacterOutfitComponent();
+	UCharacterOutfitComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter);
 
@@ -55,6 +55,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Outfit")
 	TArray<FOutfitSlot> OutfitSlots;
+
+	virtual void InitializeComponent() override;
 	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem);
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem);

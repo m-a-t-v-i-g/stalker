@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "HUD/StalkerHUD.h"
+#include "HUD/GameHUD.h"
 #include "MainWidget.generated.h"
 
 class UItemsContainer;
@@ -15,7 +15,7 @@ class STALKER_API UMainWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void InitializeMainWidget(UInventoryManagerComponent* InventoryManagerComp);
+	void InitializeGameWidget(UInventoryManagerComponent* InventoryManagerComp);
 
 	void ConnectCharacterPart(const FCharacterHUDInitData& HUDInitData);
 	void DisconnectCharacterPart();
@@ -28,6 +28,8 @@ public:
 
 	void OpenHUDTab();
 	void ActivateSlotManager();
+
+	FORCEINLINE UInventoryManagerWidget* GetInventoryManagerWidget() const { return InventoryManagerWidget; }
 	
 protected:
 	UPROPERTY(meta = (BindWidget))

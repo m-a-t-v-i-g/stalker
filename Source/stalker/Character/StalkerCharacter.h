@@ -7,18 +7,17 @@
 #include "InteractorInterface.h"
 #include "StalkerCharacter.generated.h"
 
-class UAbilitySet;
 class UStalkerCharacterMovementComponent;
-class UCharacterInventoryComponent;
 class UEquipmentComponent;
 class UCharacterWeaponComponent;
 class UCharacterStateComponent;
 class UCharacterArmorComponent;
+class UPawnInteractionComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCharacter, Log, All);
 
 UCLASS(Abstract)
-class STALKER_API AStalkerCharacter : public ABaseOrganic, public IInteractorInterface
+class STALKER_API AStalkerCharacter : public ABaseOrganic
 {
 	GENERATED_BODY()
 
@@ -31,18 +30,8 @@ public:
 	static FName WeaponComponentName;
 	static FName StateComponentName;
 	static FName ArmorComponentName;
+	static FName InteractionComponentName;
 
-	TMulticastDelegate<void(UInventoryComponent*)> LootInventoryDelegate;
-	TMulticastDelegate<void(UItemObject*)> PickUpItemDelegate;
-	
-	virtual void PostInitializeComponents() override;
-	
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_Controller() override;
-
-	virtual void InitCharacterComponents();
-	virtual void SetupCharacterLocally();
-	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UStalkerCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovementComponent; }
 	
@@ -96,15 +85,20 @@ public:
 	{
 		return Cast<T>(GetArmorComponent());
 	}
-	
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TObjectPtr<const UAbilitySet> AbilitySet;
 
-	virtual void InteractWithContainer(UInventoryComponent* TargetInventory) override;
-	virtual void InteractWithItem(UItemObject* ItemObject) override;
-	
-	virtual void SetCharacterData();
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FORCEINLINE UPawnInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+
+protected:
+	virtual void PostInitializeComponents() override;
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
+
+	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
+	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
+
+	virtual void ToggleEquippedSlot(const FInputActionInstance& InputAction);
 	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
@@ -124,4 +118,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UPawnInteractionComponent> InteractionComponent;
 };

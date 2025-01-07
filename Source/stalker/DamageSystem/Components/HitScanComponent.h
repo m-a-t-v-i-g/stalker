@@ -17,6 +17,8 @@ public:
 
 	TMulticastDelegate<void(const FGameplayTag&, const FGameplayTag&, const FHitResult&, float)> OnOwnerDamagedDelegate;
 
+	void AddBoneToScanMap(FName BoneName, FGameplayTag Tag);
+	
 	void HitOwnerPart(const FGameplayTag& DamageTag, const FHitResult& HitResult, float DamageValue);
 	
 protected:
