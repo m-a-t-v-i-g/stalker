@@ -239,10 +239,10 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	FVector FootOffsetRTarget = FVector::ZeroVector;
 
 	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterCurveName::NAME_FootLock_L,
-				   FCharacterBoneName::NAME_IkFoot_L, FootIK.FootLock_L_Alpha, FootIK.UseFootLockCurve_L,
+				   FCharacterBoneName::IkFoot_L, FootIK.FootLock_L_Alpha, FootIK.UseFootLockCurve_L,
 				   FootIK.FootLock_L_Location, FootIK.FootLock_L_Rotation);
 	SetFootLocking(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterCurveName::NAME_FootLock_R,
-				   FCharacterBoneName::NAME_IkFoot_R, FootIK.FootLock_R_Alpha, FootIK.UseFootLockCurve_R,
+				   FCharacterBoneName::IkFoot_R, FootIK.FootLock_R_Alpha, FootIK.UseFootLockCurve_R,
 				   FootIK.FootLock_R_Location, FootIK.FootLock_R_Rotation);
 
 	if (MovementState.Airborne())
@@ -252,11 +252,11 @@ void UCharacterAnimInstance::UpdateFootIK(float DeltaSeconds)
 	}
 	else if (!MovementState.Ragdoll())
 	{
-		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterBoneName::NAME_IkFoot_L,
-		               FCharacterBoneName::NAME_Root, FootOffsetLTarget,
+		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_L, FCharacterBoneName::IkFoot_L,
+		               FCharacterBoneName::Root, FootOffsetLTarget,
 		               FootIK.FootOffset_L_Location, FootIK.FootOffset_L_Rotation);
-		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterBoneName::NAME_IkFoot_R,
-		               FCharacterBoneName::NAME_Root, FootOffsetRTarget,
+		SetFootOffsets(DeltaSeconds, FCharacterCurveName::NAME_Enable_FootIK_R, FCharacterBoneName::IkFoot_R,
+		               FCharacterBoneName::Root, FootOffsetRTarget,
 		               FootIK.FootOffset_R_Location, FootIK.FootOffset_R_Rotation);
 		SetPelvisIKOffset(DeltaSeconds, FootOffsetLTarget, FootOffsetRTarget);
 	}
@@ -319,7 +319,7 @@ void UCharacterAnimInstance::UpdateAirborneValues(float DeltaSeconds)
 
 void UCharacterAnimInstance::UpdateRagdollValues(float DeltaSeconds)
 {
-	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root).Size();
+	float VelocityLength = GetOwningComponent()->GetPhysicsLinearVelocity(FCharacterBoneName::Root).Size();
 	Ragdoll.FlailRate = FMath::GetMappedRangeValueClamped<float, float>({0.0f, 1000.0f}, {0.0f, 1.0f}, VelocityLength);
 }
 
@@ -736,8 +736,8 @@ void UCharacterAnimInstance::SetFootOffsets(float DeltaSeconds, FName EnableFoot
 
 void UCharacterAnimInstance::DynamicTransitionCheck()
 {
-	FTransform SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_IkFoot_L, RTS_Component);
-	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_VB_Foot_Target_L, RTS_Component);
+	FTransform SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::IkFoot_L, RTS_Component);
+	FTransform SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::VB_Foot_Target_L, RTS_Component);
 
 	float Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO
@@ -752,8 +752,8 @@ void UCharacterAnimInstance::DynamicTransitionCheck()
 		PlayDynamicTransition(0.1f, Params);
 	}
 
-	SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_IkFoot_R, RTS_Component);
-	SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::NAME_VB_Foot_Target_R, RTS_Component);
+	SocketTransformA = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::IkFoot_R, RTS_Component);
+	SocketTransformB = GetOwningComponent()->GetSocketTransform(FCharacterBoneName::VB_Foot_Target_R, RTS_Component);
 
 	Distance = (SocketTransformB.GetLocation() - SocketTransformA.GetLocation()).Size();
 	if (Distance > GetAnimConfig<UCharacterAnimConfig>()->CharacterConfig.DynamicTransitionThreshold) // TODO

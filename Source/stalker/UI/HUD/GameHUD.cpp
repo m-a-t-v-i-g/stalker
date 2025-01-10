@@ -1,14 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameHUD.h"
-
 #include "EnhancedPlayerInput.h"
 #include "InventoryManagerWidget.h"
 #include "ItemWidget.h"
-#include "MainWidget.h"
+#include "GameWidget.h"
 #include "PawnInteractionComponent.h"
 #include "StalkerCharacter.h"
-#include "StalkerGameplayTags.h"
 #include "StalkerInputComponent.h"
 #include "Containers/ContainerActor.h"
 
@@ -21,9 +19,9 @@ void AGameHUD::InitializeHUD(UInventoryManagerComponent* InventoryManagerComp, U
 	check(InventoryManagerComp);
 	check(PlayerInputComp);
 
-	if (MainWidget)
+	if (GameWidgetRef)
 	{
-		MainWidget->InitializeGameWidget(InventoryManagerComp);
+		GameWidgetRef->InitializeGameWidget(InventoryManagerComp);
 	}
 
 	SetupPlayerInput(PlayerInputComp);
@@ -34,9 +32,9 @@ void AGameHUD::ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo)
 	CharacterRef = HUDInitInfo.Character;
 	if (CharacterRef.IsValid())
 	{
-		if (MainWidget)
+		if (GameWidgetRef)
 		{
-			MainWidget->ConnectCharacterPart(HUDInitInfo);
+			GameWidgetRef->ConnectCharacterPart(HUDInitInfo);
 		}
 
 		InteractionComponentRef = HUDInitInfo.InteractionComponent;
@@ -45,7 +43,8 @@ void AGameHUD::ConnectCharacterHUD(const FCharacterHUDInitData& HUDInitInfo)
 			InteractionComponentRef->PreInteractionDelegate.AddUObject(this, &AGameHUD::OnInteraction);
 		}
 
-		SetupCharacterInput(CharacterRef->InputComponent);
+		CharacterRef->ToggleInventoryDelegate.AddUObject(this, &AGameHUD::ToggleInventory);
+		CharacterRef->ToggleSlotDelegate.AddUObject(this, &AGameHUD::ToggleSlot);
 	}
 }
 
@@ -53,15 +52,18 @@ void AGameHUD::ClearCharacterHUD()
 {
 	if (CharacterRef.IsValid())
 	{
-		if (MainWidget)
+		if (GameWidgetRef)
 		{
-			MainWidget->DisconnectCharacterPart();
+			GameWidgetRef->DisconnectCharacterPart();
 		}
 		
 		if (InteractionComponentRef.IsValid())
 		{
 			InteractionComponentRef->PreInteractionDelegate.RemoveAll(this);
 		}
+		
+		CharacterRef->ToggleInventoryDelegate.RemoveAll(this);
+		CharacterRef->ToggleSlotDelegate.RemoveAll(this);
 	}
 
 	CharacterRef.Reset();
@@ -113,24 +115,15 @@ void AGameHUD::SetupPlayerInput(UInputComponent* InputComp)
 	}
 }
 
-void AGameHUD::SetupCharacterInput(UInputComponent* CharInputComp)
-{
-	if (UStalkerInputComponent* StalkerInputComp = Cast<UStalkerInputComponent>(CharInputComp))
-	{
-		StalkerInputComp->BindNativeAction(InputConfig, FStalkerGameplayTags::InputTag_Inventory,
-										   ETriggerEvent::Triggered, this, &ThisClass::ToggleInventory);
-	}
-}
-
 void AGameHUD::CreateAndShowGameWidget()
 {
-	if (MainWidgetClass)
+	if (GameWidgetClass)
 	{
-		MainWidget = CreateWidget<UMainWidget>(GetOwningPlayerController(), MainWidgetClass);
+		GameWidgetRef = CreateWidget<UGameWidget>(GetOwningPlayerController(), GameWidgetClass);
 		
-		if (MainWidget && !MainWidget->IsInViewport())
+		if (GameWidgetRef && !GameWidgetRef->IsInViewport())
 		{
-			MainWidget->AddToViewport();
+			GameWidgetRef->AddToViewport();
 			ToggleTab(EHUDTab::HUD, true);
 		}
 	}
@@ -143,7 +136,7 @@ void AGameHUD::CreateAndShowMainMenuWidget()
 
 void AGameHUD::ToggleTab(EHUDTab Tab, bool bForce)
 {
-	if (!MainWidget)
+	if (!GameWidgetRef)
 	{
 		return;
 	}
@@ -155,7 +148,7 @@ void AGameHUD::ToggleTab(EHUDTab Tab, bool bForce)
 	{
 	case EHUDTab::Inventory:
 		SetupAndOpenOwnInventory();
-		SetGameAndUIMode(MainWidget->GetInventoryManagerWidget(), false);
+		SetGameAndUIMode(GameWidgetRef->GetInventoryManagerWidget(), false);
 		break;
 	default:
 		OpenHUD();
@@ -168,34 +161,34 @@ void AGameHUD::OpenHUD()
 {
 	ClearAll();
 	
-	if (MainWidget)
+	if (GameWidgetRef)
 	{
-		MainWidget->OpenHUDTab();
+		GameWidgetRef->OpenHUDTab();
 	}
 }
 
 void AGameHUD::SetupAndOpenOwnInventory()
 {
-	if (MainWidget)
+	if (GameWidgetRef)
 	{
-		MainWidget->SetupAndOpenOwnInventory();
-		MainWidget->ActivateSlotManager();
+		GameWidgetRef->SetupAndOpenOwnInventory();
+		GameWidgetRef->ActivateSlotManager();
 	}
 }
 
 void AGameHUD::CloseOwnInventory()
 {
-	if (MainWidget)
+	if (GameWidgetRef)
 	{
-		MainWidget->CloseOwnInventory();
+		GameWidgetRef->CloseOwnInventory();
 	}
 }
 
 void AGameHUD::SetupAndOpenLootingTab(UInventoryComponent* InventoryToLoot)
 {
-	if (MainWidget)
+	if (GameWidgetRef)
 	{
-		MainWidget->OpenLootingTab(InventoryToLoot);
+		GameWidgetRef->OpenLootingTab(InventoryToLoot);
 	}
 }
 
@@ -212,29 +205,34 @@ void AGameHUD::SetGameOnlyMode()
 	GetOwningPlayerController()->SetShowMouseCursor(false);
 }
 
-void AGameHUD::SetGameAndUIMode(const UWidget* WidgetToFocus, bool bShowCursorDuringCapture)
+void AGameHUD::SetGameAndUIMode(const UWidget* WidgetToFocus, bool bHideCursorDuringCapture)
 {
 	FInputModeGameAndUI GameAndUIMode;
 	GameAndUIMode.SetWidgetToFocus(WidgetToFocus->GetCachedWidget());
-	GameAndUIMode.SetHideCursorDuringCapture(bShowCursorDuringCapture);
+	GameAndUIMode.SetHideCursorDuringCapture(bHideCursorDuringCapture);
 	
 	GetOwningPlayerController()->SetInputMode(GameAndUIMode);
 	GetOwningPlayerController()->SetShowMouseCursor(true);
 }
 
-void AGameHUD::SetUIOnlyMode(const UWidget* WidgetToFocus, bool bShowCursorDuringCapture)
+void AGameHUD::SetUIOnlyMode(const UWidget* WidgetToFocus, bool bHideCursorDuringCapture)
 {
 	FInputModeGameAndUI UIMode;
 	UIMode.SetWidgetToFocus(WidgetToFocus->GetCachedWidget());
-	UIMode.SetHideCursorDuringCapture(bShowCursorDuringCapture);
+	UIMode.SetHideCursorDuringCapture(bHideCursorDuringCapture);
 
 	GetOwningPlayerController()->SetInputMode(UIMode);
 	GetOwningPlayerController()->SetShowMouseCursor(true);
 }
 
-void AGameHUD::ToggleInventory(const FInputActionInstance& InputAction)
+void AGameHUD::ToggleInventory()
 {
 	ToggleTab(EHUDTab::Inventory, false);
+}
+
+void AGameHUD::ToggleSlot(uint8 SlotIndex)
+{
+	
 }
 
 void AGameHUD::IA_Escape(const FInputActionInstance& InputAction)

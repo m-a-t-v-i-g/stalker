@@ -137,7 +137,7 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 	{
 	case EInventoryTab::Inventory:
 		{
-			OwnInventoryManager->ServerTryEquipItem(ItemObject);
+			OwnInventoryManager->TryEquipItem(ItemObject);
 		}
 		break;
 	case EInventoryTab::Looting:
@@ -156,7 +156,7 @@ void UInventoryManagerWidget::OnOwnEquippedItemDoubleClick(UEquipmentSlot* Equip
 {
 	if (OwnInventoryComponent.IsValid())
 	{
-		OwnInventoryManager->ServerMoveItemFromEquipmentSlot(EquipmentSlot);
+		OwnInventoryManager->MoveItemFromEquipmentSlot(EquipmentSlot);
 	}
 }
 

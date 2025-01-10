@@ -12,18 +12,6 @@
 
 UCharacterWeaponComponent::UCharacterWeaponComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	FOutfitSlot KnifeSlot;
-	KnifeSlot.SlotName = "Knife";
-	OutfitSlots.Add(KnifeSlot);
-	
-	FOutfitSlot SecondarySlot;
-	SecondarySlot.SlotName = "Secondary";
-	OutfitSlots.Add(SecondarySlot);
-	
-	FOutfitSlot PrimarySlot;
-	PrimarySlot.SlotName = "Primary";
-	OutfitSlots.Add(PrimarySlot);
-	
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
@@ -61,9 +49,12 @@ void UCharacterWeaponComponent::OnCharacterDead()
 	Super::OnCharacterDead();
 }
 
-void UCharacterWeaponComponent::ToggleSlot(int8 SlotIndex)
+void UCharacterWeaponComponent::ToggleSlot(uint8 SlotIndex)
 {
-	ServerToggleSlot(SlotIndex);
+	if (OutfitSlots.IsValidIndex(SlotIndex))
+	{
+		ServerToggleSlot(SlotIndex);
+	}
 }
 
 void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
@@ -94,9 +85,9 @@ void UCharacterWeaponComponent::StopAiming()
 
 const FWeaponBehavior* UCharacterWeaponComponent::GetWeaponBehavior(const FName& ItemScriptName) const
 {
-	if (ItemBehaviorConfig)
+	if (GetItemBehavior())
 	{
-		if (const FWeaponBehavior* Behavior = ItemBehaviorConfig->Weapons.Find(ItemScriptName))
+		if (const FWeaponBehavior* Behavior = GetItemBehavior()->Weapons.Find(ItemScriptName))
 		{
 			return Behavior;
 		}
@@ -142,6 +133,16 @@ bool UCharacterWeaponComponent::IsLeftItemActorValid() const
 bool UCharacterWeaponComponent::IsRightItemActorValid() const
 {
 	return IsValid(RightHandItemData.ItemActor);
+}
+
+void UCharacterWeaponComponent::SetupOutfitComponent(AStalkerCharacter* InCharacter)
+{
+	Super::SetupOutfitComponent(InCharacter);
+
+	if (GetCharacter())
+	{
+		GetCharacter()->ToggleSlotDelegate.AddUObject(this, &UCharacterWeaponComponent::ToggleSlot);
+	}
 }
 
 void UCharacterWeaponComponent::OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem)

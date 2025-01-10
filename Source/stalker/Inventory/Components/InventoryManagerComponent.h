@@ -37,11 +37,15 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
 
+	void AddItem(UItemsContainer* Container, UItemObject* ItemObject);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(UItemsContainer* Container, UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	void RemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
@@ -52,14 +56,22 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 
+	void TryEquipItem(UItemObject* ItemObject);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerTryEquipItem(UItemObject* ItemObject);
+
+	void EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerEquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
 
+	void UnequipSlot(UEquipmentSlot* EquipmentSlot);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUnequipSlot(UEquipmentSlot* EquipmentSlot);
+
+	void MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);

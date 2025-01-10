@@ -53,6 +53,11 @@ void UInventoryGridWidget::ClearContainerGrid()
 	}
 }
 
+void UInventoryGridWidget::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+}
+
 int32 UInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
                                         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
                                         int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
@@ -117,7 +122,7 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 					if (!ItemsContainerRef->Contains(Payload))
 					{
-						InventoryManagerRef->ServerAddItem(ItemsContainerRef.Get(), Payload);
+						InventoryManagerRef->AddItem(ItemsContainerRef.Get(), Payload);
 					}
 					else
 					{
@@ -175,10 +180,10 @@ void UInventoryGridWidget::UpdateGrid()
 	ClearChildrenItems();
 	UpdateItemsMap();
 
-	for (auto EachItem : ItemsMap)
+	for (auto Pair : ItemsMap)
 	{
-		uint32 ItemId = EachItem.Key;
-		FIntPoint Tile = EachItem.Value;
+		uint32 ItemId = Pair.Key;
+		FIntPoint Tile = Pair.Value;
 
 		auto ItemObject = ItemsContainerRef->FindItemById(ItemId);
 		
@@ -194,11 +199,11 @@ void UInventoryGridWidget::UpdateGrid()
 void UInventoryGridWidget::OnContainerUpdated(const FItemsContainerChangeData& UpdatedData)
 {
 	UItemObject* ItemObject;
-	
+
 	if (IsValid(UpdatedData.AddedItem))
 	{
 		ItemObject = UpdatedData.AddedItem;
-		
+
 		if (!ItemsMap.Contains(ItemObject->GetItemId()))
 		{
 			bool bFound;
@@ -303,7 +308,7 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 				{
 					if (ItemsContainerRef->Contains(Payload))
 					{
-						InventoryManagerRef->ServerRemoveItem(ItemsContainerRef.Get(), Payload);
+						InventoryManagerRef->RemoveItem(ItemsContainerRef.Get(), Payload);
 					}
 				}
 			}

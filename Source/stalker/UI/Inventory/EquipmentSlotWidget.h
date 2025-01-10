@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Items/ItemsLibrary.h"
 #include "EquipmentSlotWidget.generated.h"
 
 struct FEquipmentSlotChangeData;
@@ -20,7 +19,7 @@ class STALKER_API UEquipmentSlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	FOnEquippedItemOperationSignature OnItemWidgetDoubleClick;
+	TMulticastDelegate<void(UEquipmentSlot*)> OnItemWidgetDoubleClick;
 	
 	void SetupEquipmentSlot(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager);
 	void ClearEquipmentSlot();

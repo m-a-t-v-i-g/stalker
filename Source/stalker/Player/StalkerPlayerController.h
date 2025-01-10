@@ -80,6 +80,12 @@ public:
 	
 	static FName InventoryManagerComponentName;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<const UInputMappingContext> CharacterMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input", DisplayName = "UI Mapping Context")
+	TObjectPtr<const UInputMappingContext> UIMappingContext;
+
 	virtual void ClientSetHUD_Implementation(TSubclassOf<AHUD> NewHUDClass) override;
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
@@ -88,12 +94,6 @@ public:
 	FORCEINLINE UInventoryManagerComponent* GetInventoryManager() const { return InventoryManager; }
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<const UInputMappingContext> CharacterMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Input", DisplayName = "UI Mapping Context")
-	TObjectPtr<const UInputMappingContext> UIMappingContext;
-
 	TObjectPtr<class AGameHUD> GameHUD;
 	
 	TObjectPtr<AStalkerCharacter> Character;

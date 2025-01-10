@@ -24,12 +24,32 @@ namespace FCharacterCurveName
 
 namespace FCharacterBoneName
 {
-	static const FName NAME_Root = "root";
-	static const FName NAME_Pelvis = "pelvis";
-	static const FName NAME_IkFoot_L = "ik_foot_l";
-	static const FName NAME_IkFoot_R = "ik_foot_r";
-	static const FName NAME_VB_Foot_Target_L = "VB foot_target_l";
-	static const FName NAME_VB_Foot_Target_R = "VB foot_target_r";
+	static const FName Root = "root";
+	static const FName Pelvis = "pelvis";
+	static const FName Spine_01 = "spine_01";
+	static const FName Spine_02 = "spine_02";
+	static const FName Spine_03 = "spine_03";
+	static const FName Spine_04 = "spine_04";
+	static const FName Spine_05 = "spine_05";
+	static const FName Neck_01 = "neck_01";
+	static const FName Neck_02 = "neck_02";
+	static const FName Head = "head";
+	static const FName Clavicle_L = "clavicle_l";
+	static const FName Upperarm_L = "upperarm_l";
+	static const FName Hand_L = "hand_l";
+	static const FName Clavicle_R = "clavicle_r";
+	static const FName Upperarm_R = "upperarm_r";
+	static const FName Hand_R = "hand_r";
+	static const FName Thigh_L = "thigh_l";
+	static const FName Calf_L = "calf_l";
+	static const FName Foot_L = "foot_l";
+	static const FName Thigh_R = "thigh_r";
+	static const FName Calf_R = "calf_r";
+	static const FName Foot_R = "foot_r";
+	static const FName IkFoot_L = "ik_foot_l";
+	static const FName IkFoot_R = "ik_foot_r";
+	static const FName VB_Foot_Target_L = "VB foot_target_l";
+	static const FName VB_Foot_Target_R = "VB foot_target_r";
 }
 
 namespace FCharacterLayerName

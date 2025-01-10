@@ -42,14 +42,14 @@ public:
 	void OnInteraction(AActor* TargetActor);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	UPROPERTY(EditDefaultsOnly, Category = "HUD|Inputs")
 	TObjectPtr<const UInputConfig> InputConfig;
 
-	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	UPROPERTY(EditDefaultsOnly, Category = "HUD|Inputs")
 	TArray<FInputConfigData> InputConfigData;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
-	TSubclassOf<class UMainWidget> MainWidgetClass; 
+	TSubclassOf<class UGameWidget> GameWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UInventoryManagerWidget> InventoryWidgetClass; 
@@ -58,14 +58,13 @@ protected:
 	TSubclassOf<class UItemWidget> ItemWidgetClass; 
 
 	UPROPERTY(EditInstanceOnly, Category = "HUD")
-	TObjectPtr<UMainWidget> MainWidget;
+	TObjectPtr<UGameWidget> GameWidgetRef;
 
 	UPROPERTY(EditInstanceOnly, Category = "HUD")
-	TObjectPtr<UUserWidget> MainMenuWidget;
+	TObjectPtr<UUserWidget> MainMenuWidgetRef;
 
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInput(UInputComponent* PlayerInputComp);
-	virtual void SetupCharacterInput(UInputComponent* CharInputComp);
 
 	void CreateAndShowGameWidget();
 	void CreateAndShowMainMenuWidget();
@@ -82,10 +81,11 @@ protected:
 	void ClearAll();
 	
 	void SetGameOnlyMode();
-	void SetGameAndUIMode(const UWidget* WidgetToFocus, bool bShowCursorDuringCapture);
-	void SetUIOnlyMode(const UWidget* WidgetToFocus, bool bShowCursorDuringCapture);
+	void SetGameAndUIMode(const UWidget* WidgetToFocus, bool bHideCursorDuringCapture);
+	void SetUIOnlyMode(const UWidget* WidgetToFocus, bool bHideCursorDuringCapture);
 
-	virtual void ToggleInventory(const FInputActionInstance& InputAction);
+	virtual void ToggleInventory();
+	virtual void ToggleSlot(uint8 SlotIndex);
 
 	UFUNCTION()
 	void IA_Escape(const FInputActionInstance& InputAction);

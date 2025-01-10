@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "CharacterOutfitComponent.h"
-#include "Data/ItemBehaviorConfig.h"
+#include "Data/ItemBehaviorSet.h"
 #include "CharacterArmorComponent.generated.h"
 
 class UItemObject;

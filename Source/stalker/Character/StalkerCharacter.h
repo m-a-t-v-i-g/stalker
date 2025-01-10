@@ -32,6 +32,9 @@ public:
 	static FName ArmorComponentName;
 	static FName InteractionComponentName;
 
+	TMulticastDelegate<void()> ToggleInventoryDelegate;
+	TMulticastDelegate<void(uint8)> ToggleSlotDelegate;
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UStalkerCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovementComponent; }
 	
@@ -69,15 +72,6 @@ public:
 	}
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
-	FORCEINLINE UCharacterStateComponent* GetStateComponent() const { return StateComponent; }
-
-	template <class T>
-	T* GetStateComponent() const
-	{
-		return Cast<T>(GetStateComponent());
-	}
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
 	FORCEINLINE UCharacterArmorComponent* GetArmorComponent() const { return ArmorComponent; }
 
 	template <class T>
@@ -86,6 +80,15 @@ public:
 		return Cast<T>(GetArmorComponent());
 	}
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+	FORCEINLINE UCharacterStateComponent* GetStateComponent() const { return StateComponent; }
+
+	template <class T>
+	T* GetStateComponent() const
+	{
+		return Cast<T>(GetStateComponent());
+	}
+	
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE UPawnInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
@@ -95,11 +98,11 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 
-	virtual void BindDirectionalInput(UInputComponent* PlayerInputComponent) override;
 	virtual void BindKeyInput(UInputComponent* PlayerInputComponent) override;
 
-	virtual void ToggleEquippedSlot(const FInputActionInstance& InputAction);
-	
+	virtual void ToggleSlot(const FInputActionInstance& InputAction);
+	virtual void ToggleInventory(const FInputActionInstance& InputAction);
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStalkerCharacterMovementComponent> CharacterMovementComponent;
@@ -114,10 +117,10 @@ private:
 	TObjectPtr<UCharacterWeaponComponent> WeaponComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCharacterStateComponent> StateComponent;
+	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCharacterArmorComponent> ArmorComponent;
+	TObjectPtr<UCharacterStateComponent> StateComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPawnInteractionComponent> InteractionComponent;

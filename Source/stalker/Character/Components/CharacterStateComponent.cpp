@@ -242,7 +242,7 @@ void UCharacterStateComponent::StartRagdoll()
 	GetCharacterCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCharacterMesh()->SetCollisionObjectType(ECC_PhysicsBody);
-	GetCharacterMesh()->SetAllBodiesBelowSimulatePhysics(FCharacterBoneName::NAME_Pelvis, true, true);
+	GetCharacterMesh()->SetAllBodiesBelowSimulatePhysics(FCharacterBoneName::Pelvis, true, true);
 }
 
 void UCharacterStateComponent::StopRagdoll()
@@ -259,7 +259,7 @@ void UCharacterStateComponent::StopRagdoll()
 
 void UCharacterStateComponent::UpdateRagdoll(float DeltaSeconds)
 {
-	const FVector NewRagdollVel = GetCharacterMesh()->GetPhysicsLinearVelocity(FCharacterBoneName::NAME_Root);
+	const FVector NewRagdollVel = GetCharacterMesh()->GetPhysicsLinearVelocity(FCharacterBoneName::Root);
 	LastRagdollVelocity = NewRagdollVel != FVector::ZeroVector || CharacterRef->IsLocallyControlled()
 		                      ? NewRagdollVel
 		                      : LastRagdollVelocity / 2;

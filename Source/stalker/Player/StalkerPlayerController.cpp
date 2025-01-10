@@ -171,8 +171,8 @@ void AStalkerPlayerController::ConnectCharacterHUD()
 		return;
 	}
 	
-	FCharacterHUDInitData UIData(Character);
-	GameHUD->ConnectCharacterHUD(UIData);
+	FCharacterHUDInitData HUDData(Character);
+	GameHUD->ConnectCharacterHUD(HUDData);
 }
 
 void AStalkerPlayerController::DisconnectCharacterHUD()

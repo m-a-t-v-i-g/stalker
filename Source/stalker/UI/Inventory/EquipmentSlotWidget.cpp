@@ -25,7 +25,7 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 				if (EquipmentComponentRef->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 				{
-					InventoryManagerRef->ServerEquipSlot(EquipmentSlotRef.Get(), Payload);
+					InventoryManagerRef->EquipSlot(EquipmentSlotRef.Get(), Payload);
 					DragDropOperation->bWasSuccessful = true;
 				}
 			}
@@ -147,20 +147,22 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 	{
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
-		
+
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
 			if (DragDropOperation->bWasSuccessful)
 			{
 				if (EquipmentSlotRef.Get() != DragDropOperation->Target.Get())
 				{
-					InventoryManagerRef->ServerUnequipSlot(EquipmentSlotRef.Get());
+					InventoryManagerRef->UnequipSlot(EquipmentSlotRef.Get());
 				}
+			}
+			else
+			{
+				OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
 			}
 		}
 	}
-	
-	OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
 }
 
 UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)

@@ -14,7 +14,7 @@ class UEquipmentComponent;
 class UCharacterStateComponent;
 class UHitScanComponent;
 class UItemObject;
-class UItemBehaviorConfig;
+class UItemBehaviorSet;
 class AStalkerCharacter;
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
@@ -27,7 +27,10 @@ public:
 
 	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter);
 
+	void AddOutfitSlot(const FOutfitSlot& OutfitSlot);
+	
 	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName);
+	
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
 	                                const FHitResult& HitResult, float DamageValue);
 	virtual void OnCharacterDead();
@@ -50,9 +53,6 @@ public:
 	UHitScanComponent* GetHitScanComponent() const { return HitScanComponentRef; }
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Outfit")
-	TObjectPtr<const UItemBehaviorConfig> ItemBehaviorConfig;
-
 	UPROPERTY(EditAnywhere, Category = "Outfit")
 	TArray<FOutfitSlot> OutfitSlots;
 
@@ -60,7 +60,9 @@ protected:
 	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem);
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem);
-	
+
+	FORCEINLINE const UItemBehaviorSet* GetItemBehavior() const;
+
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 
@@ -69,4 +71,6 @@ private:
 	TObjectPtr<UEquipmentComponent> EquipmentComponentRef;
 	TObjectPtr<UCharacterStateComponent> StateComponentRef;
 	TObjectPtr<UHitScanComponent> HitScanComponentRef;
+
+	TSoftObjectPtr<const UItemBehaviorSet> ItemBehavior;
 };

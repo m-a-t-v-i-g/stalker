@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "CharacterLibrary.h"
 #include "CharacterOutfitComponent.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "Ammo/AmmoObject.h"
-#include "Data/ItemBehaviorConfig.h"
+#include "Data/ItemBehaviorSet.h"
 #include "CharacterWeaponComponent.generated.h"
 
 struct FEquipmentSlotChangeData;
@@ -83,8 +84,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void OnCharacterDead() override;
-
-	void ToggleSlot(int8 SlotIndex);
+	
+	void ToggleSlot(uint8 SlotIndex);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
@@ -136,6 +137,8 @@ public:
 	FORCEINLINE bool IsRightItemActorValid() const;
 	
 protected:
+	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter) override;
+	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem) override;
 	

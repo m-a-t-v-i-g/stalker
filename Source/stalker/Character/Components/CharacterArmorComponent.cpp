@@ -11,13 +11,7 @@
 
 UCharacterArmorComponent::UCharacterArmorComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	FOutfitSlot HelmetSlot;
-	HelmetSlot.SlotName = "Helmet";
-	OutfitSlots.Add(HelmetSlot);
-	
-	FOutfitSlot BodySlot;
-	BodySlot.SlotName = "Body";
-	OutfitSlots.Add(BodySlot);
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UCharacterArmorComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -125,9 +119,9 @@ float UCharacterArmorComponent::CalculateTotalArmorEndurance()
 
 const FArmorBehavior* UCharacterArmorComponent::GetArmorBehavior(const FName& ItemScriptName) const
 {
-	if (ItemBehaviorConfig)
+	if (GetItemBehavior())
 	{
-		if (const FArmorBehavior* Behavior = ItemBehaviorConfig->Armors.Find(ItemScriptName))
+		if (const FArmorBehavior* Behavior = GetItemBehavior()->Armors.Find(ItemScriptName))
 		{
 			return Behavior;
 		}
@@ -217,33 +211,32 @@ FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemO
 {
 	if (UArmorObject* ArmorObject = Cast<UArmorObject>(ItemObject))
 	{
-		if (FArmorStaticDataTableRow* Row = ArmorObject->GetArmorProperties())
+		if (const UClass* ArmorEffectClass = ArmorObject->GetArmorEffect())
 		{
-			if (UClass* ArmorEffectClass = Row->Effect)
+			FGameplayEffectContextHandle Context = GetAbilityComponent()->MakeEffectContext();
+			if (Context.IsValid())
 			{
-				FGameplayEffectContextHandle Context = GetAbilityComponent()->MakeEffectContext();
-				if (Context.IsValid())
+				Context.AddSourceObject(ArmorObject);
+
+				auto ArmorEffect = ArmorEffectClass->GetDefaultObject<UGameplayEffect>();
+				auto ArmorSpec = FGameplayEffectSpec(ArmorEffect, Context, 1.0f);
+				const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
+
+				for (const auto& Modifier : ArmorModifiers)
 				{
-					Context.AddSourceObject(ArmorObject);
+					ArmorSpec.SetSetByCallerMagnitude(Modifier.Key, Modifier.Value);
+				}
 
-					auto ArmorEffect = ArmorEffectClass->GetDefaultObject<UGameplayEffect>();
-					auto ArmorSpec = FGameplayEffectSpec(ArmorEffect, Context, 1.0f);
-					const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
-
-					for (const auto& Modifier : ArmorModifiers)
-					{
-						ArmorSpec.SetSetByCallerMagnitude(Modifier.Key, Modifier.Value);
-					}
-
-					FActiveGameplayEffectHandle NewEffectHandle = GetAbilityComponent()->ApplyGameplayEffectSpecToSelf(ArmorSpec);
-					if (NewEffectHandle.IsValid())
-					{
-						ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
-						return NewEffectHandle;
-					}
+				FActiveGameplayEffectHandle NewEffectHandle = GetAbilityComponent()->ApplyGameplayEffectSpecToSelf(
+					ArmorSpec);
+				if (NewEffectHandle.IsValid())
+				{
+					ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
+					return NewEffectHandle;
 				}
 			}
 		}
+		
 	}
 	return FActiveGameplayEffectHandle();
 }

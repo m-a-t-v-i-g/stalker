@@ -4,6 +4,8 @@
 #include "CharacterStateComponent.h"
 #include "EquipmentComponent.h"
 #include "EquipmentSlot.h"
+#include "GameData.h"
+#include "ItemBehaviorSet.h"
 #include "StalkerCharacter.h"
 #include "Components/HitScanComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -70,6 +72,11 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 			HitScanComponentRef->OnOwnerDamagedDelegate.AddUObject(this, &UCharacterOutfitComponent::OnCharacterDamaged);
 		}
 	}
+}
+
+void UCharacterOutfitComponent::AddOutfitSlot(const FOutfitSlot& OutfitSlot)
+{
+	OutfitSlots.Add(OutfitSlot);
 }
 
 void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName)
@@ -178,6 +185,11 @@ void UCharacterOutfitComponent::InitializeComponent()
 		{
 			SetupOutfitComponent(Character);
 		}
+
+		if (auto GameData = UGameData::Get(GetOwner()))
+		{
+			ItemBehavior = GameData->GameItemSystemData.ItemBehavior;
+		}
 	}
 }
 
@@ -187,4 +199,9 @@ void UCharacterOutfitComponent::OnEquipSlot(const FString& SlotName, UItemObject
 
 void UCharacterOutfitComponent::OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem)
 {
+}
+
+const UItemBehaviorSet* UCharacterOutfitComponent::GetItemBehavior() const
+{
+	return ItemBehavior.LoadSynchronous();
 }
