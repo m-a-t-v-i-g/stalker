@@ -142,8 +142,8 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 		break;
 	case EInventoryTab::Looting:
 		{
-			OwnInventoryManager->ServerMoveItemToOtherContainer(OwnInventoryComponent->GetItemsContainer(),
-			                                                    LootingInventory->GetItemsContainer(), ItemObject);
+			OwnInventoryManager->MoveItemToOtherContainer(OwnInventoryComponent->GetItemsContainer(),
+			                                              LootingInventory->GetItemsContainer(), ItemObject);
 		}
 		break;
 	case EInventoryTab::Upgrading:
@@ -164,7 +164,7 @@ void UInventoryManagerWidget::OnLootingInventoryItemDoubleClick(UItemObject* Ite
 {
 	if (LootingInventory.IsValid())
 	{
-		OwnInventoryManager->ServerMoveItemToOtherContainer(LootingInventory->GetItemsContainer(),
-		                                                    OwnInventoryComponent->GetItemsContainer(), ItemObject);
+		OwnInventoryManager->MoveItemToOtherContainer(LootingInventory->GetItemsContainer(),
+		                                              OwnInventoryComponent->GetItemsContainer(), ItemObject);
 	}
 }

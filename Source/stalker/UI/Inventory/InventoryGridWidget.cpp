@@ -111,7 +111,7 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 					const uint32 ItemId = ItemsSlots[StackableRoom];
 					UItemObject* RoomItem = ItemsContainerRef->FindItemById(ItemId);
 
-					InventoryManagerRef->ServerStackItem(ItemsContainerRef.Get(), Payload, RoomItem);
+					InventoryManagerRef->StackItem(ItemsContainerRef.Get(), Payload, RoomItem);
 
 					DragDropOperation->bWasSuccessful = true;
 				}

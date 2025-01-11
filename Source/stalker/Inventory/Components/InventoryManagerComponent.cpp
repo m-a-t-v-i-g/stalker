@@ -152,6 +152,25 @@ bool UInventoryManagerComponent::ServerFindAvailablePlace_Validate(UItemsContain
 	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
+void UInventoryManagerComponent::StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem)
+{
+	check(Container);
+	check(SourceItem);
+	check(TargetItem);
+	
+	if (!ControllerRef)
+	{
+		return;
+	}
+	
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::StackItem(Container, SourceItem, TargetItem);
+	}
+
+	ServerStackItem(Container, SourceItem, TargetItem);
+}
+
 void UInventoryManagerComponent::ServerStackItem_Implementation(UItemsContainer* Container, UItemObject* SourceItem,
                                                                 UItemObject* TargetItem)
 {
@@ -173,6 +192,11 @@ void UInventoryManagerComponent::AddItem(UItemsContainer* Container, UItemObject
 	{
 		return;
 	}
+	
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::AddItem(Container, ItemObject);
+	}
 
 	ServerAddItem(Container, ItemObject);
 }
@@ -185,6 +209,24 @@ void UInventoryManagerComponent::ServerAddItem_Implementation(UItemsContainer* C
 bool UInventoryManagerComponent::ServerAddItem_Validate(UItemsContainer* Container, UItemObject* ItemObject)
 {
 	return IsItemObjectValid(ItemObject->GetItemId());
+}
+
+void UInventoryManagerComponent::SplitItem(UItemsContainer* Container, UItemObject* ItemObject)
+{
+	check(Container);
+	check(ItemObject);
+
+	if (!ControllerRef)
+	{
+		return;
+	}
+	
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::AddItem(Container, ItemObject);
+	}
+
+	ServerSplitItem(Container, ItemObject);
 }
 
 void UInventoryManagerComponent::ServerSplitItem_Implementation(UItemsContainer* Container, UItemObject* ItemObject)
@@ -205,6 +247,11 @@ void UInventoryManagerComponent::RemoveItem(UItemsContainer* Container, UItemObj
 	if (!ControllerRef)
 	{
 		return;
+	}
+
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::RemoveItem(Container, ItemObject);
 	}
 
 	ServerRemoveItem(Container, ItemObject);
@@ -232,6 +279,26 @@ bool UInventoryManagerComponent::ServerSubtractOrRemoveItem_Validate(UItemsConta
 	return IsItemObjectValid(ItemObject->GetItemId());
 }
 
+void UInventoryManagerComponent::MoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer,
+														  UItemObject* ItemObject)
+{
+	check(FromContainer);
+	check(ToContainer);
+	check(ItemObject);
+
+	if (!ControllerRef)
+	{
+		return;
+	}
+
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::MoveItemToOtherContainer(FromContainer, ToContainer, ItemObject);
+	}
+	
+	ServerMoveItemToOtherContainer(FromContainer, ToContainer, ItemObject);
+}
+
 void UInventoryManagerComponent::ServerMoveItemToOtherContainer_Implementation(
 	UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject)
 {
@@ -253,24 +320,63 @@ void UInventoryManagerComponent::TryEquipItem(UItemObject* ItemObject)
 		return;
 	}
 
-	for (UEquipmentSlot* EquipmentSlot : OwnEquipmentSlots)
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
 	{
-		if (!IsValid(EquipmentSlot))
+		for (UEquipmentSlot* EquipmentSlot : OwnEquipmentSlots)
 		{
-			continue;
-		}
+			if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
+			{
+				UInventorySystemCore::RemoveItem(OwnItemsContainer, ItemObject);
+			
+				if (EquipmentSlot->IsEquipped())
+				{
+					UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
+				}
 
-		if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
-		{
-			EquipSlot(EquipmentSlot, ItemObject);
-			break;
+				UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+				break;
+			}
 		}
 	}
+	
+	ServerTryEquipItem(ItemObject);
 }
 
 void UInventoryManagerComponent::ServerTryEquipItem_Implementation(UItemObject* ItemObject)
 {
-	UInventorySystemCore::TryEquipItem(OwnEquipmentSlots, ItemObject, OwnItemsContainer);
+	check(ItemObject);
+	
+	for (UEquipmentSlot* EquipmentSlot : OwnEquipmentSlots)
+	{
+		if (!EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
+		{
+			continue;
+		}
+
+		UInventorySystemCore::RemoveItem(OwnItemsContainer, ItemObject);
+
+		if (EquipmentSlot->IsEquipped())
+		{
+			UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
+		}
+
+		if (ItemObject->GetAmount() > 1)
+		{
+			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(OwnItemsContainer->GetWorld(), ItemObject);
+			if (!RemainedItem)
+			{
+				return;
+			}
+
+			RemainedItem->SetAmount(ItemObject->GetAmount() - 1);
+			AddItem(OwnItemsContainer, RemainedItem);
+			
+			ItemObject->SetAmount(1);
+		}
+
+		UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+		break;
+	}
 }
 
 bool UInventoryManagerComponent::ServerTryEquipItem_Validate(UItemObject* ItemObject)
@@ -288,12 +394,47 @@ void UInventoryManagerComponent::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemO
 		return;
 	}
 
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
+		{
+			if (EquipmentSlot->IsEquipped())
+			{
+				UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
+			}
+
+			UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+		}
+	}
+
 	ServerEquipSlot(EquipmentSlot, ItemObject);
 }
 
 void UInventoryManagerComponent::ServerEquipSlot_Implementation(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject)
 {
-	UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject, OwnItemsContainer);
+	if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
+	{
+		if (EquipmentSlot->IsEquipped())
+		{
+			UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
+		}
+
+		if (ItemObject->GetAmount() > 1)
+		{
+			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(OwnItemsContainer->GetWorld(), ItemObject);
+			if (!RemainedItem)
+			{
+				return;
+			}
+
+			RemainedItem->SetAmount(ItemObject->GetAmount() - 1);
+			AddItem(OwnItemsContainer, RemainedItem);
+
+			ItemObject->SetAmount(1);
+		}
+
+		UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+	}
 }
 
 bool UInventoryManagerComponent::ServerEquipSlot_Validate(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject)
@@ -332,6 +473,11 @@ void UInventoryManagerComponent::MoveItemFromEquipmentSlot(UEquipmentSlot* Equip
 		return;
 	}
 
+	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	{
+		UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
+	}
+	
 	ServerMoveItemFromEquipmentSlot(EquipmentSlot);
 }
 

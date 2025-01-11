@@ -41,7 +41,7 @@ public:
 	
 	virtual void BeginPlay() override;
 
-	void EquipSlot(const FString& SlotName, UItemObject* ItemObject, UItemsContainer* SourceContainer = nullptr);
+	void EquipSlot(const FString& SlotName, UItemObject* ItemObject);
 	void UnequipSlot(const FString& SlotName);
 
 	void AddEquipmentSlot(UEquipmentSlot* NewSlot);

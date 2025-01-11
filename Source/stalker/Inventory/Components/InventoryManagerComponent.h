@@ -34,6 +34,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
 
+	void StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
 
@@ -41,6 +43,8 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	void SplitItem(UItemsContainer* Container, UItemObject* ItemObject);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
@@ -53,6 +57,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
 
+	void MoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 

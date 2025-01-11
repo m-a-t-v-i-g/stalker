@@ -97,64 +97,19 @@ void UInventorySystemCore::MoveItemToOtherContainer(UItemsContainer* SourceConta
 void UInventorySystemCore::TryEquipItem(const TArray<UEquipmentSlot*>& Slots, UItemObject* ItemObject,
                                         UItemsContainer* Container)
 {
-	if (Slots.IsEmpty())
-	{
-		return;
-	}
-	
-	for (UEquipmentSlot* EquipmentSlot : Slots)
-	{
-		if (!IsValid(EquipmentSlot))
-		{
-			continue;
-		}
-
-		if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
-		{
-			EquipSlot(EquipmentSlot, ItemObject, Container);
-			
-			if (Container)
-			{
-				SubtractOrRemoveItem(Container, ItemObject, 1);
-			}
-			break;
-		}
-	}
 }
 
-void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject, UItemsContainer* SourceContainer)
+void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject)
 {
 	if (!EquipmentSlot || !ItemObject)
 	{
 		return;
 	}
-	
-	if (EquipmentSlot->IsEquipped())
+
+	if (!EquipmentSlot->IsEquipped())
 	{
-		if (SourceContainer)
-		{
-			MoveItemFromEquipmentSlot(EquipmentSlot, SourceContainer);
-		}
+		EquipmentSlot->EquipSlot(ItemObject);
 	}
-
-	if (ItemObject->GetAmount() > 1)
-	{
-		if (SourceContainer)
-		{
-			UItemObject* RemainedItem = UItemSystemCore::GenerateItemObject(SourceContainer->GetWorld(), ItemObject);
-			if (!RemainedItem)
-			{
-				return;
-			}
-
-			RemainedItem->SetAmount(ItemObject->GetAmount() - 1);
-			AddItem(SourceContainer, RemainedItem);
-		}
-
-		ItemObject->SetAmount(1);
-	}
-
-	EquipmentSlot->EquipSlot(ItemObject);
 }
 
 void UInventorySystemCore::UnequipSlot(UEquipmentSlot* EquipmentSlot)
