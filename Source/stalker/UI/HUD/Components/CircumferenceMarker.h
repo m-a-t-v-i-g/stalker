@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "CircumferenceMarkerSlate.h"
 #include "Components/Widget.h"
-#include "CircumferenceMarkerWidget.generated.h"
+#include "CircumferenceMarker.generated.h"
 
 UCLASS()
-class STALKER_API UCircumferenceMarkerWidget : public UWidget
+class STALKER_API UCircumferenceMarker : public UWidget
 {
 	GENERATED_BODY()
 
 public:
-	UCircumferenceMarkerWidget(const FObjectInitializer& ObjectInitializer);
+	UCircumferenceMarker(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Appearance)
 	TArray<FCircumferenceMarkerEntry> MarkerList;

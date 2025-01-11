@@ -18,23 +18,29 @@ struct FWeaponInstanceData
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<const UAmmoDefinition*> AmmoClasses;
 
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "1"))
-	int MagSize = 0;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	TArray<UAmmoObject*> Rounds;
-
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon")
-	TWeakObjectPtr<const UAmmoDefinition> CurrentAmmoClass;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
-	float FireRate = 0.0f;
-
-	UPROPERTY(EditInstanceOnly, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
-	float ReloadTime = 0.0f;
-
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	bool bAutomatic = false;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Magazin", meta = (ClampMin = "1"))
+	int MagSize = 0;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Magazin", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float ReloadTime = 0.0f;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Magazin")
+	TArray<UAmmoObject*> Rounds;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Weapon|Magazin")
+	TWeakObjectPtr<const UAmmoDefinition> CurrentAmmoClass;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
+
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float NastinessMultiplier = 1.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float BulletSpeedMultiplier = 1.0f;
 };
 
 USTRUCT()
@@ -72,19 +78,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<const UAmmoDefinition*> AmmoClasses;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0"))
-	int MagSize = 0;
-	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "s"))
-	float ReloadTime = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
-	float FireRate = 0.0f;
-	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	bool bAutomatic = false;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UPROPERTY(EditAnywhere, Category = "Weapon|Magazin", meta = (ClampMin = "0"))
+	int MagSize = 0;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Magazin", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float ReloadTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
+	float FireRate = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float NastinessMultiplier = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float BulletSpeedMultiplier = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params")
 	FWeaponDamageData DamageData;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Specification", meta = (ClampMin = "0.1"))
@@ -188,6 +200,7 @@ public:
 #pragma endregion Behavior
 
 	FORCEINLINE const UWeaponDefinition* GetWeaponDefinition() const;
+	
 	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
 	FORCEINLINE int GetDefaultMagSize() const;
 	FORCEINLINE TArray<UAmmoObject*> GetRounds() const;
@@ -197,6 +210,10 @@ public:
 	FORCEINLINE float GetDefaultReloadTime() const;
 	FORCEINLINE float GetFireRate() const;
 	FORCEINLINE float GetDefaultFireRate() const;
+	FORCEINLINE float GetNastinessMultiplier() const;
+	FORCEINLINE float GetDefaultNastinessMultiplier() const;
+	FORCEINLINE float GetBulletSpeedMultiplier() const;
+	FORCEINLINE float GetDefaultBulletSpeedMultiplier() const;
 	FORCEINLINE bool IsAutomatic() const;
 	FORCEINLINE FWeaponDamageData GetDamageData() const;
 	FORCEINLINE float GetSpreadExponent() const;

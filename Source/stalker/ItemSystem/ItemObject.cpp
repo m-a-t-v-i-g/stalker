@@ -319,7 +319,10 @@ void UItemObject::SetGrounded()
 {
 	if (ItemInstance)
 	{
-		ItemInstance->ItemData.Mode = EItemMode::Grounded;
+		EItemMode PrevMode = ItemInstance->ItemData.Mode;
+		EItemMode NewMode = EItemMode::Grounded;
+		ItemInstance->ItemData.Mode = NewMode;
+		UpdateMode(NewMode, PrevMode);
 	}
 }
 
@@ -327,7 +330,10 @@ void UItemObject::SetCollected()
 {
 	if (ItemInstance)
 	{
-		ItemInstance->ItemData.Mode = EItemMode::Collected;
+		EItemMode PrevMode = ItemInstance->ItemData.Mode;
+		EItemMode NewMode = EItemMode::Collected;
+		ItemInstance->ItemData.Mode = NewMode;
+		UpdateMode(NewMode, PrevMode);
 	}
 }
 
@@ -335,7 +341,10 @@ void UItemObject::SetEquipped()
 {
 	if (ItemInstance)
 	{
-		ItemInstance->ItemData.Mode = EItemMode::Equipped;
+		EItemMode PrevMode = ItemInstance->ItemData.Mode;
+		EItemMode NewMode = EItemMode::Equipped;
+		ItemInstance->ItemData.Mode = NewMode;
+		UpdateMode(NewMode, PrevMode);
 	}
 }
 

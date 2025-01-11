@@ -17,8 +17,14 @@ struct FAmmoInstanceData
 	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "1"))
 	uint8 BulletsPerCartridge = 1;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "1.0"))
-	float BulletSweepRadius = 3.0f;
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "1.0", ForceUnits = "cm"))
+	float BulletSweepRadius = 1.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "0.0", ForceUnits = "m/s"))
+	float BulletBaseSpeed = 250.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float BulletBaseNastiness = 0.05f;
 };
 
 USTRUCT()
@@ -26,7 +32,7 @@ struct FAmmoDamageData
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** Basic bullet damage without any multiplying values or effects. */
+	/** Default bullet damage without any multiplying values or effects. */
 	UPROPERTY(EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0"))
 	float BaseDamage = 0.0f;
 	
@@ -46,8 +52,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "1"))
 	uint8 BulletsPerCartridge = 1;
 	
-	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "1.0", ForceUnits = "cm"))
 	float BulletSweepRadius = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "5.0", ForceUnits = "m/s"))
+	float BulletBaseSpeed = 250.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float BulletBaseNastiness = 0.05f;
 	
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ShowOnlyInnerProperties))
 	FAmmoDamageData DamageData;
@@ -91,6 +103,8 @@ public:
 	FORCEINLINE UClass* GetDamageType() const;
 	FORCEINLINE uint8 GetBulletsPerCartridge() const;
 	FORCEINLINE float GetBulletSweepRadius() const;
+	FORCEINLINE float GetBulletSpeed() const;
+	FORCEINLINE float GetBulletNastiness() const;
 
 	FORCEINLINE UAmmoInstance* GetAmmoInstance() const;
 };

@@ -2,7 +2,7 @@
 
 #include "HUDBaseReticleWidget.h"
 #include "CharacterWeaponComponent.h"
-#include "CircumferenceMarkerWidget.h"
+#include "CircumferenceMarker.h"
 #include "Weapons/WeaponObject.h"
 
 void UHUDBaseReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

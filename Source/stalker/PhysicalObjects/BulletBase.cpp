@@ -5,6 +5,7 @@
 #include "Ammo/AmmoObject.h"
 #include "Components/SphereComponent.h"
 #include "DamageSystem/DamageSystemCore.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Weapons/WeaponObject.h"
 
 ABulletBase::ABulletBase()
@@ -23,10 +24,19 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	BulletData.DamageType = Ammo->GetDamageType();
 	BulletData.DamageValue = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
 	BulletData.SweepRadius = Ammo->GetBulletSweepRadius();
+	BulletData.Speed = Ammo->GetBulletSpeed() * Weapon->GetBulletSpeedMultiplier() * 100.0f;
+	BulletData.Nastiness = (1 - Ammo->GetBulletNastiness()) / Weapon->GetNastinessMultiplier();
 
 	if (GetPhysicsRoot())
 	{
 		GetPhysicsRoot()->SetSphereRadius(BulletData.SweepRadius);
+	}
+
+	if (GetProjectileMovement())
+	{
+		GetProjectileMovement()->InitialSpeed = BulletData.Speed;
+		GetProjectileMovement()->MaxSpeed = BulletData.Speed * 0.98;
+		GetProjectileMovement()->ProjectileGravityScale = BulletData.Nastiness;
 	}
 }
 

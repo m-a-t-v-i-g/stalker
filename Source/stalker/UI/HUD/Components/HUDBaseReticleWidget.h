@@ -20,7 +20,7 @@ public:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UCircumferenceMarkerWidget> CircumferenceMarker;
+	TObjectPtr<class UCircumferenceMarker> CircumferenceMarker;
 	
 private:
 	TWeakObjectPtr<UCharacterWeaponComponent> OwnWeaponComponent;

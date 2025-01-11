@@ -34,11 +34,13 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 	if (auto WeaponDefinition = Cast<UWeaponDefinition>(Definition))
 	{
 		WeaponData.AmmoClasses = WeaponDefinition->AmmoClasses;
+		WeaponData.bAutomatic = WeaponDefinition->bAutomatic;
 		WeaponData.MagSize = WeaponDefinition->MagSize;
+		WeaponData.ReloadTime = WeaponDefinition->ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponDefinition->FireRate;
-		WeaponData.ReloadTime = WeaponDefinition->ReloadTime;
-		WeaponData.bAutomatic = WeaponDefinition->bAutomatic;
+		WeaponData.NastinessMultiplier = WeaponDefinition->NastinessMultiplier;
+		WeaponData.BulletSpeedMultiplier = WeaponDefinition->BulletSpeedMultiplier;
 		
 		DamageData = WeaponDefinition->DamageData;
 		
@@ -53,11 +55,13 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 	if (auto WeaponInstance = Cast<UWeaponInstance>(Instance))
 	{
 		WeaponData.AmmoClasses = WeaponInstance->WeaponData.AmmoClasses;
+		WeaponData.bAutomatic = WeaponInstance->WeaponData.bAutomatic;
 		WeaponData.MagSize = WeaponInstance->WeaponData.MagSize;
+		WeaponData.ReloadTime = WeaponInstance->WeaponData.ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponInstance->WeaponData.FireRate;
-		WeaponData.ReloadTime = WeaponInstance->WeaponData.ReloadTime;
-		WeaponData.bAutomatic = WeaponInstance->WeaponData.bAutomatic;
+		WeaponData.NastinessMultiplier = WeaponInstance->WeaponData.NastinessMultiplier;
+		WeaponData.BulletSpeedMultiplier = WeaponInstance->WeaponData.BulletSpeedMultiplier;
 
 		DamageData = WeaponInstance->DamageData;
 
@@ -458,6 +462,26 @@ float UWeaponObject::GetDefaultFireRate() const
 {
 	int FireRate = GetWeaponInstance()->WeaponData.FireRate;
 	return 1.0f / (FireRate / 60.0f);
+}
+
+float UWeaponObject::GetNastinessMultiplier() const
+{
+	return GetWeaponInstance()->WeaponData.NastinessMultiplier;
+}
+
+float UWeaponObject::GetDefaultNastinessMultiplier() const
+{
+	return GetWeaponDefinition()->NastinessMultiplier;
+}
+
+float UWeaponObject::GetBulletSpeedMultiplier() const
+{
+	return GetWeaponInstance()->WeaponData.BulletSpeedMultiplier;
+}
+
+float UWeaponObject::GetDefaultBulletSpeedMultiplier() const
+{
+	return GetWeaponDefinition()->BulletSpeedMultiplier;
 }
 
 bool UWeaponObject::IsAutomatic() const
