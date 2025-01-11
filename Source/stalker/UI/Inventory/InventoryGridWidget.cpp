@@ -100,8 +100,6 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (InventoryComponentRef.IsValid() && ItemsContainerRef.IsValid())
 			{
-				DragDropOperation->Target = ItemsContainerRef;
-
 				const uint32 StackableRoom = IndexFromTile(
 					GetTileFromMousePosition(InGeometry, InDragDropEvent.GetScreenSpacePosition()), Columns);
 				const uint32 PlacedRoom = IndexFromTile(DraggedData.Tile, Columns);
@@ -113,9 +111,10 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 					InventoryManagerRef->StackItem(ItemsContainerRef.Get(), Payload, RoomItem);
 
-					DragDropOperation->bWasSuccessful = true;
+					return true;
 				}
-				else if (IsAvailableRoom(Payload, PlacedRoom))
+				
+				if (IsAvailableRoom(Payload, PlacedRoom))
 				{
 					const FIntPoint Tile = TileFromIndex(PlacedRoom, Columns);
 					const FIntPoint ItemSize = {Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)};
@@ -129,12 +128,12 @@ bool UInventoryGridWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 						FillRoom(Payload->GetItemId(), DraggedData.Tile, ItemSize, Columns);
 					}
 
-					DragDropOperation->bWasSuccessful = true;
+					return true;
 				}
 			}
 		}
 	}
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	return false;
 }
 
 void UInventoryGridWidget::ClearChildrenItems() const
@@ -284,8 +283,32 @@ void UInventoryGridWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 	{
 		return;
 	}
-	
-	OnDropItem(InOperation);
+		
+	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
+	{
+		DragDropOperation->OnDragCancelled.RemoveAll(this);
+		DragDropOperation->OnDrop.RemoveAll(this);
+
+		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
+		{
+			bool bFound;
+			uint32 RoomIndex = FindAvailableRoom(Payload, bFound);
+			FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
+
+			if (bFound)
+			{
+				const FIntPoint ItemSize = {
+					Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
+				};
+				FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
+			}
+		}
+	}
+		
+	UpdateGrid();
+
+	HoveredData.Clear();
+	DraggedData.Clear();
 }
 
 void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
@@ -294,45 +317,8 @@ void UInventoryGridWidget::OnDropItem(UDragDropOperation* InOperation)
 	{
 		return;
 	}
-	
-	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
-	{
-		DragDropOperation->OnDragCancelled.RemoveAll(this);
-		DragDropOperation->OnDrop.RemoveAll(this);
 
-		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
-		{
-			if (DragDropOperation->bWasSuccessful)
-			{
-				if (ItemsContainerRef.Get() != DragDropOperation->Target.Get())
-				{
-					if (ItemsContainerRef->Contains(Payload))
-					{
-						InventoryManagerRef->RemoveItem(ItemsContainerRef.Get(), Payload);
-					}
-				}
-			}
-			else
-			{
-				bool bFound;
-				uint32 RoomIndex = FindAvailableRoom(Payload, bFound);
-				FIntPoint Tile = TileFromIndex(RoomIndex, Columns);
-
-				if (bFound)
-				{
-					const FIntPoint ItemSize = {
-						Tile.X + (Payload->GetItemSize().X - 1), Tile.Y + (Payload->GetItemSize().Y - 1)
-					};
-					FillRoom(Payload->GetItemId(), Tile, ItemSize, Columns);
-				}
-			}
-		}
-	}
-	
 	UpdateGrid();
-	
-	HoveredData.Clear();
-	DraggedData.Clear();
 }
 
 UItemWidget* UInventoryGridWidget::CreateItemWidget(UItemObject* ItemObject, const FVector2D& PositionOnGrid)

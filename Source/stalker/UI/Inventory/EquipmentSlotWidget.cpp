@@ -10,6 +10,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 
+// TODO: Drag and Drop by tags
 bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
@@ -21,17 +22,15 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			if (EquipmentComponentRef.IsValid() && EquipmentSlotRef.IsValid())
 			{
-				DragDropOperation->Target = EquipmentSlotRef;
-
 				if (EquipmentComponentRef->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
 				{
 					InventoryManagerRef->EquipSlot(EquipmentSlotRef.Get(), Payload);
-					DragDropOperation->bWasSuccessful = true;
+					return true;
 				}
 			}
 		}
 	}
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	return false;
 }
 
 void UEquipmentSlotWidget::SetupEquipmentSlot(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager)
@@ -133,7 +132,16 @@ void UEquipmentSlotWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 		return;
 	}
 
-	OnDropItem(InOperation);
+	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
+	{
+		DragDropOperation->OnDragCancelled.RemoveAll(this);
+		DragDropOperation->OnDrop.RemoveAll(this);
+
+		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
+		{
+			OnSlotUpdated(FEquipmentSlotChangeData(Payload, EquipmentSlotRef->IsEquipped()));
+		}
+	}
 }
 
 void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
@@ -148,20 +156,7 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
 
-		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
-		{
-			if (DragDropOperation->bWasSuccessful)
-			{
-				if (EquipmentSlotRef.Get() != DragDropOperation->Target.Get())
-				{
-					InventoryManagerRef->UnequipSlot(EquipmentSlotRef.Get());
-				}
-			}
-			else
-			{
-				OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), EquipmentSlotRef->IsEquipped()));
-			}
-		}
+		InventoryManagerRef->UnequipSlot(EquipmentSlotRef.Get());
 	}
 }
 

@@ -398,6 +398,8 @@ void UInventoryManagerComponent::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemO
 	{
 		if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
 		{
+			UInventorySystemCore::RemoveItem(OwnItemsContainer, ItemObject);
+
 			if (EquipmentSlot->IsEquipped())
 			{
 				UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
@@ -418,6 +420,8 @@ void UInventoryManagerComponent::ServerEquipSlot_Implementation(UEquipmentSlot* 
 		{
 			UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
 		}
+
+		UInventorySystemCore::RemoveItem(OwnItemsContainer, ItemObject);
 
 		if (ItemObject->GetAmount() > 1)
 		{

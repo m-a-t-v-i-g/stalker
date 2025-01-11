@@ -42,7 +42,13 @@ struct FGameUIData
 	TSoftObjectPtr<class USlateBrushAsset> GridFillingBrush;
 	
 	UPROPERTY(EditDefaultsOnly, DisplayName = "Highlight Color", Category = "UI|Inventory|Grid")
-	FLinearColor GridHighlightColor;
+	FLinearColor GridGreenHighlightColor;
+	
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Highlight Color", Category = "UI|Inventory|Grid")
+	FLinearColor GridRedHighlightColor;
+	
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Highlight Color", Category = "UI|Inventory|Grid")
+	FLinearColor GridBlueHighlightColor;
 	
 #pragma endregion UI
 };

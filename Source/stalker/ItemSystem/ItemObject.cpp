@@ -61,7 +61,10 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 
 void UItemInstance::UpdateItemInstance(const FItemInstanceData& PrevItemData)
 {
-	OnItemDataChangedDelegate.ExecuteIfBound(ItemData, PrevItemData);
+	if (OnItemDataChangedDelegate.IsBound())
+	{
+		OnItemDataChangedDelegate.Execute(ItemData, PrevItemData);	
+	}
 }
 
 void UItemInstance::OnRep_ItemData(const FItemInstanceData& PrevItemData)
@@ -219,8 +222,8 @@ void UItemObject::RemoveAmount(uint32 Amount)
 
 void UItemObject::UpdateAmount(uint32 NewAmount, uint32 PrevAmount)
 {
-	OnAmountChangeDelegate.Broadcast(NewAmount);
 	OnAmountUpdated(NewAmount, PrevAmount);
+	OnAmountChangeDelegate.Broadcast(NewAmount);
 }
 
 void UItemObject::OnAmountUpdated(uint32 NewAmount, uint32 PrevAmount)
@@ -338,8 +341,8 @@ void UItemObject::SetEquipped()
 
 void UItemObject::UpdateMode(EItemMode NewMode, EItemMode PrevMode)
 {
-	OnModeChangeDelegate.Broadcast(NewMode);
 	OnModeUpdated(NewMode, PrevMode);
+	OnModeChangeDelegate.Broadcast(NewMode);
 }
 
 void UItemObject::OnModeUpdated(EItemMode NewMode, EItemMode PrevMode)

@@ -21,13 +21,6 @@ class STALKER_API UItemDragDropOperation : public UDragDropOperation
 	GENERATED_BODY()
 
 public:
-	bool bWasSuccessful = false;
-
-	EItemDragDropOperationResult DragDropOperationResult = EItemDragDropOperationResult::Inventory;
-
-	TWeakObjectPtr<const UObject> Source;
-	TWeakObjectPtr<const UObject> Target;
-
 	template <class T>
 	T* GetPayload() const
 	{
