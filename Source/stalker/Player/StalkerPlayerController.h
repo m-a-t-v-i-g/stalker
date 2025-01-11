@@ -11,6 +11,7 @@
 class UAbilitySystemComponent;
 class UInventoryComponent;
 class UEquipmentComponent;
+class UCharacterWeaponComponent;
 class UCharacterArmorComponent;
 class UInventoryManagerComponent;
 class UPawnInteractionComponent;
@@ -33,6 +34,9 @@ struct FCharacterHUDInitData
 	
 	UPROPERTY()
 	UEquipmentComponent* EquipmentComponent = nullptr;
+	
+	UPROPERTY()
+	UCharacterWeaponComponent* WeaponComponent = nullptr;
 	
 	UPROPERTY()
 	UCharacterArmorComponent* ArmorComponent = nullptr;
@@ -59,6 +63,11 @@ struct FCharacterHUDInitData
 		EquipmentComponent = EquipmentComp;
 	}
 
+	void AddWeaponComponent(UCharacterWeaponComponent* WeaponComp)
+	{
+		WeaponComponent = WeaponComp;
+	}
+	
 	void AddArmorComponent(UCharacterArmorComponent* ArmorComp)
 	{
 		ArmorComponent = ArmorComp;

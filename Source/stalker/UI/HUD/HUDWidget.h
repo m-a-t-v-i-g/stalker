@@ -8,6 +8,7 @@
 
 struct FCharacterHUDInitData;
 class UAbilitySystemComponent;
+class UCharacterWeaponComponent;
 class UCharacterArmorComponent;
 class UPawnInteractionComponent;
 
@@ -24,6 +25,9 @@ public:
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UHUDBaseReticleWidget> ReticleWidget;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UHUDStatsWidget> StatsWidget;
 
 	UPROPERTY(meta = (BindWidget))
@@ -31,6 +35,7 @@ protected:
 
 private:
 	TWeakObjectPtr<UAbilitySystemComponent> OwnAbilityComponent;
+	TWeakObjectPtr<UCharacterWeaponComponent> OwnWeaponComponent;
 	TWeakObjectPtr<UCharacterArmorComponent> OwnArmorComponent;
 	TWeakObjectPtr<UPawnInteractionComponent> OwnInteractionComponent;
 };

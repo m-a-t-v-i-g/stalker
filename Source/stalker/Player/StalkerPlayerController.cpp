@@ -2,6 +2,7 @@
 
 #include "StalkerPlayerController.h"
 #include "CharacterArmorComponent.h"
+#include "CharacterWeaponComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EquipmentComponent.h"
 #include "GameHUD.h"
@@ -31,6 +32,11 @@ FCharacterHUDInitData::FCharacterHUDInitData(AStalkerCharacter* Char): Character
 		if (UEquipmentComponent* EquipmentComp = Character->GetEquipmentComponent())
 		{
 			AddEquipmentComponent(EquipmentComp);
+		}
+
+		if (UCharacterWeaponComponent* WeaponComp = Character->GetWeaponComponent())
+		{
+			AddWeaponComponent(WeaponComp);
 		}
 
 		if (UCharacterArmorComponent* ArmorComp = Character->GetArmorComponent())

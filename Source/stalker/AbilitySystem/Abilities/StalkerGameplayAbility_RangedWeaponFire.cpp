@@ -183,9 +183,9 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 
 	for (int32 i = 0; i < BulletsPerCartridge; ++i)
 	{
-		const float BaseSpreadAngle = 3.0f; // TODO
-		const float SpreadAngleMultiplier = 1.1f; // TODO
-		const float ActualSpreadAngle = BaseSpreadAngle * SpreadAngleMultiplier;
+		const float BaseSpreadAngle = WeaponObject->GetSpreadAngle(); // TODO
+		//const float SpreadAngleMultiplier = 1.1f; // TODO
+		const float ActualSpreadAngle = BaseSpreadAngle; // * SpreadAngleMultiplier;
 
 		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
 

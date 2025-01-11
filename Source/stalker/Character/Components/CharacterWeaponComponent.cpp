@@ -35,6 +35,11 @@ void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	{
 		return;
 	}
+
+	if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(GetItemObjectAtRightHand()))
+	{
+		WeaponObject->Tick(DeltaTime);
+	}
 	
 	/* TODO:
 	if (ReloadingData.bInProgress && !CharacterRef->CheckReloadAbility())

@@ -16,7 +16,7 @@ public class stalker : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
-			"Slate", "SlateCore", "UMG"
+			"Slate", "SlateCore", "UMG", "CommonUI"
 		});
 		
 		PublicIncludePaths.AddRange(new[]

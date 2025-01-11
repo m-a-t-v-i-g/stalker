@@ -89,6 +89,18 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Specification", meta = (ClampMin = "0.1"))
 	float SpreadExponent = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification", meta = (ClampMin = "0.0", ForceUnits = "s"))
+	float SpreadRecoveryCooldownDelay = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
+	FRuntimeFloatCurve HeatToSpreadCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
+	FRuntimeFloatCurve HeatToHeatPerShotCurve;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
+	FRuntimeFloatCurve HeatToCoolDownPerSecondCurve;
 };
 
 UCLASS()
@@ -145,14 +157,20 @@ public:
 #pragma region Behavior
 	
 	virtual void Use_Implementation(UObject* Source) override;
-
 	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
 	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
- 
+	
+	virtual void OnModeUpdated(EItemMode NewMode, EItemMode PrevMode) override;
+
+	virtual void Tick(float DeltaSeconds);
+	
 	void StartFire();
 	void StopFire();
+
+	void UpdateSpread(float DeltaSeconds);
+	void AddSpread();
 	
 	virtual void IncreaseAmmo(UAmmoObject* AmmoObject, int Amount);
 	virtual void DecreaseAmmo();
@@ -164,6 +182,8 @@ public:
 	FORCEINLINE bool IsMagFull() const;
 	FORCEINLINE bool IsMagEmpty() const;
 	FORCEINLINE bool CanAttack() const;
+
+	FORCEINLINE float GetSpreadAngle() const;
 	
 #pragma endregion Behavior
 
@@ -182,6 +202,11 @@ public:
 	FORCEINLINE float GetSpreadExponent() const;
 	FORCEINLINE float GetDefaultSpreadExponent() const;
 	
+	FORCEINLINE float GetSpreadRecoveryCooldownDelay() const;
+	FORCEINLINE const FRichCurve* GetHeatToSpreadCurve() const;
+	FORCEINLINE const FRichCurve* GetHeatToHeatPerShotCurve() const;
+	FORCEINLINE const FRichCurve* GetHeatToCooldownPerSecondCurve() const;
+	
 	FORCEINLINE AWeaponActor* GetWeaponActor() const;
 	FORCEINLINE UWeaponInstance* GetWeaponInstance() const;
 
@@ -195,4 +220,32 @@ protected:
 	virtual float CalculateReloadTime() const;
 	virtual float CalculateFireRate() const;
 	virtual float CalculateSpreadExponent() const;
+
+private:
+	// Time since this weapon was last fired (relative to world time)
+	double LastFireTime = 0.0;
+
+	// The current heat
+	float CurrentHeat = 0.0f;
+
+	// The current spread angle (in degrees, diametrical)
+	float CurrentSpreadAngle = 0.0f;
+
+	// Do we currently have first shot accuracy?
+	bool bHasFirstShotAccuracy = false;
+
+	// The current *combined* spread angle multiplier
+	float CurrentSpreadAngleMultiplier = 1.0f;
+	
+	void ComputeSpreadRange(float& MinSpread, float& MaxSpread);
+	void ComputeHeatRange(float& MinHeat, float& MaxHeat);
+
+	float ClampHeat(float NewHeat)
+	{
+		float MinHeat;
+		float MaxHeat;
+		ComputeHeatRange(/*out*/ MinHeat, /*out*/ MaxHeat);
+
+		return FMath::Clamp(NewHeat, MinHeat, MaxHeat);
+	}
 };

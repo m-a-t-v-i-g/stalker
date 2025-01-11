@@ -252,8 +252,33 @@ bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
+void UWeaponObject::OnModeUpdated(EItemMode NewMode, EItemMode PrevMode)
+{
+	Super::OnModeUpdated(NewMode, PrevMode);
+
+	switch (NewMode)
+	{
+	case EItemMode::Equipped:
+		{
+			float MinHeatRange;
+			float MaxHeatRange;
+			ComputeHeatRange(MinHeatRange, MaxHeatRange);
+			CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.5f;
+			CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
+		}
+		break;
+	default: break;
+	}
+}
+
+void UWeaponObject::Tick(float DeltaSeconds)
+{
+	UpdateSpread(DeltaSeconds);
+}
+
 void UWeaponObject::StartFire()
 {
+	AddSpread();
 	DecreaseAmmo();
 	OnAttackStart.Broadcast();
 	OnFireStart();
@@ -263,6 +288,29 @@ void UWeaponObject::StopFire()
 {
 	OnAttackStop.Broadcast();
 	OnFireStop();
+}
+
+void UWeaponObject::UpdateSpread(float DeltaSeconds)
+{
+	const float TimeSinceFired = GetWorld()->TimeSince(LastFireTime);
+
+	if (TimeSinceFired > GetSpreadRecoveryCooldownDelay())
+	{
+		const float CooldownRate = GetHeatToCooldownPerSecondCurve()->Eval(CurrentHeat);
+		CurrentHeat = ClampHeat(CurrentHeat - CooldownRate * DeltaSeconds);
+		CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
+	}
+	
+	float MinSpread;
+	float MaxSpread;
+	ComputeSpreadRange(MinSpread, MaxSpread);
+}
+
+void UWeaponObject::AddSpread()
+{
+	const float HeatPerShot = GetHeatToHeatPerShotCurve()->Eval(CurrentHeat);
+	CurrentHeat = ClampHeat(CurrentHeat + HeatPerShot);
+	CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
 }
 
 void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
@@ -351,6 +399,11 @@ bool UWeaponObject::CanAttack() const
 	return HasBoundActor() && !IsMagEmpty();
 }
 
+float UWeaponObject::GetSpreadAngle() const
+{
+	return CurrentSpreadAngle;
+}
+
 const UWeaponDefinition* UWeaponObject::GetWeaponDefinition() const
 {
 	return Cast<UWeaponDefinition>(GetDefinition());
@@ -427,6 +480,26 @@ float UWeaponObject::GetDefaultSpreadExponent() const
 	return GetWeaponDefinition()->SpreadExponent;
 }
 
+float UWeaponObject::GetSpreadRecoveryCooldownDelay() const
+{
+	return GetWeaponDefinition()->SpreadRecoveryCooldownDelay;
+}
+
+const FRichCurve* UWeaponObject::GetHeatToSpreadCurve() const
+{
+	return GetWeaponDefinition()->HeatToSpreadCurve.GetRichCurveConst();
+}
+
+const FRichCurve* UWeaponObject::GetHeatToHeatPerShotCurve() const
+{
+	return GetWeaponDefinition()->HeatToHeatPerShotCurve.GetRichCurveConst();
+}
+
+const FRichCurve* UWeaponObject::GetHeatToCooldownPerSecondCurve() const
+{
+	return GetWeaponDefinition()->HeatToCoolDownPerSecondCurve.GetRichCurveConst();
+}
+
 AWeaponActor* UWeaponObject::GetWeaponActor() const
 {
 	return GetBoundActor<AWeaponActor>();
@@ -460,4 +533,27 @@ float UWeaponObject::CalculateFireRate() const
 float UWeaponObject::CalculateSpreadExponent() const
 {
 	return GetDefaultSpreadExponent();
+}
+
+void UWeaponObject::ComputeSpreadRange(float& MinSpread, float& MaxSpread)
+{
+	GetHeatToSpreadCurve()->GetValueRange(MinSpread, MaxSpread);
+}
+
+void UWeaponObject::ComputeHeatRange(float& MinHeat, float& MaxHeat)
+{
+	float Min1;
+	float Max1;
+	GetHeatToHeatPerShotCurve()->GetTimeRange(Min1, Max1);
+
+	float Min2;
+	float Max2;
+	GetHeatToCooldownPerSecondCurve()->GetTimeRange(Min2, Max2);
+
+	float Min3;
+	float Max3;
+	GetHeatToSpreadCurve()->GetTimeRange(Min3, Max3);
+
+	MinHeat = FMath::Min(FMath::Min(Min1, Min2), Min3);
+	MaxHeat = FMath::Max(FMath::Max(Max1, Max2), Max3);
 }
