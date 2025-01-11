@@ -10,17 +10,41 @@ public class stalker : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new[]
 		{
-			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GeneralMovement"
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GeneralMovement", "GameplayAbilities",
+			"GameplayTasks", "GameplayTags"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
-			"Slate", "SlateCore", "UMG"
+			"Slate", "SlateCore", "UMG", "CommonUI"
 		});
 		
 		PublicIncludePaths.AddRange(new[]
 		{
-			"stalker/Public"
+			"stalker/",
+			"stalker/AbilitySystem",
+			"stalker/Character",
+			"stalker/Character/Components",
+			"stalker/Character/Data",
+			"stalker/DamageSystem",
+			"stalker/DamageSystem/Types",
+			"stalker/Input",
+			"stalker/InteractiveObjects",
+			"stalker/InteractiveObjects/Components",
+			"stalker/Interfaces",
+			"stalker/Inventory",
+			"stalker/Inventory/Components",
+			"stalker/ItemSystem",
+			"stalker/Library",
+			"stalker/Mobs",
+			"stalker/Organic",
+			"stalker/PhysicalObjects",
+			"stalker/Player",
+			"stalker/UI",
+			"stalker/UI/Character",
+			"stalker/UI/HUD",
+			"stalker/UI/HUD/Components",
+			"stalker/UI/Inventory"
 		});
 	}
 }
