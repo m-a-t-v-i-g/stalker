@@ -72,11 +72,8 @@ void UStalkerGameplayAbility_MagazineReload::EndAbility(const FGameplayAbilitySp
 		
 		UAbilitySystemComponent* AbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 		check(AbilityComponent);
-
-		if (CurrentActorInfo->IsNetAuthority())
-		{
-			WeaponObject->CancelAllActionsDelegate.RemoveAll(this);
-		}
+		
+		WeaponObject->CancelAllActionsDelegate.RemoveAll(this);
 		
 		AbilityComponent->AbilityReplicatedEventDelegate(EAbilityGenericReplicatedEvent::GenericConfirm,
 		                                                 CurrentSpecHandle,

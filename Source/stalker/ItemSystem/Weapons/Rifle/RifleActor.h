@@ -12,7 +12,7 @@ class STALKER_API ARifleActor : public AWeaponActor
 	GENERATED_BODY()
 
 public:
-	ARifleActor();
+	ARifleActor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void OnBindItem() override;
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;

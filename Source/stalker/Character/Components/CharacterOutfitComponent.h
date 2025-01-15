@@ -38,7 +38,7 @@ public:
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);
 
-	FORCEINLINE FOutfitSlot* FindOutfitSlot(const FString& SlotName);
+	FOutfitSlot* FindOutfitSlot(const FString& SlotName);
 
 	AStalkerCharacter* GetCharacter() const { return CharacterRef; }
 
@@ -57,7 +57,7 @@ protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* InItem);
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem);
 
-	FORCEINLINE const UItemBehaviorSet* GetItemBehavior() const;
+	FORCEINLINE const UItemBehaviorSet* GetItemBehaviorSet() const;
 
 private:
 	TObjectPtr<AStalkerCharacter> CharacterRef;

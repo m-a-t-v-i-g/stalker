@@ -7,15 +7,11 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
-AItemActor::AItemActor()
+AItemActor::AItemActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PhysicsRoot = CreateDefaultSubobject<USphereComponent>("Physics Root");
-	SetRootComponent(PhysicsRoot);
-	PhysicsRoot->CanCharacterStepUpOn = ECB_No;
-	PhysicsRoot->SetCollisionProfileName("OverlapAllDynamic");
-
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
-	Mesh->SetupAttachment(GetRootComponent());
+	SetRootComponent(Mesh);
+	Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
 	Mesh->CanCharacterStepUpOn = ECB_No;
 	Mesh->SetCollisionProfileName("Item");
 
@@ -95,17 +91,17 @@ void AItemActor::UpdateItem()
 
 void AItemActor::SetGrounded()
 {
-	PhysicsRoot->SetSimulatePhysics(true);
+	Mesh->SetSimulatePhysics(true);
 }
 
 void AItemActor::SetCollected()
 {
-	PhysicsRoot->SetSimulatePhysics(false);
+	Mesh->SetSimulatePhysics(false);
 }
 
 void AItemActor::SetEquipped()
 {
-	PhysicsRoot->SetSimulatePhysics(false);
+	Mesh->SetSimulatePhysics(false);
 }
 
 void AItemActor::BeginPlay()

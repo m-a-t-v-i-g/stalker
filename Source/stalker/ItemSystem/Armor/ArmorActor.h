@@ -12,5 +12,5 @@ class STALKER_API AArmorActor : public AItemActor
 	GENERATED_BODY()
 
 public:
-	AArmorActor();
+	AArmorActor(const FObjectInitializer& ObjectInitializer);
 };

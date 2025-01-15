@@ -24,7 +24,7 @@ enum class EArmorType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FWeaponBehavior
+struct FHandItemBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -74,11 +74,11 @@ class STALKER_API UItemBehaviorSet : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Behavior")
-	TMap<FName, FWeaponBehavior> Weapons;
+	TMap<FName, FHandItemBehavior> HandItems;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Behavior")
 	TMap<FName, FArmorBehavior> Armors;
 
-	const FWeaponBehavior* GetWeaponBehavior(const FName& ItemScriptName) const;
+	const FHandItemBehavior* GetHandItemBehavior(const FName& ItemScriptName) const;
 	const FArmorBehavior* GetArmorBehavior(const FName& ItemScriptName) const;
 };

@@ -6,7 +6,7 @@
 
 FName AContainerActor::InventoryComponentName {"Inventory Component"};
 
-AContainerActor::AContainerActor()
+AContainerActor::AContainerActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
 	

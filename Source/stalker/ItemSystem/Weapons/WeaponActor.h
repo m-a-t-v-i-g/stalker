@@ -17,7 +17,7 @@ class STALKER_API AWeaponActor : public AItemActor
 	GENERATED_BODY()
 
 public:
-	AWeaponActor();
+	AWeaponActor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void OnBindItem() override;
 	virtual void OnUnbindItem(UItemObject* PrevItemObject) override;

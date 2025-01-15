@@ -39,9 +39,7 @@ protected:
 	struct FRangedWeaponFiringInput
 	{
 		FVector StartTrace;
-
 		FVector EndAim;
-
 		FVector AimDir;
 
 		UWeaponObject* WeaponObject = nullptr;

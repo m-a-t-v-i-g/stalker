@@ -6,7 +6,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "PhysicalObjects/BulletBase.h"
 
-AWeaponActor::AWeaponActor()
+AWeaponActor::AWeaponActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	Muzzle = CreateDefaultSubobject<USceneComponent>("Muzzle");
 	Muzzle->SetupAttachment(GetMesh());

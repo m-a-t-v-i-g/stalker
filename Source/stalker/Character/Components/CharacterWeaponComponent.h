@@ -39,11 +39,11 @@ struct FEquippedHandEntry
 	UPROPERTY(NotReplicated)
 	TArray<FGameplayAbilitySpecHandle> Abilities;
 
-	const FWeaponBehavior* WeaponBehavior = nullptr;
+	const FHandItemBehavior* WeaponBehavior = nullptr;
 	
 	FEquippedHandEntry() {}
 	
-	FEquippedHandEntry(UItemObject* ItemObj, AItemActor* ItemAct, const FWeaponBehavior& ItemBeh) : ItemObject(ItemObj),
+	FEquippedHandEntry(UItemObject* ItemObj, AItemActor* ItemAct, const FHandItemBehavior& ItemBeh) : ItemObject(ItemObj),
 		ItemActor(ItemAct), WeaponBehavior(&ItemBeh)
 	{
 	}
@@ -98,7 +98,7 @@ public:
 
 	float CalculateSpreadMultiplierForWeapon(float DeltaSeconds) const;
 	
-	const FWeaponBehavior* GetWeaponBehavior(const FName& ItemScriptName) const;
+	const FHandItemBehavior* GetHandItemBehavior(const FName& ItemScriptName) const;
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
 	
@@ -144,7 +144,7 @@ protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* InItem) override;
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem) override;
 	
-	void ShowOrHideItemInSlot(const FString& SlotName, UItemObject* InItem);
+	void ShowOrHideItem(UItemObject* InItem);
 
 	void ArmHand(FEquippedHandEntry& HandedItemData, AItemActor*& ReplicatedItemActor, const FName& SocketName,
 	             UItemObject* ItemObject);

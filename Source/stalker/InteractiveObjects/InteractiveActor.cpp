@@ -4,7 +4,7 @@
 #include "Components/PawnInteractionComponent.h"
 #include "Components/SphereComponent.h"
 
-AInteractiveActor::AInteractiveActor()
+AInteractiveActor::AInteractiveActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	InteractionSphere = CreateDefaultSubobject<USphereComponent>("Interaction Sphere");
 	InteractionSphere->SetupAttachment(GetRootComponent());

@@ -7,8 +7,8 @@
 
 namespace FCharacterSocketName
 {
-	static const FName NAME_LeftHand =	"LeftHand";
-	static const FName NAME_RightHand = "RightHand";
+	static const FName LeftHandSocket =	"LeftHand";
+	static const FName RightHandSocket = "RightHand";
 }
 
 UENUM(BlueprintType)

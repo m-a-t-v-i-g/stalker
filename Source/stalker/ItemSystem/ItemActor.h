@@ -3,12 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractableInterface.h"
 #include "InteractiveActor.h"
 #include "GameFramework/Actor.h"
 #include "ItemActor.generated.h"
 
-class USphereComponent;
 class UItemDefinition;
 class UItemPredictedData;
 class UItemObject;
@@ -21,7 +19,7 @@ class STALKER_API AItemActor : public AInteractiveActor
 	friend UItemObject;
 
 public:
-	AItemActor();
+	AItemActor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
@@ -43,8 +41,6 @@ public:
 
 	bool IsBoundItem() const { return ItemObject != nullptr; }
 
-	USphereComponent* GetPhysicsRoot() const { return PhysicsRoot; }
-	
 	USkeletalMeshComponent* GetMesh() const { return Mesh; } 
 	
 	UItemObject* GetItemObject() const { return ItemObject; }
@@ -71,9 +67,6 @@ protected:
 	void OnRep_ItemObject(UItemObject* PrevItemObject);
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USphereComponent> PhysicsRoot;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 	

@@ -43,14 +43,14 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 		{
 			if (!EquipmentComponentRef->GetEquipmentSlots().IsEmpty())
 			{
-				for (uint8 i = 0; i < OutfitSlots.Num(); i++)
+				for (const FOutfitSlot& OutfitSlot : OutfitSlots)
 				{
-					if (OutfitSlots[i].SlotName.IsEmpty())
+					if (OutfitSlot.SlotName.IsEmpty())
 					{
 						continue;
 					}
 
-					UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName);
+					UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlot.SlotName);
 					if (IsValid(SlotPtr))
 					{
 						OnEquipmentSlotChanged(
@@ -81,23 +81,27 @@ void UCharacterOutfitComponent::AddOutfitSlot(const FOutfitSlot& OutfitSlot)
 
 void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData)
 {
-	if (!IsValid(SlotData.SlotItem) || SlotData.SlotName.IsEmpty())
+	UItemObject* SlotItem = SlotData.SlotItem;
+	const FString& SlotName = SlotData.SlotName;
+	bool bIsEquipped = SlotData.bIsEquipped;
+	
+	if (!IsValid(SlotItem) || SlotName.IsEmpty())
 	{
 		return;
 	}
 
-	if (SlotData.bIsEquipped)
+	if (bIsEquipped)
 	{
-		ArmSlot(SlotData.SlotName, SlotData.SlotItem);
-		OnEquipSlot(SlotData.SlotName, SlotData.SlotItem);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot equipped!"), *GetName(), *SlotData.SlotName),
+		ArmSlot(SlotName, SlotItem);
+		OnEquipSlot(SlotName, SlotItem);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot equipped!"), *GetName(), *SlotName),
 		                                  true, false);
 	}
 	else
 	{
-		OnUnequipSlot(SlotData.SlotName, SlotData.SlotItem);
-		DisarmSlot(SlotData.SlotName);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotData.SlotName),
+		DisarmSlot(SlotName);
+		OnUnequipSlot(SlotName, SlotItem);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotName),
 		                                  true, false);
 	}
 }
@@ -132,6 +136,7 @@ void UCharacterOutfitComponent::DisarmSlot(const FString& SlotName)
 		{
 			return;
 		}
+		
 		Slot->ArmedObject = nullptr;
 	}
 }
@@ -174,7 +179,7 @@ void UCharacterOutfitComponent::OnUnequipSlot(const FString& SlotName, UItemObje
 {
 }
 
-const UItemBehaviorSet* UCharacterOutfitComponent::GetItemBehavior() const
+const UItemBehaviorSet* UCharacterOutfitComponent::GetItemBehaviorSet() const
 {
 	return ItemBehavior.LoadSynchronous();
 }

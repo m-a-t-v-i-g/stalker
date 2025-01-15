@@ -119,9 +119,9 @@ float UCharacterArmorComponent::CalculateTotalArmorEndurance()
 
 const FArmorBehavior* UCharacterArmorComponent::GetArmorBehavior(const FName& ItemScriptName) const
 {
-	if (GetItemBehavior())
+	if (GetItemBehaviorSet())
 	{
-		if (const FArmorBehavior* Behavior = GetItemBehavior()->Armors.Find(ItemScriptName))
+		if (const FArmorBehavior* Behavior = GetItemBehaviorSet()->Armors.Find(ItemScriptName))
 		{
 			return Behavior;
 		}

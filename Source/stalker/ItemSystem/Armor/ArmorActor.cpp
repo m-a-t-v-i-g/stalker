@@ -2,7 +2,7 @@
 
 #include "ArmorActor.h"
 
-AArmorActor::AArmorActor()
+AArmorActor::AArmorActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }

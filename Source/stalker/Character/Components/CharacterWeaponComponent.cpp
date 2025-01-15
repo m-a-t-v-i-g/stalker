@@ -74,7 +74,7 @@ void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 		return;
 	}
 	
-	ShowOrHideItemInSlot(SlotPtr->GetSlotName(), SlotPtr->ArmedObject);
+	ShowOrHideItem(SlotPtr->ArmedObject);
 }
 
 void UCharacterWeaponComponent::StartAiming()
@@ -95,11 +95,11 @@ float UCharacterWeaponComponent::CalculateSpreadMultiplierForWeapon(float DeltaS
 	return FMath::FInterpTo(StandingStillMultiplier, MovementTargetValue, DeltaSeconds, 5.0f);
 }
 
-const FWeaponBehavior* UCharacterWeaponComponent::GetWeaponBehavior(const FName& ItemScriptName) const
+const FHandItemBehavior* UCharacterWeaponComponent::GetHandItemBehavior(const FName& ItemScriptName) const
 {
-	if (GetItemBehavior())
+	if (GetItemBehaviorSet())
 	{
-		if (const FWeaponBehavior* Behavior = GetItemBehavior()->Weapons.Find(ItemScriptName))
+		if (const FHandItemBehavior* Behavior = GetItemBehaviorSet()->HandItems.Find(ItemScriptName))
 		{
 			return Behavior;
 		}
@@ -175,39 +175,26 @@ void UCharacterWeaponComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 
 void UCharacterWeaponComponent::OnEquipSlot(const FString& SlotName, UItemObject* InItem)
 {
-	ShowOrHideItemInSlot(SlotName, InItem);
+	ShowOrHideItem(InItem);
 }
 
 void UCharacterWeaponComponent::OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem)
 {
-	const FOutfitSlot* SlotPtr = FindOutfitSlot(SlotName);
-	if (!SlotPtr)
+	if (LeftHandItemData.ItemObject == PrevItem || RightHandItemData.ItemObject == PrevItem)
 	{
-		return;
-	}
-
-	if (!SlotPtr->IsArmed())
-	{
-		return;
-	}
-
-	UItemObject* SlotObject = SlotPtr->ArmedObject;
-
-	if (LeftHandItemData.ItemObject == SlotObject || RightHandItemData.ItemObject == SlotObject)
-	{
-		ShowOrHideItemInSlot(SlotName, SlotObject);
+		ShowOrHideItem(PrevItem);
 	}
 }
 
-void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UItemObject* InItem)
+void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 {
-	if (!InItem || SlotName.IsEmpty())
+	if (!IsValid(InItem))
 	{
 		return;
 	}
 
-	const FWeaponBehavior* WeaponBehConfig = GetWeaponBehavior(InItem->GetScriptName());
-	if (!WeaponBehConfig)
+	const FHandItemBehavior* InItemBeh = GetHandItemBehavior(InItem->GetScriptName());
+	if (!InItemBeh)
 	{
 		UKismetSystemLibrary::PrintString(
 			this, FString::Printf(TEXT("Behavior for item '%s' not found!"), *InItem->GetScriptName().ToString()),
@@ -219,14 +206,8 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 	
 	const UItemObject* LeftItem = GetItemObjectAtLeftHand();
 	const UItemObject* RightItem = GetItemObjectAtRightHand();
-	
-	const FWeaponBehavior* RightWeaponBeh = nullptr;
-	if (RightItem)
-	{
-		RightWeaponBeh = GetWeaponBehavior(RightItem->GetScriptName());
-	}
 
-	switch (WeaponBehConfig->OccupiedHand)
+	switch (InItemBeh->OccupiedHand)
 	{
 	case EOccupiedHand::Left:
 		{
@@ -234,9 +215,9 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 			{
 				if (IsRightItemObjectValid())
 				{
-					if (RightWeaponBeh)
+					if (const FHandItemBehavior* RightItemBeh = GetHandItemBehavior(RightItem->GetScriptName()))
 					{
-						switch (RightWeaponBeh->OccupiedHand)
+						switch (RightItemBeh->OccupiedHand)
 						{
 						case EOccupiedHand::Right:
 							TargetOverlay = ECharacterOverlayState::LeftAndRightHand;
@@ -249,22 +230,20 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 						}
 					}
 				}
-				ArmHand(LeftHandItemData, LeftHandItemActor, FCharacterSocketName::NAME_LeftHand, InItem);
+				
+				ArmHand(LeftHandItemData, LeftHandItemActor, FCharacterSocketName::LeftHandSocket, InItem);
 			}
 			else
 			{
 				if (IsRightItemObjectValid())
 				{
-					if (!RightWeaponBeh)
-					{
-						return;
-					}
 					TargetOverlay = ECharacterOverlayState::OnlyRightHand;
 				}
 				else
 				{
 					TargetOverlay = ECharacterOverlayState::Default;
 				}
+				
 				DisarmHand(LeftHandItemData, LeftHandItemActor);
 			}
 			break;
@@ -281,7 +260,8 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 				{
 					TargetOverlay = ECharacterOverlayState::LeftAndRightHand;
 				}
-				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::NAME_RightHand, InItem);
+				
+				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::RightHandSocket, InItem);
 			}
 			else
 			{
@@ -293,6 +273,7 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 				{
 					TargetOverlay = ECharacterOverlayState::OnlyLeftHand;
 				}
+				
 				DisarmHand(RightHandItemData, RightHandItemActor);
 			}
 			break;
@@ -307,7 +288,7 @@ void UCharacterWeaponComponent::ShowOrHideItemInSlot(const FString& SlotName, UI
 				}
 
 				TargetOverlay = ECharacterOverlayState::BothHands;
-				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::NAME_RightHand, InItem);
+				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::RightHandSocket, InItem);
 			}
 			else
 			{
@@ -336,11 +317,11 @@ void UCharacterWeaponComponent::ArmHand(FEquippedHandEntry& HandedItemData, AIte
 	check(HandedItemData.ItemObject);
 	check(HandedItemData.ItemActor);
 
-	if (const FWeaponBehavior* WeaponBeh = GetWeaponBehavior(HandedItemData.ItemObject->GetScriptName()))
+	if (const FHandItemBehavior* HandItemBeh = GetHandItemBehavior(HandedItemData.ItemObject->GetScriptName()))
 	{
-		HandedItemData.AbilitySet = WeaponBeh->AbilitySet;
+		HandedItemData.AbilitySet = HandItemBeh->AbilitySet;
 		HandedItemData.AbilitySet->GiveToAbilitySystem(GetAbilityComponent(), HandedItemData.Abilities, ItemObject);
-		HandedItemData.WeaponBehavior = WeaponBeh;
+		HandedItemData.WeaponBehavior = HandItemBeh;
 
 		if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(ItemObject))
 		{

@@ -14,7 +14,7 @@ class STALKER_API AContainerActor : public AInteractiveActor
 	GENERATED_BODY()
 
 public:
-	AContainerActor();
+	AContainerActor(const FObjectInitializer& ObjectInitializer);
 
 	static FName InventoryComponentName;
 	

@@ -15,7 +15,7 @@ class STALKER_API AInteractiveActor : public AActor, public IInteractableInterfa
 	GENERATED_BODY()
 
 public:
-	AInteractiveActor();
+	AInteractiveActor(const FObjectInitializer& ObjectInitializer);
 
 	virtual bool OnInteract(AActor* Interactor) override;
 	

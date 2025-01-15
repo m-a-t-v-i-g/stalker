@@ -2,9 +2,9 @@
 
 #include "ItemBehaviorSet.h"
 
-const FWeaponBehavior* UItemBehaviorSet::GetWeaponBehavior(const FName& ItemScriptName) const
+const FHandItemBehavior* UItemBehaviorSet::GetHandItemBehavior(const FName& ItemScriptName) const
 {
-	return Weapons.Find(ItemScriptName);
+	return HandItems.Find(ItemScriptName);
 }
 
 const FArmorBehavior* UItemBehaviorSet::GetArmorBehavior(const FName& ItemScriptName) const

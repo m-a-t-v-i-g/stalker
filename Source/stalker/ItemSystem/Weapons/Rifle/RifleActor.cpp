@@ -3,7 +3,7 @@
 #include "RifleActor.h"
 #include "PhysicalObjects/ProjectileBase.h"
 
-ARifleActor::ARifleActor()
+ARifleActor::ARifleActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
