@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ItemSystemCore.h"
-#include "Components/ActorComponent.h"
+#include "Components/PawnComponent.h"
 #include "CharacterOutfitComponent.generated.h"
 
 struct FEquipmentSlotChangeData;
@@ -18,7 +18,7 @@ class UItemBehaviorSet;
 class AStalkerCharacter;
 
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
-class STALKER_API UCharacterOutfitComponent : public UActorComponent
+class STALKER_API UCharacterOutfitComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
@@ -29,7 +29,7 @@ public:
 
 	void AddOutfitSlot(const FOutfitSlot& OutfitSlot);
 	
-	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName);
+	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData);
 	
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
 	                                const FHitResult& HitResult, float DamageValue);
@@ -37,10 +37,6 @@ public:
 	
 	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
 	virtual void DisarmSlot(const FString& SlotName);
-
-	bool IsAuthority() const;
-	bool IsAutonomousProxy() const;
-	bool IsSimulatedProxy() const;
 
 	FORCEINLINE FOutfitSlot* FindOutfitSlot(const FString& SlotName);
 
@@ -58,7 +54,7 @@ protected:
 
 	virtual void InitializeComponent() override;
 	
-	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem);
+	virtual void OnEquipSlot(const FString& SlotName, UItemObject* InItem);
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem);
 
 	FORCEINLINE const UItemBehaviorSet* GetItemBehavior() const;

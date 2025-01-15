@@ -364,14 +364,18 @@ void UStalkerCharacterMovementComponent::UpdateAirborneRotation(float DeltaTime)
 {
 	if (RotationMode.VelocityDirection() || RotationMode.LookingDirection())
 	{
-		RotateRootCollision({0.0f, TargetRotation.Yaw, 0.0f}, 0.0f, 2.5f, DeltaTime);
-		TargetRotation = GetSpeedXY() > 100.0 ? VelocityRotation : GetRootCollisionRotation();
+		RotateRootCollision({0.0f, ViewRotation.Yaw, 0.0f}, 0.0f, 2.5f, DeltaTime);
+		//TargetRotation = GetSpeedXY() > 100.0 ? VelocityRotation : GetRootCollisionRotation();
 	}
-	else if (RotationMode == ECharacterRotationMode:: ControlDirection)
+	
+	/*
+	else if (RotationMode == ECharacterRotationMode::ControlDirection)
 	{
 		RotateRootCollision({0.0f, ViewRotation.Yaw, 0.0f}, 0.0f, 15.0f, DeltaTime);
 		TargetRotation = GetRootCollisionRotation();
 	}
+	*/
+	
 }
 
 void UStalkerCharacterMovementComponent::LimitRotation(float AimYawMin, float AimYawMax, float InterpSpeed, float DeltaTime)

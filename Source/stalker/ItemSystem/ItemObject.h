@@ -187,6 +187,9 @@ public:
 
 	void OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData);
 	
+	void SetOwner(UObject* OwnerObject);
+	void SetInstigator(UObject* InstigatorObject);
+	
 	void BindItemActor(AItemActor* BindItem);
 	virtual void OnBindItemActor();
 
@@ -220,8 +223,8 @@ public:
 #pragma region Mode
 	
 	virtual void SetGrounded();
-	virtual void SetCollected();
-	virtual void SetEquipped();
+	virtual void SetCollected(UObject* OwnerObject);
+	virtual void SetEquipped(UObject* OwnerObject);
 
 	void UpdateMode(EItemMode NewMode, EItemMode PrevMode);
 	virtual void OnModeUpdated(EItemMode NewMode, EItemMode PrevMode);
@@ -268,6 +271,9 @@ public:
 		return Cast<T>(GetItemInstance());
 	}
 
+	FORCEINLINE UObject* GetOwner() const;
+	FORCEINLINE UObject* GetInstigator() const;
+
 	FTimerManager& GetWorldTimerManager() const;
 
 protected:
@@ -278,6 +284,12 @@ protected:
 	void OnRep_ItemInstance(UItemInstance* PrevItemInstance);
 
 private:
+	UPROPERTY(VisibleInstanceOnly, Category = "Instance Data")
+	TObjectPtr<UObject> Owner;
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "Instance Data")
+	TObjectPtr<UObject> Instigator;
+	
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")
 	TObjectPtr<AItemActor> BoundItemActor;
 	

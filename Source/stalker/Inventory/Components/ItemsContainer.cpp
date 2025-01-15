@@ -101,7 +101,7 @@ void UItemsContainer::AddItem(UItemObject* ItemObject)
 
 	if (ItemObject && !Items.Contains(ItemObject))
 	{
-		ItemObject->SetCollected();
+		ItemObject->SetCollected(this);
 		Items.Add(ItemObject);
 		OnContainerUpdated.Broadcast(FItemsContainerChangeData(ItemObject, nullptr));
 	}

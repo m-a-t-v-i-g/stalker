@@ -11,7 +11,7 @@
 #include "Components/OrganicAbilityComponent.h"
 #include "Net/UnrealNetwork.h"
 
-UCharacterStateComponent::UCharacterStateComponent()
+UCharacterStateComponent::UCharacterStateComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	bWantsInitializeComponent = true;
@@ -61,7 +61,7 @@ void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacte
 	AbilityComponentRef = CharacterRef->GetAbilitySystemComponent<UOrganicAbilityComponent>();
 	WeaponComponentRef = CharacterRef->GetWeaponComponent();
 	
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		if (AbilityComponentRef)
 		{
@@ -87,15 +87,14 @@ void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacte
 				ResistanceAttributeSet = ResistanceAttribute;
 			}
 		}
-
-		if (WeaponComponentRef)
-		{
-			WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
-			WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
-			WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
-			WeaponComponentRef->OnAimingStop.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
-			WeaponComponentRef->OnOverlayChanged.AddUObject(this, &UCharacterStateComponent::OnOverlayChanged);
-		}
+	}
+	
+	if (WeaponComponentRef)
+	{
+		WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
+		WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
+		WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
+		WeaponComponentRef->OnAimingStop.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
 	}
 }
 
@@ -148,7 +147,7 @@ void UCharacterStateComponent::OnHealthStateChanged(ECharacterHealthState Previo
 		MovementComponentRef->SetMovementModel(InjuredMovementModel);
 		break;
 	case ECharacterHealthState::Dead:
-		OnCharacterDead.Broadcast();
+		OnOwnerDeadDelegate.Broadcast();
 		StartRagdoll();
 		break;
 	default: break;
@@ -176,33 +175,6 @@ void UCharacterStateComponent::OnCombatStateChanged(ECharacterCombatState Previo
 		MovementComponentRef->SetRotationMode(ECharacterRotationMode::LookingDirection, true);
 		break;
 	}
-}
-
-bool UCharacterStateComponent::IsAuthority() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->HasAuthority();
-}
-
-bool UCharacterStateComponent::IsAutonomousProxy() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->GetLocalRole() == ROLE_AutonomousProxy;
-}
-
-bool UCharacterStateComponent::IsSimulatedProxy() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
 }
 
 void UCharacterStateComponent::OnMaxHealthChange(const FOnAttributeChangeData& HealthChangeData)
@@ -348,11 +320,6 @@ void UCharacterStateComponent::OnAimingStop()
 
 		SetRelaxTimer();
 	}
-}
-
-void UCharacterStateComponent::OnOverlayChanged(ECharacterOverlayState NewOverlay)
-{
-	SetOverlayState(NewOverlay, true);
 }
 
 void UCharacterStateComponent::SetRelaxTimer()

@@ -25,7 +25,7 @@ bool UEquipmentSlot::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunc
 	return bReplicateSomething;
 }
 
-void UEquipmentSlot::SetupEquipmentSlot(FString InSlotName, FGameplayTagContainer InSlotTags)
+void UEquipmentSlot::SetupEquipmentSlot(FString InSlotName, const FGameplayTagContainer& InSlotTags)
 {
 	SlotName = InSlotName;
 	CategoryTags = InSlotTags;
@@ -48,8 +48,7 @@ void UEquipmentSlot::AddStartingData()
 			if (CanEquipItem(ItemData.Definition))
 			{
 				UItemPredictedData* PredictedData = ItemData.bUsePredictedData ? ItemData.PredictedData : nullptr;
-				if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(
-					GetWorld(), ItemData.Definition, PredictedData))
+				if (UItemObject* ItemObject = UItemSystemCore::GenerateItemObject(GetWorld(), ItemData.Definition, PredictedData))
 				{
 					EquipSlot(ItemObject);
 				}
@@ -65,8 +64,8 @@ void UEquipmentSlot::EquipSlot(UItemObject* BindObject)
 	if (BindObject)
 	{
 		BoundObject = BindObject;
-		BoundObject->SetEquipped();
-		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(BoundObject, true));
+		BoundObject->SetEquipped(this);
+		OnSlotDataChange.Broadcast(FEquipmentSlotChangeData(SlotName, BoundObject, true));
 	}
 }
 
@@ -74,20 +73,33 @@ void UEquipmentSlot::UnequipSlot()
 {
 	if (BoundObject)
 	{
-		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(BoundObject, false));
+		UItemObject* PrevObject = BoundObject;
 		BoundObject = nullptr;
+		OnSlotDataChange.Broadcast(FEquipmentSlotChangeData(SlotName, PrevObject, false));
 	}
+}
+
+void UEquipmentSlot::SetAvailability(bool bInAvailable)
+{
+	bAvailable = bInAvailable;
+	OnChangeAvailability.Broadcast(bAvailable);
 }
 
 bool UEquipmentSlot::CanEquipItem(const UItemDefinition* ItemDefinition) const
 {
-	return ItemDefinition->Tag.MatchesAny(CategoryTags);
+	check(ItemDefinition);
+	return bAvailable && ItemDefinition->Tag.MatchesAny(CategoryTags);
 }
 
 void UEquipmentSlot::OnRep_BoundObject(UItemObject* PrevItemObject)
 {
 	if (UItemObject* ItemObject = IsEquipped() ? BoundObject.Get() : PrevItemObject)
 	{
-		OnSlotChanged.Broadcast(FEquipmentSlotChangeData(ItemObject, IsEquipped()));
+		OnSlotDataChange.Broadcast(FEquipmentSlotChangeData(SlotName, ItemObject, IsEquipped()));
 	}
+}
+
+void UEquipmentSlot::OnRep_Availability()
+{
+	OnChangeAvailability.Broadcast(bAvailable);
 }

@@ -37,7 +37,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	StateComponentRef = CharacterRef->GetStateComponent();
 	HitScanComponentRef = CharacterRef->GetHitScanComponent();
 	
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		if (EquipmentComponentRef)
 		{
@@ -53,10 +53,10 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 					UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlots[i].SlotName);
 					if (IsValid(SlotPtr))
 					{
-						SlotPtr->OnSlotChanged.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged,
-														  OutfitSlots[i].SlotName);
-						OnEquipmentSlotChanged(FEquipmentSlotChangeData(SlotPtr->GetBoundObject(), SlotPtr->IsEquipped()),
-											   OutfitSlots[i].SlotName);
+						OnEquipmentSlotChanged(
+							FEquipmentSlotChangeData(SlotPtr->GetSlotName(), SlotPtr->GetBoundObject(),
+							                         SlotPtr->IsEquipped()));
+						SlotPtr->OnSlotDataChange.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged);
 					}
 				}
 			}
@@ -64,7 +64,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 
 		if (StateComponentRef)
 		{
-			StateComponentRef->OnCharacterDead.AddUObject(this, &UCharacterOutfitComponent::OnCharacterDead);
+			StateComponentRef->OnOwnerDeadDelegate.AddUObject(this, &UCharacterOutfitComponent::OnCharacterDead);
 		}
 		
 		if (HitScanComponentRef)
@@ -79,25 +79,25 @@ void UCharacterOutfitComponent::AddOutfitSlot(const FOutfitSlot& OutfitSlot)
 	OutfitSlots.Add(OutfitSlot);
 }
 
-void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData, FString SlotName)
+void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData)
 {
-	if (!IsValid(SlotData.SlotItem) || SlotName.IsEmpty())
+	if (!IsValid(SlotData.SlotItem) || SlotData.SlotName.IsEmpty())
 	{
 		return;
 	}
 
 	if (SlotData.bIsEquipped)
 	{
-		ArmSlot(SlotName, SlotData.SlotItem);
-		OnEquipSlot(SlotName, SlotData.SlotItem);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot equipped!"), *GetName(), *SlotName),
+		ArmSlot(SlotData.SlotName, SlotData.SlotItem);
+		OnEquipSlot(SlotData.SlotName, SlotData.SlotItem);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot equipped!"), *GetName(), *SlotData.SlotName),
 		                                  true, false);
 	}
 	else
 	{
-		OnUnequipSlot(SlotName, SlotData.SlotItem);
-		DisarmSlot(SlotName);
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotName),
+		OnUnequipSlot(SlotData.SlotName, SlotData.SlotItem);
+		DisarmSlot(SlotData.SlotName);
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotData.SlotName),
 		                                  true, false);
 	}
 }
@@ -136,33 +136,6 @@ void UCharacterOutfitComponent::DisarmSlot(const FString& SlotName)
 	}
 }
 
-bool UCharacterOutfitComponent::IsAuthority() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->HasAuthority();
-}
-
-bool UCharacterOutfitComponent::IsAutonomousProxy() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->GetLocalRole() == ROLE_AutonomousProxy;
-}
-
-bool UCharacterOutfitComponent::IsSimulatedProxy() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->GetLocalRole() == ROLE_SimulatedProxy;
-}
-
 FOutfitSlot* UCharacterOutfitComponent::FindOutfitSlot(const FString& SlotName)
 {
 	for (FOutfitSlot& Slot : OutfitSlots)
@@ -193,7 +166,7 @@ void UCharacterOutfitComponent::InitializeComponent()
 	}
 }
 
-void UCharacterOutfitComponent::OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem)
+void UCharacterOutfitComponent::OnEquipSlot(const FString& SlotName, UItemObject* InItem)
 {
 }
 

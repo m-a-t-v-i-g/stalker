@@ -5,7 +5,7 @@
 #include "ItemsContainer.h"
 #include "Inventory/InventorySystemCore.h"
 
-UInventoryComponent::UInventoryComponent()
+UInventoryComponent::UInventoryComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -14,7 +14,7 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		if (ItemsContainerRef)
 		{
@@ -30,7 +30,7 @@ void UInventoryComponent::SetItemsContainer(UItemsContainer* InItemsContainer)
 
 void UInventoryComponent::FindAvailablePlace(UItemObject* ItemObject)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::FindAvailablePlace(ItemsContainerRef, ItemObject);
 	}
@@ -38,7 +38,7 @@ void UInventoryComponent::FindAvailablePlace(UItemObject* ItemObject)
 
 void UInventoryComponent::StackItem(UItemObject* SourceItem, UItemObject* TargetItem)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::StackItem(ItemsContainerRef, SourceItem, TargetItem);
 	}
@@ -46,7 +46,7 @@ void UInventoryComponent::StackItem(UItemObject* SourceItem, UItemObject* Target
 
 void UInventoryComponent::AddItem(UItemObject* ItemObject)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::AddItem(ItemsContainerRef, ItemObject);
 	}
@@ -54,7 +54,7 @@ void UInventoryComponent::AddItem(UItemObject* ItemObject)
 
 void UInventoryComponent::SplitItem(UItemObject* ItemObject)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::SplitItem(ItemsContainerRef, ItemObject);
 	}
@@ -62,7 +62,7 @@ void UInventoryComponent::SplitItem(UItemObject* ItemObject)
 
 void UInventoryComponent::RemoveItem(UItemObject* ItemObject)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::RemoveItem(ItemsContainerRef, ItemObject);
 	}
@@ -70,7 +70,7 @@ void UInventoryComponent::RemoveItem(UItemObject* ItemObject)
 
 void UInventoryComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount)
 {
-	if (IsAuthority())
+	if (HasAuthority())
 	{
 		UInventorySystemCore::SubtractOrRemoveItem(ItemsContainerRef, ItemObject, Amount);
 	}
@@ -101,13 +101,4 @@ UItemObject* UInventoryComponent::FindItemByDefinition(const UItemDefinition* De
 		return ItemsContainerRef->FindItemByDefinition(Definition);
 	}
 	return nullptr;
-}
-
-bool UInventoryComponent::IsAuthority() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->HasAuthority();
 }

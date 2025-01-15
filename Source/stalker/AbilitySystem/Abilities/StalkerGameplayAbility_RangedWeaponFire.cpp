@@ -183,9 +183,9 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 
 	for (int32 i = 0; i < BulletsPerCartridge; ++i)
 	{
-		const float BaseSpreadAngle = WeaponObject->GetSpreadAngle(); // TODO
-		//const float SpreadAngleMultiplier = 1.1f; // TODO
-		const float ActualSpreadAngle = BaseSpreadAngle; // * SpreadAngleMultiplier;
+		const float SpreadAngle = WeaponObject->GetSpreadAngle();
+		const float SpreadAngleMultiplier = WeaponObject->GetSpreadAngleMultiplayer();
+		const float ActualSpreadAngle = SpreadAngle * SpreadAngleMultiplier;
 
 		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
 
@@ -219,9 +219,6 @@ FHitResult UStalkerGameplayAbility_RangedWeaponFire::DoSingleBulletTrace(
 	const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
 	TArray<FHitResult>& OutHits) const
 {
-	static float DebugThickness = 1.0f;
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 3.0f, 0, DebugThickness);
-
 	FHitResult Impact;
 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)

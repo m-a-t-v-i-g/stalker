@@ -2,9 +2,7 @@
 
 #include "ArmorObject.h"
 #include "ArmorActor.h"
-#include "GameData.h"
 #include "GameplayEffect.h"
-#include "ItemSystemCore.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -89,7 +87,7 @@ void UArmorObject::UpdateProtectionModifiers() const
 {
 	TMap<FGameplayTag, float> NewModifiers;
 	const TMap<FGameplayTag, float>& ArmorModifiers = GetProtectionModifiers();
-	const UCurveFloat* ProtectionCurve = GetProtectionFactor();
+	const FRichCurve* ProtectionCurve = GetProtectionFactorCurve();
 
 	for (const auto& Modifier : ArmorModifiers)
 	{
@@ -98,7 +96,7 @@ void UArmorObject::UpdateProtectionModifiers() const
 
 		if (ProtectionCurve)
 		{
-			FinalModifierValue *= ProtectionCurve->GetFloatValue(NormalizedEndurance);
+			FinalModifierValue *= ProtectionCurve->Eval(NormalizedEndurance);
 		}
 		else
 		{
@@ -122,14 +120,14 @@ const UClass* UArmorObject::GetArmorEffect() const
 	return GetArmorDefinition()->ArmorEffect;
 }
 
-const UCurveFloat* UArmorObject::GetProtectionFactor() const
-{
-	return GetArmorDefinition()->ProtectionFactor;
-}
-
 TMap<FGameplayTag, float> UArmorObject::GetProtectionModifiers() const
 {
 	return GetArmorInstance()->ArmorData.ProtectionModifiers;
+}
+
+const FRichCurve* UArmorObject::GetProtectionFactorCurve() const
+{
+	return GetArmorDefinition()->ProtectionFactorCurve.GetRichCurveConst();
 }
 
 AArmorActor* UArmorObject::GetArmorActor() const

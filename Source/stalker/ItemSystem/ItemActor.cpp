@@ -98,6 +98,11 @@ void AItemActor::SetGrounded()
 	PhysicsRoot->SetSimulatePhysics(true);
 }
 
+void AItemActor::SetCollected()
+{
+	PhysicsRoot->SetSimulatePhysics(false);
+}
+
 void AItemActor::SetEquipped()
 {
 	PhysicsRoot->SetSimulatePhysics(false);

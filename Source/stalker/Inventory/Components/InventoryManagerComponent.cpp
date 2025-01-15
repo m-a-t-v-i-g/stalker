@@ -12,7 +12,7 @@
 #include "Inventory/InventorySystemCore.h"
 #include "Net/UnrealNetwork.h"
 
-UInventoryManagerComponent::UInventoryManagerComponent()
+UInventoryManagerComponent::UInventoryManagerComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -59,7 +59,7 @@ void UInventoryManagerComponent::SetupInventoryManager(APawn* InPawn, AControlle
 			{
 				OwnItemsContainer = ItemsContainer;
 
-				if (IsAuthority())
+				if (HasAuthority())
 				{
 					AddReplicatedContainer(ItemsContainer);
 				}
@@ -73,7 +73,7 @@ void UInventoryManagerComponent::SetupInventoryManager(APawn* InPawn, AControlle
 			{
 				OwnEquipmentSlots = Slots;
 
-				if (IsAuthority())
+				if (HasAuthority())
 				{
 					for (UEquipmentSlot* Slot : Slots)
 					{
@@ -105,7 +105,7 @@ void UInventoryManagerComponent::ResetInventoryManager()
 	PawnRef = nullptr;
 	ControllerRef = nullptr;
 	
-	if (!IsAuthority())
+	if (!HasAuthority())
 	{
 		return;
 	}
@@ -163,7 +163,7 @@ void UInventoryManagerComponent::StackItem(UItemsContainer* Container, UItemObje
 		return;
 	}
 	
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::StackItem(Container, SourceItem, TargetItem);
 	}
@@ -193,7 +193,7 @@ void UInventoryManagerComponent::AddItem(UItemsContainer* Container, UItemObject
 		return;
 	}
 	
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::AddItem(Container, ItemObject);
 	}
@@ -221,7 +221,7 @@ void UInventoryManagerComponent::SplitItem(UItemsContainer* Container, UItemObje
 		return;
 	}
 	
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::AddItem(Container, ItemObject);
 	}
@@ -249,7 +249,7 @@ void UInventoryManagerComponent::RemoveItem(UItemsContainer* Container, UItemObj
 		return;
 	}
 
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::RemoveItem(Container, ItemObject);
 	}
@@ -291,7 +291,7 @@ void UInventoryManagerComponent::MoveItemToOtherContainer(UItemsContainer* FromC
 		return;
 	}
 
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::MoveItemToOtherContainer(FromContainer, ToContainer, ItemObject);
 	}
@@ -320,7 +320,7 @@ void UInventoryManagerComponent::TryEquipItem(UItemObject* ItemObject)
 		return;
 	}
 
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		for (UEquipmentSlot* EquipmentSlot : OwnEquipmentSlots)
 		{
@@ -394,7 +394,7 @@ void UInventoryManagerComponent::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemO
 		return;
 	}
 
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		if (EquipmentSlot->CanEquipItem(ItemObject->GetDefinition()))
 		{
@@ -477,7 +477,7 @@ void UInventoryManagerComponent::MoveItemFromEquipmentSlot(UEquipmentSlot* Equip
 		return;
 	}
 
-	if (!ControllerRef->HasAuthority() && ControllerRef->IsLocalController())
+	if (!HasAuthority() && IsLocalController())
 	{
 		UInventorySystemCore::MoveItemFromEquipmentSlot(EquipmentSlot, OwnItemsContainer);
 	}
@@ -495,15 +495,6 @@ bool UInventoryManagerComponent::ServerMoveItemFromEquipmentSlot_Validate(UEquip
 	return IsValid(EquipmentSlot);
 }
 
-bool UInventoryManagerComponent::IsAuthority() const
-{
-	if (!GetOwner())
-	{
-		return false;
-	}
-	return GetOwner()->HasAuthority();
-}
-
 void UInventoryManagerComponent::OnPossibleInteractionAdd(AActor* TargetActor)
 {
 	if (auto Container = Cast<AContainerActor>(TargetActor))
@@ -516,7 +507,7 @@ void UInventoryManagerComponent::OnPossibleInteractionAdd(AActor* TargetActor)
 		
 		if (UItemsContainer* ItemsContainer = InventoryComponent->GetItemsContainer())
 		{
-			if (IsAuthority())
+			if (HasAuthority())
 			{
 				AddReplicatedContainer(ItemsContainer);
 			}
@@ -536,7 +527,7 @@ void UInventoryManagerComponent::OnPossibleInteractionRemove(AActor* TargetActor
 		
 		if (UItemsContainer* ItemsContainer = InventoryComponent->GetItemsContainer())
 		{
-			if (IsAuthority())
+			if (HasAuthority())
 			{
 				RemoveReplicatedContainer(ItemsContainer);
 			}

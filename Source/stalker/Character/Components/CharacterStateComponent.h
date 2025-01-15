@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "CharacterLibrary.h"
 #include "StalkerCharacter.h"
-#include "Components/ActorComponent.h"
+#include "Components/PawnComponent.h"
 #include "CharacterStateComponent.generated.h"
 
 struct FOnAttributeChangeData;
@@ -29,19 +29,16 @@ struct FCharacterRagdollData
 	ECollisionChannel CollisionChannel = ECC_MAX;
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnRagdollStateChangedDelegate, bool);
-
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
-class STALKER_API UCharacterStateComponent : public UActorComponent
+class STALKER_API UCharacterStateComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
 public:
-	UCharacterStateComponent();
+	UCharacterStateComponent(const FObjectInitializer& ObjectInitializer);
 
-	FOnRagdollStateChangedDelegate OnRagdollStateChangedDelegate;
-
-	TMulticastDelegate<void()> OnCharacterDead;
+	TMulticastDelegate<void(bool)> OnRagdollStateChangedDelegate;
+	TMulticastDelegate<void()> OnOwnerDeadDelegate;
 	
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -68,10 +65,6 @@ public:
 	FORCEINLINE ECharacterCombatState GetCombatState() const { return CombatState; }
 
 	virtual void OnCombatStateChanged(ECharacterCombatState PreviousState);
-	
-	bool IsAuthority() const;
-	bool IsAutonomousProxy() const;
-	bool IsSimulatedProxy() const;
 	
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Replicated, Category = "Character State")
@@ -116,8 +109,7 @@ protected:
 	void OnFireStop();
 	void OnAimingStart();
 	void OnAimingStop();
-	void OnOverlayChanged(ECharacterOverlayState NewOverlay);
-
+	
 	void SetRelaxTimer();
 
 	UFUNCTION()

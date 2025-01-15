@@ -48,10 +48,10 @@ void UEquipmentSlotWidget::SetupEquipmentSlot(UEquipmentComponent* EquipmentComp
 		{
 			if (EquipmentSlotRef->IsEquipped())
 			{
-				OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetBoundObject(), true));
+				OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetSlotName(), EquipmentSlotRef->GetBoundObject(), true));
 			}
 
-			EquipmentSlotRef->OnSlotChanged.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
+			EquipmentSlotRef->OnSlotDataChange.AddUObject(this, &UEquipmentSlotWidget::OnSlotUpdated);
 		}
 	}
 }
@@ -67,7 +67,7 @@ void UEquipmentSlotWidget::ClearEquipmentSlot()
 
 	if (EquipmentSlotRef.IsValid())
 	{
-		EquipmentSlotRef->OnSlotChanged.RemoveAll(this);
+		EquipmentSlotRef->OnSlotDataChange.RemoveAll(this);
 		EquipmentSlotRef.Reset();
 	}
 
@@ -139,7 +139,7 @@ void UEquipmentSlotWidget::OnDragItemCancelled(UDragDropOperation* InOperation)
 
 		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
 		{
-			OnSlotUpdated(FEquipmentSlotChangeData(Payload, EquipmentSlotRef->IsEquipped()));
+			OnSlotUpdated(FEquipmentSlotChangeData(EquipmentSlotRef->GetSlotName(), Payload, EquipmentSlotRef->IsEquipped()));
 		}
 	}
 }

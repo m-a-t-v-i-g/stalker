@@ -155,6 +155,16 @@ void UItemObject::OnItemInstanceDataChanged(const FItemInstanceData& ItemData, c
 	UpdateMode(ItemData.Mode, PrevItemData.Mode);
 }
 
+void UItemObject::SetOwner(UObject* OwnerObject)
+{
+	Owner = OwnerObject;
+}
+
+void UItemObject::SetInstigator(UObject* InstigatorObject)
+{
+	Instigator = InstigatorObject;
+}
+
 void UItemObject::BindItemActor(AItemActor* BindItem)
 {
 	if (!IsValid(BindItem))
@@ -319,6 +329,9 @@ void UItemObject::SetGrounded()
 {
 	if (ItemInstance)
 	{
+		SetOwner(nullptr);
+		SetInstigator(nullptr);
+
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Grounded;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -326,10 +339,12 @@ void UItemObject::SetGrounded()
 	}
 }
 
-void UItemObject::SetCollected()
+void UItemObject::SetCollected(UObject* OwnerObject)
 {
 	if (ItemInstance)
 	{
+		SetOwner(OwnerObject);
+
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Collected;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -337,10 +352,12 @@ void UItemObject::SetCollected()
 	}
 }
 
-void UItemObject::SetEquipped()
+void UItemObject::SetEquipped(UObject* OwnerObject)
 {
 	if (ItemInstance)
 	{
+		SetOwner(OwnerObject);
+
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Equipped;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -456,6 +473,16 @@ AItemActor* UItemObject::GetBoundActor() const
 UItemInstance* UItemObject::GetItemInstance() const
 {
 	return ItemInstance;
+}
+
+UObject* UItemObject::GetOwner() const
+{
+	return Owner;
+}
+
+UObject* UItemObject::GetInstigator() const
+{
+	return Instigator;
 }
 
 FTimerManager& UItemObject::GetWorldTimerManager() const

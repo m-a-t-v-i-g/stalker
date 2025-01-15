@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/ControllerComponent.h"
 #include "InventoryManagerComponent.generated.h"
 
 class UInventoryComponent;
@@ -13,12 +13,12 @@ class UItemObject;
 class AStalkerCharacter;
 
 UCLASS()
-class STALKER_API UInventoryManagerComponent : public UActorComponent
+class STALKER_API UInventoryManagerComponent : public UControllerComponent
 {
 	GENERATED_BODY()
 
 public:
-	UInventoryManagerComponent();
+	UInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
@@ -82,8 +82,6 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerMoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 	
-	bool IsAuthority() const;
-
 protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
 	TArray<UItemsContainer*> ReplicatedContainers;

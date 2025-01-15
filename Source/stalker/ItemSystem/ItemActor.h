@@ -18,6 +18,8 @@ class STALKER_API AItemActor : public AInteractiveActor
 {
 	GENERATED_BODY()
 
+	friend UItemObject;
+
 public:
 	AItemActor();
 
@@ -36,6 +38,7 @@ public:
 	virtual void UpdateItem();
 	
 	virtual void SetGrounded();
+	virtual void SetCollected();
 	virtual void SetEquipped();
 
 	bool IsBoundItem() const { return ItemObject != nullptr; }

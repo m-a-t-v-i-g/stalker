@@ -3,24 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/PawnComponent.h"
 #include "InventoryComponent.generated.h"
 
 class UItemsContainer;
 class UItemDefinition;
 class UItemObject;
 
-DECLARE_MULTICAST_DELEGATE(FOnItemsContainerUpdatedSignature);
-
 UCLASS(ClassGroup = "Stalker", meta = (BlueprintSpawnableComponent))
-class STALKER_API UInventoryComponent : public UActorComponent
+class STALKER_API UInventoryComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
 public:
-	UInventoryComponent();
-
-	FOnItemsContainerUpdatedSignature OnItemsContainerUpdated;
+	UInventoryComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
 
@@ -38,8 +34,6 @@ public:
 	UItemObject* FindItemById(uint32 ItemId) const;
 	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
 
-	bool IsAuthority() const;
-	
 	FORCEINLINE UItemsContainer* GetItemsContainer() const { return ItemsContainerRef; }
 
 protected:

@@ -10,8 +10,8 @@ public class stalker : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new[]
 		{
-			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GeneralMovement", "GameplayAbilities",
-			"GameplayTasks", "GameplayTags"
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GeneralMovement",
+			"ModularGameplay", "GameplayAbilities", "GameplayTasks", "GameplayTags"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]

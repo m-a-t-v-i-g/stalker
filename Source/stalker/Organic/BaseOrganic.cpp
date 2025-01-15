@@ -59,7 +59,7 @@ ABaseOrganic::ABaseOrganic(const FObjectInitializer& ObjectInitializer) : Super(
 		Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 		Mesh->SetupAttachment(CapsuleComponent);
 		Mesh->SetCollisionProfileName("CharacterMesh");
-		Mesh->SetGenerateOverlapEvents(false);
+		Mesh->SetGenerateOverlapEvents(true);
 		Mesh->SetCanEverAffectNavigation(false);
 	}
 	

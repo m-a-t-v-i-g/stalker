@@ -29,10 +29,10 @@ public:
 	TSubclassOf<UGameplayEffect> ArmorEffect;
 	
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	TObjectPtr<UCurveFloat> ProtectionFactor;
+	TMap<FGameplayTag, float> ProtectionModifiers;
 	
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	TMap<FGameplayTag, float> ProtectionModifiers;
+	FRuntimeFloatCurve ProtectionFactorCurve;
 };
 
 UCLASS()
@@ -90,8 +90,9 @@ public:
 
 	FORCEINLINE const UArmorDefinition* GetArmorDefinition() const;
 	FORCEINLINE const UClass* GetArmorEffect() const;
-	FORCEINLINE const UCurveFloat* GetProtectionFactor() const;
 	FORCEINLINE TMap<FGameplayTag, float> GetProtectionModifiers() const;
+	FORCEINLINE const FRichCurve* GetProtectionFactorCurve() const;
+	
 	FORCEINLINE AArmorActor* GetArmorActor() const;
 	FORCEINLINE UArmorInstance* GetArmorInstance() const;
 };

@@ -408,6 +408,11 @@ float UWeaponObject::GetSpreadAngle() const
 	return CurrentSpreadAngle;
 }
 
+float UWeaponObject::GetSpreadAngleMultiplayer() const
+{
+	return CurrentSpreadAngleMultiplier;
+}
+
 const UWeaponDefinition* UWeaponObject::GetWeaponDefinition() const
 {
 	return Cast<UWeaponDefinition>(GetDefinition());

@@ -3,6 +3,7 @@
 #include "StalkerGameplayAbility_MagazineReload.h"
 #include "AbilitySystemComponent.h"
 #include "InventoryComponent.h"
+#include "StalkerCharacter.h"
 #include "StalkerGameplayTags.h"
 #include "Ammo/AmmoObject.h"
 #include "Weapons/WeaponObject.h"
@@ -24,9 +25,9 @@ UWeaponObject* UStalkerGameplayAbility_MagazineReload::GetWeaponObject() const
 
 UInventoryComponent* UStalkerGameplayAbility_MagazineReload::GetInventoryComponent() const
 {
-	if (APawn* AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo()))
+	if (AStalkerCharacter* StalkerPawn = Cast<AStalkerCharacter>(GetAvatarActorFromActorInfo()))
 	{
-		return AvatarPawn->GetComponentByClass<UInventoryComponent>();
+		return StalkerPawn->GetInventoryComponent();
 	}
 	return nullptr;
 }

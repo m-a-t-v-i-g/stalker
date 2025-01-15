@@ -15,20 +15,24 @@ struct FEquipmentSlotChangeData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
+	FString SlotName;
+
+	UPROPERTY()
 	UItemObject* SlotItem = nullptr;
 
 	bool bIsEquipped = false;
 	
 	FEquipmentSlotChangeData() {}
 	
-	FEquipmentSlotChangeData(UItemObject* Item, bool bEquipped)
+	FEquipmentSlotChangeData(const FString& Name, UItemObject* Item, bool bEquipped)
 	{
+		SlotName = Name;
 		SlotItem = Item;
 		bIsEquipped = bEquipped;
 	}
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, const FEquipmentSlotChangeData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotChangedSignature, );
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UEquipmentSlot : public UObject
@@ -36,18 +40,21 @@ class STALKER_API UEquipmentSlot : public UObject
 	GENERATED_BODY()
 
 public:
-	FOnSlotChangedSignature OnSlotChanged;
+	TMulticastDelegate<void(const FEquipmentSlotChangeData&)> OnSlotDataChange;
+	TMulticastDelegate<void(bool)> OnChangeAvailability;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags);
 
-	void SetupEquipmentSlot(FString InSlotName, FGameplayTagContainer InSlotTags);
+	void SetupEquipmentSlot(FString InSlotName, const FGameplayTagContainer& InSlotTags);
 	
 	void AddStartingData();
 	
 	void EquipSlot(UItemObject* BindObject);
 	void UnequipSlot();
+
+	void SetAvailability(bool bInAvailable);
 
 	bool CanEquipItem(const UItemDefinition* ItemDefinition) const;
 	
@@ -57,6 +64,8 @@ public:
 
 	UItemObject* GetBoundObject() const { return BoundObject; }
 
+	bool IsAvailable() const { return bAvailable; }
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Equipment Slot")
 	FString SlotName = "Default";
@@ -70,9 +79,12 @@ protected:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundObject", Category = "Equipment Slot")
 	TObjectPtr<UItemObject> BoundObject;
 
-	UPROPERTY(EditInstanceOnly, Replicated, Category = "Equipment Slot")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_Availability", Category = "Equipment Slot")
 	bool bAvailable = true;
 
 	UFUNCTION()
 	void OnRep_BoundObject(UItemObject* PrevItemObject);
+	
+	UFUNCTION()
+	void OnRep_Availability();
 };

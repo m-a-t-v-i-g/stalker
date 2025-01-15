@@ -11,6 +11,7 @@ class UGameplayEffect;
 class UItemDefinition;
 class UItemPredictedData;
 class UItemObject;
+class AItemActor;
 
 USTRUCT(Blueprintable)
 struct FOutfitSlot
@@ -58,6 +59,8 @@ public:
 	static UItemObject* GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
 	                                       const UItemPredictedData* PredictedData);
 	static void DestroyItemObject(const UItemObject* ItemObject);
+
+	static AItemActor* SpawnItemAttached();
 
 	static UItemObject* GetItemObjectById(const UWorld* World, uint32 ItemId);
 	static bool IsItemObjectValid(const UWorld* World, uint32 ItemId);

@@ -183,7 +183,7 @@ public:
 
 	void UpdateSpread(float DeltaSeconds);
 	void AddSpread();
-	
+
 	virtual void IncreaseAmmo(UAmmoObject* AmmoObject, int Amount);
 	virtual void DecreaseAmmo();
 
@@ -196,6 +196,7 @@ public:
 	FORCEINLINE bool CanAttack() const;
 
 	FORCEINLINE float GetSpreadAngle() const;
+	FORCEINLINE float GetSpreadAngleMultiplayer() const;
 	
 #pragma endregion Behavior
 
@@ -253,7 +254,7 @@ private:
 
 	// The current *combined* spread angle multiplier
 	float CurrentSpreadAngleMultiplier = 1.0f;
-	
+
 	void ComputeSpreadRange(float& MinSpread, float& MaxSpread);
 	void ComputeHeatRange(float& MinHeat, float& MaxHeat);
 
