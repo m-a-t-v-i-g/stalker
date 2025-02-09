@@ -4,7 +4,7 @@
 #include "EquipmentSlot.h"
 #include "ItemSystemCore.h"
 
-bool UInventorySystemCore::FindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject)
+bool UInventorySystemCore::Container_FindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject)
 {
 	if (!Container || !ItemObject)
 	{
@@ -14,7 +14,7 @@ bool UInventorySystemCore::FindAvailablePlace(UItemsContainer* Container, UItemO
 	return Container->FindAvailablePlace(ItemObject);
 }
 
-bool UInventorySystemCore::StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem)
+bool UInventorySystemCore::Container_StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem)
 {
 	if (!Container || !SourceItem || !TargetItem)
 	{
@@ -24,17 +24,7 @@ bool UInventorySystemCore::StackItem(UItemsContainer* Container, UItemObject* So
 	return Container->StackItem(SourceItem, TargetItem);
 }
 
-void UInventorySystemCore::AddItem(UItemsContainer* Container, UItemObject* ItemObject)
-{
-	if (!Container || !ItemObject)
-	{
-		return;
-	}
-
-	Container->AddItem(ItemObject);
-}
-
-void UInventorySystemCore::SplitItem(UItemsContainer* Container, UItemObject* ItemObject)
+void UInventorySystemCore::Container_SplitItem(UItemsContainer* Container, UItemObject* ItemObject)
 {
 	if (!Container || !ItemObject)
 	{
@@ -44,7 +34,17 @@ void UInventorySystemCore::SplitItem(UItemsContainer* Container, UItemObject* It
 	Container->SplitItem(ItemObject);
 }
 
-void UInventorySystemCore::RemoveItem(UItemsContainer* Container, UItemObject* ItemObject)
+void UInventorySystemCore::Container_AddItem(UItemsContainer* Container, UItemObject* ItemObject)
+{
+	if (!Container || !ItemObject)
+	{
+		return;
+	}
+
+	Container->AddItem(ItemObject);
+}
+
+void UInventorySystemCore::Container_RemoveItem(UItemsContainer* Container, UItemObject* ItemObject)
 {
 	if (!Container || !ItemObject)
 	{
@@ -54,7 +54,7 @@ void UInventorySystemCore::RemoveItem(UItemsContainer* Container, UItemObject* I
 	Container->RemoveItem(ItemObject);
 }
 
-bool UInventorySystemCore::SubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount)
+bool UInventorySystemCore::Container_SubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount)
 {
 	if (!Container || !ItemObject || Amount <= 0)
 	{
@@ -64,15 +64,15 @@ bool UInventorySystemCore::SubtractOrRemoveItem(UItemsContainer* Container, UIte
 	return Container->SubtractOrRemoveItem(ItemObject, Amount);
 }
 
-void UInventorySystemCore::MoveItemToOtherContainer(UItemsContainer* SourceContainer, UItemsContainer* TargetContainer,
-                                                    UItemObject* ItemObject)
+void UInventorySystemCore::Container_MoveItemToOtherContainer(UItemsContainer* SourceContainer, UItemsContainer* TargetContainer,
+                                                    UItemObject* ItemObject, bool bFullStack)
 {
 	if (!SourceContainer || !TargetContainer || !ItemObject)
 	{
 		return;
 	}
 	
-	if (ItemObject->GetAmount() > ItemObject->GetStackAmount())
+	if (!bFullStack && ItemObject->GetAmount() > ItemObject->GetStackAmount())
 	{
 		if (UItemObject* StackableItem = TargetContainer->FindAvailableStack(ItemObject))
 		{
@@ -81,25 +81,21 @@ void UInventorySystemCore::MoveItemToOtherContainer(UItemsContainer* SourceConta
 		else if (UItemObject* NewItemObject = UItemSystemCore::GenerateItemObject(TargetContainer->GetWorld(), ItemObject))
 		{
 			NewItemObject->SetAmount(NewItemObject->GetStackAmount());
-			TargetContainer->AddItem(NewItemObject);
+			Container_AddItem(TargetContainer, NewItemObject);
 		}
+		
 		ItemObject->RemoveAmount(ItemObject->GetStackAmount());
 	}
 	else
 	{
-		if (TargetContainer->FindAvailablePlace(ItemObject))
+		if (Container_FindAvailablePlace(TargetContainer, ItemObject))
 		{
-			SourceContainer->RemoveItem(ItemObject);
+			Container_RemoveItem(SourceContainer, ItemObject);
 		}
 	}
 }
 
-void UInventorySystemCore::TryEquipItem(const TArray<UEquipmentSlot*>& Slots, UItemObject* ItemObject,
-                                        UItemsContainer* Container)
-{
-}
-
-void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject)
+void UInventorySystemCore::Slot_EquipItem(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject)
 {
 	if (!EquipmentSlot || !ItemObject)
 	{
@@ -112,7 +108,7 @@ void UInventorySystemCore::EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject*
 	}
 }
 
-void UInventorySystemCore::UnequipSlot(UEquipmentSlot* EquipmentSlot)
+void UInventorySystemCore::Slot_UnequipItem(UEquipmentSlot* EquipmentSlot)
 {
 	if (!EquipmentSlot)
 	{
@@ -125,7 +121,7 @@ void UInventorySystemCore::UnequipSlot(UEquipmentSlot* EquipmentSlot)
 	}
 }
 
-void UInventorySystemCore::MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container)
+void UInventorySystemCore::Slot_MoveItemToContainer(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container)
 {
 	if (!EquipmentSlot || !Container)
 	{
@@ -134,7 +130,7 @@ void UInventorySystemCore::MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSl
 
 	if (UItemObject* OldBoundObject = EquipmentSlot->GetBoundObject())
 	{
-		UnequipSlot(EquipmentSlot);
-		AddItem(Container, OldBoundObject);
+		Slot_UnequipItem(EquipmentSlot);
+		Container_AddItem(Container, OldBoundObject);
 	}
 }

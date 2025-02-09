@@ -43,7 +43,7 @@ protected:
 	void OnSlotUpdated(const FEquipmentSlotChangeData& UpdatedData);
 
 	void OnDoubleClick(const FGeometry& InLocalGeometry, const FPointerEvent& InMouseEvent, UItemObject* ItemObject);
-	void OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+	void OnItemDrag(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                UDragDropOperation* InOperation);
 
 	UFUNCTION()

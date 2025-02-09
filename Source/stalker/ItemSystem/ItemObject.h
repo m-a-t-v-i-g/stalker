@@ -108,7 +108,7 @@ public:
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_ItemData", Category = "Item")
 	FItemInstanceData ItemData;
 
-	TDelegate<void(const FItemInstanceData&, const FItemInstanceData&)> OnItemDataChangedDelegate;
+	TDelegate<void(const FItemInstanceData&, const FItemInstanceData&)> OnItemDataChangeDelegate;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -185,10 +185,11 @@ public:
 	virtual void InitItem(const uint32 ItemId, const UItemObject* ItemObject);
 	virtual void InitItem(const uint32 ItemId, const UItemDefinition* Definition, const UItemPredictedData* PredictedData);
 
+	virtual void Tick(float DeltaSeconds);
+	
 	void OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData);
 	
 	void SetOwner(UObject* OwnerObject);
-	void SetInstigator(UObject* InstigatorObject);
 	
 	void BindItemActor(AItemActor* BindItem);
 	virtual void OnBindItemActor();
@@ -272,8 +273,7 @@ public:
 	}
 
 	FORCEINLINE UObject* GetOwner() const;
-	FORCEINLINE UObject* GetInstigator() const;
-
+	
 	FTimerManager& GetWorldTimerManager() const;
 
 protected:
@@ -286,9 +286,6 @@ protected:
 private:
 	UPROPERTY(VisibleInstanceOnly, Category = "Instance Data")
 	TObjectPtr<UObject> Owner;
-	
-	UPROPERTY(VisibleInstanceOnly, Category = "Instance Data")
-	TObjectPtr<UObject> Instigator;
 	
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_BoundItem", Category = "Instance Data")
 	TObjectPtr<AItemActor> BoundItemActor;

@@ -91,10 +91,10 @@ void UCharacterStateComponent::SetupStateComponent(AStalkerCharacter* InCharacte
 	
 	if (WeaponComponentRef)
 	{
-		WeaponComponentRef->OnFireStart.AddUObject(this, &UCharacterStateComponent::OnFireStart);
-		WeaponComponentRef->OnFireStop.AddUObject(this, &UCharacterStateComponent::OnFireStop);
-		WeaponComponentRef->OnAimingStart.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
-		WeaponComponentRef->OnAimingStop.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
+		WeaponComponentRef->OnFireStartDelegate.AddUObject(this, &UCharacterStateComponent::OnFireStart);
+		WeaponComponentRef->OnFireStopDelegate.AddUObject(this, &UCharacterStateComponent::OnFireStop);
+		WeaponComponentRef->OnAimingStartDelegate.AddUObject(this, &UCharacterStateComponent::OnAimingStart);
+		WeaponComponentRef->OnAimingStopDelegate.AddUObject(this, &UCharacterStateComponent::OnAimingStop);
 	}
 }
 

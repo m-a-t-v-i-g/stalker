@@ -92,21 +92,6 @@ bool UItemsContainer::StackItem(UItemObject* SourceItem, UItemObject* TargetItem
 	return false;
 }
 
-void UItemsContainer::AddItem(UItemObject* ItemObject)
-{
-	if (!CanAddItem(ItemObject->GetDefinition()))
-	{
-		return;
-	}
-
-	if (ItemObject && !Items.Contains(ItemObject))
-	{
-		ItemObject->SetCollected(this);
-		Items.Add(ItemObject);
-		OnContainerUpdated.Broadcast(FItemsContainerChangeData(ItemObject, nullptr));
-	}
-}
-
 void UItemsContainer::SplitItem(UItemObject* ItemObject)
 {
 	if (!ItemObject || !CanAddItem(ItemObject->GetDefinition()))
@@ -124,12 +109,27 @@ void UItemsContainer::SplitItem(UItemObject* ItemObject)
 	}
 }
 
+void UItemsContainer::AddItem(UItemObject* ItemObject)
+{
+	if (!CanAddItem(ItemObject->GetDefinition()))
+	{
+		return;
+	}
+
+	if (ItemObject && !Items.Contains(ItemObject))
+	{
+		ItemObject->SetCollected(this);
+		Items.Add(ItemObject);
+		OnContainerChangeDelegate.Broadcast(FItemsContainerChangeData(TArray{ItemObject}, {}));
+	}
+}
+
 void UItemsContainer::RemoveItem(UItemObject* ItemObject)
 {
 	if (ItemObject && Items.Contains(ItemObject))
 	{
 		Items.Remove(ItemObject);
-		OnContainerUpdated.Broadcast(FItemsContainerChangeData(nullptr, ItemObject));
+		OnContainerChangeDelegate.Broadcast(FItemsContainerChangeData({}, TArray{ItemObject}));
 	}
 }
 
@@ -204,8 +204,8 @@ UItemObject* UItemsContainer::FindItemByDefinition(const UItemDefinition* Defini
 
 void UItemsContainer::OnRep_Items(TArray<UItemObject*> PrevContainer)
 {
-	UItemObject* AddedItem = nullptr;
-	UItemObject* RemovedItem = nullptr;
+	TArray<UItemObject*> AddedItems;
+	TArray<UItemObject*> RemovedItems;
 	
 	for (UItemObject* Item : Items)
 	{
@@ -213,9 +213,13 @@ void UItemsContainer::OnRep_Items(TArray<UItemObject*> PrevContainer)
 		{
 			continue;
 		}
-		
-		AddedItem = Item;
-		break;
+
+		if (Item)
+		{
+			Item->SetCollected(this);
+		}
+
+		AddedItems.AddUnique(Item);
 	}
 	
 	for (UItemObject* Item : PrevContainer)
@@ -225,9 +229,8 @@ void UItemsContainer::OnRep_Items(TArray<UItemObject*> PrevContainer)
 			continue;
 		}
 		
-		RemovedItem = Item;
-		break;
+		RemovedItems.Remove(Item);
 	}
 
-	OnContainerUpdated.Broadcast(FItemsContainerChangeData(AddedItem, RemovedItem));
+	OnContainerChangeDelegate.Broadcast(FItemsContainerChangeData(AddedItems, RemovedItems));
 }

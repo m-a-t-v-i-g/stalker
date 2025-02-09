@@ -31,57 +31,17 @@ public:
 	void AddReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 	void RemoveReplicatedEquipmentSlot(UEquipmentSlot* EquipmentSlot);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
-
-	void StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerStackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
-
-	void AddItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerAddItem(UItemsContainer* Container, UItemObject* ItemObject);
-
+	void StackItem(UItemsContainer* Container, UObject* Source, UItemObject* SourceItem, UItemObject* TargetItem);
 	void SplitItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
-
+	void AddItem(UItemsContainer* Container, UObject* Source, UItemObject* ItemObject);
 	void RemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
-
 	void MoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
 	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
-
-	void TryEquipItem(UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerTryEquipItem(UItemObject* ItemObject);
-
-	void EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerEquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
-
+	void TryEquipItem(UObject* Source, UItemObject* ItemObject);
+	void EquipSlot(UEquipmentSlot* EquipmentSlot, UObject* Source, UItemObject* ItemObject);
 	void UnequipSlot(UEquipmentSlot* EquipmentSlot);
+	void MoveItemFromEquipmentSlotToContainer(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerUnequipSlot(UEquipmentSlot* EquipmentSlot);
-
-	void MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerMoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot);
-	
 protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
 	TArray<UItemsContainer*> ReplicatedContainers;
@@ -89,6 +49,35 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Inventory Manager")
 	TArray<UEquipmentSlot*> ReplicatedEquipmentSlots;
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStackItem(UItemsContainer* Container, UObject* Source, UItemObject* SourceItem, UItemObject* TargetItem);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSplitItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerAddItem(UItemsContainer* Container, UObject* Source, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerMoveItemToOtherContainer(UItemsContainer* FromContainer, UItemsContainer* ToContainer, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerTryEquipItem(UObject* Source, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEquipSlot(UEquipmentSlot* EquipmentSlot, UObject* Source, UItemObject* ItemObject);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerUnequipSlot(UEquipmentSlot* EquipmentSlot);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerMoveItemFromEquipmentSlotToContainer(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container);
+
+	void RemoveItemFromSource(UObject* Source, UItemObject* ItemObject);
+	
 	void OnPossibleInteractionAdd(AActor* TargetActor);
 	void OnPossibleInteractionRemove(AActor* TargetActor);
 	
@@ -97,7 +86,10 @@ protected:
 	UItemObject* GetItemObjectById(uint32 ItemId) const;
 
 private:
+	UPROPERTY()
 	TObjectPtr<APawn> PawnRef;
+
+	UPROPERTY()
 	TObjectPtr<AController> ControllerRef;
 	
 	TObjectPtr<UItemsContainer> OwnItemsContainer;

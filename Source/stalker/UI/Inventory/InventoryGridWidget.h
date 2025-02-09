@@ -76,7 +76,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Drawing")
 	FLinearColor GridHighlightColor;
 
-	virtual void NativeOnInitialized() override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 	                          const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	                          const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -104,6 +103,7 @@ protected:
 	void OnDropItem(UDragDropOperation* InOperation);
 	
 	UItemWidget* CreateItemWidget(UItemObject* ItemObject, const FVector2D& PositionOnGrid);
+	bool RemoveItemWidget(UItemObject* ItemObject);
 
 	uint32 FindAvailableRoom(const UItemObject* ItemObject, bool& bFound);
 	
@@ -138,6 +138,6 @@ private:
 	FDraggedItemData DraggedData;
 
 	TArray<uint32> ItemsSlots;
-	
 	TMap<uint32, FIntPoint> ItemsMap;
+	TMap<uint32, UItemWidget*> ItemWidgetMap;
 };

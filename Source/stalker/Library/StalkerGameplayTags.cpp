@@ -30,6 +30,8 @@ namespace FStalkerGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ArmorPartTag_Helmet,				"Character.Armor.Helmet", "Character helmet part.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ArmorPartTag_Body,				"Character.Armor.Body", "Character body part.");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCueTag_WeaponBurst,		"GameplayCue.Weapon.Burst", "Weapon burst tag.");
+
 	FGameplayTag FStalkerGameplayTags::FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
 		const UGameplayTagsManager& Manager = UGameplayTagsManager::Get();

@@ -9,6 +9,7 @@
 #include "InventoryGridWidget.h"
 #include "InventoryManagerComponent.h"
 #include "InventoryWidget.h"
+#include "ItemObject.h"
 #include "Components/WidgetSwitcher.h"
 
 FReply UInventoryManagerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -128,6 +129,8 @@ void UInventoryManagerWidget::ActivateTab(EInventoryTab TabToActivate)
 
 void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObject)
 {
+	check(ItemObject);
+	
 	if (!OwnInventoryManager.IsValid())
 	{
 		return;
@@ -137,7 +140,7 @@ void UInventoryManagerWidget::OnOwnInventoryItemDoubleClick(UItemObject* ItemObj
 	{
 	case EInventoryTab::Inventory:
 		{
-			OwnInventoryManager->TryEquipItem(ItemObject);
+			OwnInventoryManager->TryEquipItem(ItemObject->GetOwner(), ItemObject);
 		}
 		break;
 	case EInventoryTab::Looting:
@@ -156,7 +159,7 @@ void UInventoryManagerWidget::OnOwnEquippedItemDoubleClick(UEquipmentSlot* Equip
 {
 	if (OwnInventoryComponent.IsValid())
 	{
-		OwnInventoryManager->MoveItemFromEquipmentSlot(EquipmentSlot);
+		OwnInventoryManager->MoveItemFromEquipmentSlotToContainer(EquipmentSlot, OwnInventoryComponent->GetItemsContainer());
 	}
 }
 

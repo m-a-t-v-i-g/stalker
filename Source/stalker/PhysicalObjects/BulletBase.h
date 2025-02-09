@@ -20,6 +20,7 @@ struct FBulletBaseData
 	TWeakObjectPtr<AActor> Instigator;
 	UClass* DamageType = nullptr;
 	float DamageValue = 0.0f;
+	float ImpulseStrength = 0.0f;
 	float SweepRadius = 0.0f;
 	float Speed = 0.0f;
 	float Nastiness = 1.0f;

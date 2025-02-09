@@ -17,18 +17,16 @@ class STALKER_API UInventorySystemCore : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static bool FindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
-	static bool StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
-	static void AddItem(UItemsContainer* Container, UItemObject* ItemObject);
-	static void SplitItem(UItemsContainer* Container, UItemObject* ItemObject);
-	static void RemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
-	static bool SubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
-	static void MoveItemToOtherContainer(UItemsContainer* SourceContainer, UItemsContainer* TargetContainer,
-	                                     UItemObject* ItemObject);
+	static bool Container_FindAvailablePlace(UItemsContainer* Container, UItemObject* ItemObject);
+	static bool Container_StackItem(UItemsContainer* Container, UItemObject* SourceItem, UItemObject* TargetItem);
+	static void Container_SplitItem(UItemsContainer* Container, UItemObject* ItemObject);
+	static void Container_AddItem(UItemsContainer* Container, UItemObject* ItemObject);
+	static void Container_RemoveItem(UItemsContainer* Container, UItemObject* ItemObject);
+	static bool Container_SubtractOrRemoveItem(UItemsContainer* Container, UItemObject* ItemObject, uint16 Amount);
+	static void Container_MoveItemToOtherContainer(UItemsContainer* SourceContainer, UItemsContainer* TargetContainer,
+	                                               UItemObject* ItemObject, bool bFullStack = false);
 
-	static void TryEquipItem(const TArray<UEquipmentSlot*>& Slots, UItemObject* ItemObject,
-	                         UItemsContainer* Container = nullptr);
-	static void EquipSlot(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
-	static void UnequipSlot(UEquipmentSlot* EquipmentSlot);
-	static void MoveItemFromEquipmentSlot(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container);
+	static void Slot_EquipItem(UEquipmentSlot* EquipmentSlot, UItemObject* ItemObject);
+	static void Slot_UnequipItem(UEquipmentSlot* EquipmentSlot);
+	static void Slot_MoveItemToContainer(UEquipmentSlot* EquipmentSlot, UItemsContainer* Container);
 };

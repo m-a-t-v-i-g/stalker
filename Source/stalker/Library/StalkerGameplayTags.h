@@ -34,4 +34,6 @@ namespace FStalkerGameplayTags
 
 	STALKER_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ArmorPartTag_Helmet);
 	STALKER_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ArmorPartTag_Body);
+
+	STALKER_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCueTag_WeaponBurst);
 }

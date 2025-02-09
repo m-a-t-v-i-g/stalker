@@ -49,6 +49,8 @@ FReply UItemWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, 
 void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                        UDragDropOperation*& OutOperation)
 {
+	check(BoundObject.IsValid());
+
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
 	UnRotateItem();
@@ -57,9 +59,10 @@ void UItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPoint
 	check(DragDropOperation);
 
 	DragDropOperation->Payload = BoundObject.Get();
+	DragDropOperation->Source = BoundObject->GetOwner();
 	DragDropOperation->Pivot = EDragPivot::CenterCenter;
 
-	if (auto DragVisual = CreateWidget<UItemWidget>(this, AGameHUD::StaticItemWidgetClass)) // TODO: класс виджета для драг дропа
+	if (auto DragVisual = CreateWidget<UItemWidget>(GetOwningPlayer(), AGameHUD::StaticItemWidgetClass))
 	{
 		DragVisual->SetRenderOpacity(DragOpacity);
 		DragVisual->InitItemWidget(OwnerPrivate.Get(), BoundObject.Get(), {

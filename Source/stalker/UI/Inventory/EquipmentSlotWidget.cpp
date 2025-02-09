@@ -16,21 +16,40 @@ bool UEquipmentSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 {
 	check(InventoryManagerRef.IsValid());
 
-	if (auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation))
+	if (!EquipmentSlotRef.IsValid() || !EquipmentComponentRef.IsValid())
 	{
-		if (UItemObject* Payload = DragDropOperation->GetPayload<UItemObject>())
-		{
-			if (EquipmentComponentRef.IsValid() && EquipmentSlotRef.IsValid())
-			{
-				if (EquipmentComponentRef->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
-				{
-					InventoryManagerRef->EquipSlot(EquipmentSlotRef.Get(), Payload);
-					return true;
-				}
-			}
-		}
+		return false;
 	}
-	return false;
+
+	auto DragDropOperation = Cast<UItemDragDropOperation>(InOperation);
+	if (!DragDropOperation)
+	{
+		return false;
+	}
+
+	auto Payload = DragDropOperation->GetPayload<UItemObject>();
+	if (!Payload)
+	{
+		return false;
+	}
+
+	DragDropOperation->Target = EquipmentSlotRef;
+
+	check(DragDropOperation->Source.IsValid());
+	check(DragDropOperation->Target.IsValid());
+
+	if (DragDropOperation->Source == DragDropOperation->Target)
+	{
+		return false;
+	}
+	
+	if (!EquipmentComponentRef->CanEquipItemAtSlot(EquipmentSlotRef->GetSlotName(), Payload))
+	{
+		return false;
+	}
+
+	InventoryManagerRef->EquipSlot(EquipmentSlotRef.Get(), DragDropOperation->Source.Get(), Payload);
+	return true;
 }
 
 void UEquipmentSlotWidget::SetupEquipmentSlot(UEquipmentComponent* EquipmentComp, UInventoryManagerComponent* InventoryManager)
@@ -110,7 +129,7 @@ void UEquipmentSlotWidget::OnDoubleClick(const FGeometry& InLocalGeometry, const
 	OnItemWidgetDoubleClick.Broadcast(EquipmentSlotRef.Get());
 }
 
-void UEquipmentSlotWidget::OnDragItem(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
+void UEquipmentSlotWidget::OnItemDrag(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                       UDragDropOperation* InOperation)
 {
 	if (!EquipmentSlotRef.IsValid() || !EquipmentComponentRef.IsValid())
@@ -155,8 +174,6 @@ void UEquipmentSlotWidget::OnDropItem(UDragDropOperation* InOperation)
 	{
 		DragDropOperation->OnDragCancelled.RemoveAll(this);
 		DragDropOperation->OnDrop.RemoveAll(this);
-
-		InventoryManagerRef->UnequipSlot(EquipmentSlotRef.Get());
 	}
 }
 
@@ -170,7 +187,7 @@ UItemWidget* UEquipmentSlotWidget::CreateItemWidget(UItemObject* ItemObject)
 		if (UCanvasPanelSlot* CanvasPanelSlot = SlotCanvas->AddChildToCanvas(ItemWidget))
 		{
 			ItemWidget->OnDoubleClick.BindUObject(this, &UEquipmentSlotWidget::OnDoubleClick);
-			ItemWidget->OnDragItem.BindUObject(this, &UEquipmentSlotWidget::OnDragItem);
+			ItemWidget->OnDragItem.BindUObject(this, &UEquipmentSlotWidget::OnItemDrag);
 			
 			if (bVerticalSlot)
 			{

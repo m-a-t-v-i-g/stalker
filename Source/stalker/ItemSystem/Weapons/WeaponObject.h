@@ -18,9 +18,6 @@ struct FWeaponInstanceData
 	UPROPERTY(EditInstanceOnly, Category = "Weapon")
 	TArray<const UAmmoDefinition*> AmmoClasses;
 
-	UPROPERTY(EditInstanceOnly, Category = "Weapon")
-	bool bAutomatic = false;
-	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon|Magazin", meta = (ClampMin = "1"))
 	int MagSize = 0;
 
@@ -36,11 +33,20 @@ struct FWeaponInstanceData
 	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
 
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0"))
+	float RecoilAngle = 0.15f;
+	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
 	float NastinessMultiplier = 1.0f;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
 	float BulletSpeedMultiplier = 1.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float BulletImpulseMultiplier = 1.0f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0"))
+	float AdditiveImpulse = 1.0f;
 };
 
 USTRUCT()
@@ -78,9 +84,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<const UAmmoDefinition*> AmmoClasses;
 	
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	bool bAutomatic = false;
+	UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+	TSoftClassPtr<UCameraShakeBase> CameraShake;
 
+	UPROPERTY(EditAnywhere, DisplayName = "Fire", Category = "Weapon|Sounds")
+	TSoftObjectPtr<USoundBase> FireSound;
+	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Magazin", meta = (ClampMin = "0"))
 	int MagSize = 0;
 	
@@ -90,11 +99,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0", ForceUnits = "rpm"))
 	float FireRate = 0.0f;
 	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0"))
+	float RecoilAngle = 0.0f;
+	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
 	float NastinessMultiplier = 1.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
 	float BulletSpeedMultiplier = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "1.0"))
+	float BulletImpulseMultiplier = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params", meta = (ClampMin = "0.0"))
+	float AdditiveImpulse = 100.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Fire Params")
 	FWeaponDamageData DamageData;
@@ -109,10 +127,13 @@ public:
 	FRuntimeFloatCurve HeatToSpreadCurve;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
+	FRuntimeFloatCurve HeatToRecoilCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
 	FRuntimeFloatCurve HeatToHeatPerShotCurve;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Specification")
-	FRuntimeFloatCurve HeatToCoolDownPerSecondCurve;
+	FRuntimeFloatCurve HeatToCooldownPerSecondCurve;
 };
 
 UCLASS()
@@ -156,8 +177,8 @@ class STALKER_API UWeaponObject : public UItemObject
 	GENERATED_BODY()
 
 public:
-	TMulticastDelegate<void()> OnAttackStart;
-	TMulticastDelegate<void()> OnAttackStop;
+	TMulticastDelegate<void()> OnFireStartDelegate;
+	TMulticastDelegate<void()> OnFireStopDelegate;
 	TMulticastDelegate<void()> CancelAllActionsDelegate;
 
 #pragma region Replication
@@ -172,17 +193,20 @@ public:
 	virtual void OnBindItemActor() override;
 	virtual void OnUnbindItemActor(AItemActor* PrevItemActor) override;
 
-	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
+	virtual void Tick(float DeltaSeconds) override;
 	
-	virtual void OnModeUpdated(EItemMode NewMode, EItemMode PrevMode) override;
+	virtual bool IsCorrespondsTo(const UItemObject* OtherItemObject) const override;
 
-	virtual void Tick(float DeltaSeconds);
+	void MakeEquipped();
+	void MakeUnequipped();
 	
 	void StartFire();
 	void StopFire();
 
 	void UpdateSpread(float DeltaSeconds);
 	void AddSpread();
+	
+	void UpdateRecoil(float DeltaSeconds);
 
 	virtual void IncreaseAmmo(UAmmoObject* AmmoObject, int Amount);
 	virtual void DecreaseAmmo();
@@ -197,10 +221,15 @@ public:
 
 	FORCEINLINE float GetSpreadAngle() const;
 	FORCEINLINE float GetSpreadAngleMultiplayer() const;
+	FORCEINLINE float GetRecoilMultiplier() const;
 	
 #pragma endregion Behavior
 
 	FORCEINLINE const UWeaponDefinition* GetWeaponDefinition() const;
+
+	FORCEINLINE UClass* GetCameraShake() const;
+	
+	FORCEINLINE USoundBase* GetFireSound() const;
 	
 	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
 	FORCEINLINE int GetDefaultMagSize() const;
@@ -211,17 +240,22 @@ public:
 	FORCEINLINE float GetDefaultReloadTime() const;
 	FORCEINLINE float GetFireRate() const;
 	FORCEINLINE float GetDefaultFireRate() const;
+	FORCEINLINE float GetRecoilAngle() const;
+	FORCEINLINE float GetDefaultRecoilAngle() const;
 	FORCEINLINE float GetNastinessMultiplier() const;
 	FORCEINLINE float GetDefaultNastinessMultiplier() const;
 	FORCEINLINE float GetBulletSpeedMultiplier() const;
 	FORCEINLINE float GetDefaultBulletSpeedMultiplier() const;
-	FORCEINLINE bool IsAutomatic() const;
+	FORCEINLINE float GetBulletImpulseMultiplier() const;
+	FORCEINLINE float GetDefaultBulletImpulseMultiplier() const;
+	FORCEINLINE float GetAdditiveImpulse() const;
 	FORCEINLINE FWeaponDamageData GetDamageData() const;
 	FORCEINLINE float GetSpreadExponent() const;
 	FORCEINLINE float GetDefaultSpreadExponent() const;
 	
 	FORCEINLINE float GetSpreadRecoveryCooldownDelay() const;
 	FORCEINLINE const FRichCurve* GetHeatToSpreadCurve() const;
+	FORCEINLINE const FRichCurve* GetHeatToRecoilCurve() const;
 	FORCEINLINE const FRichCurve* GetHeatToHeatPerShotCurve() const;
 	FORCEINLINE const FRichCurve* GetHeatToCooldownPerSecondCurve() const;
 	
@@ -229,6 +263,12 @@ public:
 	FORCEINLINE UWeaponInstance* GetWeaponInstance() const;
 
 protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnEquipped();
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnUnequipped();
+	
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
 	void OnFireStart();
 	
@@ -248,6 +288,9 @@ private:
 
 	// The current spread angle (in degrees, diametrical)
 	float CurrentSpreadAngle = 0.0f;
+
+	// The current recoil multiplier
+	float CurrentRecoilMultiplier = 1.0f;
 
 	// Do we currently have first shot accuracy?
 	bool bHasFirstShotAccuracy = false;

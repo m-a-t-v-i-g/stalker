@@ -25,6 +25,9 @@ struct FAmmoInstanceData
 	
 	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float BulletBaseNastiness = 0.05f;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Bullets", meta = (ClampMin = "0.0"))
+	float BulletBaseImpulse = 0.0f;
 };
 
 USTRUCT()
@@ -60,6 +63,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float BulletBaseNastiness = 0.05f;
+	
+	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ClampMin = "0.0"))
+	float BulletBaseImpulse = 250.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Ammo", meta = (ShowOnlyInnerProperties))
 	FAmmoDamageData DamageData;
@@ -105,6 +111,7 @@ public:
 	FORCEINLINE float GetBulletSweepRadius() const;
 	FORCEINLINE float GetBulletSpeed() const;
 	FORCEINLINE float GetBulletNastiness() const;
+	FORCEINLINE float GetBulletImpulse() const;
 
 	FORCEINLINE UAmmoInstance* GetAmmoInstance() const;
 };

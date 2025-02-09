@@ -7,29 +7,37 @@
 #include "Components/HitScanComponent.h"
 #include "Engine/DamageEvents.h"
 
-/* TODO: out ActiveGameplayEffectHandle and OutDamageValue */
 void UDamageSystemCore::TakeDamage(const FApplyDamageData& DamageData)
 {
-	if (DamageData.TargetActor.IsValid())
+	AActor* SourceActor = DamageData.SourceActor.Get();
+	if (!SourceActor)
 	{
-		if (DamageData.TargetActor->GetComponentByClass<UAbilitySystemComponent>())
+		return;
+	}
+	
+	AActor* TargetActor = DamageData.TargetActor.Get();
+	if (!TargetActor)
+	{
+		return;
+	}
+
+	if (TargetActor->GetComponentByClass<UAbilitySystemComponent>())
+	{
+		if (DamageData.SourceASC.IsValid())
 		{
-			if (DamageData.SourceASC.IsValid())
-			{
-				FActiveGameplayEffectHandle GameplayEffectHandle;
-				TakeDamageASCtoASC(DamageData, GameplayEffectHandle);
-			}
-			else
-			{
-				FActiveGameplayEffectHandle GameplayEffectHandle;
-				TakeDamageActorToASC(DamageData, GameplayEffectHandle);
-			}
+			FActiveGameplayEffectHandle GameplayEffectHandle;
+			TakeDamageASCtoASC(DamageData, GameplayEffectHandle);
 		}
 		else
 		{
-			float OutDamageValue;
-			TakeDamageActorToActor(DamageData, OutDamageValue);	
+			FActiveGameplayEffectHandle GameplayEffectHandle;
+			TakeDamageActorToASC(DamageData, GameplayEffectHandle);
 		}
+	}
+	else
+	{
+		float OutDamageValue;
+		TakeDamageActorToActor(DamageData, OutDamageValue);
 	}
 }
 

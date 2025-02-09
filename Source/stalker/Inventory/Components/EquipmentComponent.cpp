@@ -28,7 +28,7 @@ void UEquipmentComponent::EquipSlot(const FString& SlotName, UItemObject* ItemOb
 	{
 		if (UEquipmentSlot* EquipmentSlot = FindEquipmentSlot(SlotName))
 		{
-			UInventorySystemCore::EquipSlot(EquipmentSlot, ItemObject);
+			UInventorySystemCore::Slot_EquipItem(EquipmentSlot, ItemObject);
 		}
 	}
 }
@@ -39,7 +39,7 @@ void UEquipmentComponent::UnequipSlot(const FString& SlotName)
 	{
 		if (UEquipmentSlot* EquipmentSlot = FindEquipmentSlot(SlotName))
 		{
-			UInventorySystemCore::UnequipSlot(EquipmentSlot);
+			UInventorySystemCore::Slot_UnequipItem(EquipmentSlot);
 		}
 	}
 }

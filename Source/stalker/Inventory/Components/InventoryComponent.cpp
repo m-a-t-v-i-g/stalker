@@ -32,7 +32,7 @@ void UInventoryComponent::FindAvailablePlace(UItemObject* ItemObject)
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::FindAvailablePlace(ItemsContainerRef, ItemObject);
+		UInventorySystemCore::Container_FindAvailablePlace(ItemsContainerRef, ItemObject);
 	}
 }
 
@@ -40,7 +40,7 @@ void UInventoryComponent::StackItem(UItemObject* SourceItem, UItemObject* Target
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::StackItem(ItemsContainerRef, SourceItem, TargetItem);
+		UInventorySystemCore::Container_StackItem(ItemsContainerRef, SourceItem, TargetItem);
 	}
 }
 
@@ -48,7 +48,7 @@ void UInventoryComponent::AddItem(UItemObject* ItemObject)
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::AddItem(ItemsContainerRef, ItemObject);
+		UInventorySystemCore::Container_AddItem(ItemsContainerRef, ItemObject);
 	}
 }
 
@@ -56,7 +56,7 @@ void UInventoryComponent::SplitItem(UItemObject* ItemObject)
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::SplitItem(ItemsContainerRef, ItemObject);
+		UInventorySystemCore::Container_SplitItem(ItemsContainerRef, ItemObject);
 	}
 }
 
@@ -64,7 +64,7 @@ void UInventoryComponent::RemoveItem(UItemObject* ItemObject)
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::RemoveItem(ItemsContainerRef, ItemObject);
+		UInventorySystemCore::Container_RemoveItem(ItemsContainerRef, ItemObject);
 	}
 }
 
@@ -72,7 +72,7 @@ void UInventoryComponent::SubtractOrRemoveItem(UItemObject* ItemObject, uint16 A
 {
 	if (HasAuthority())
 	{
-		UInventorySystemCore::SubtractOrRemoveItem(ItemsContainerRef, ItemObject, Amount);
+		UInventorySystemCore::Container_SubtractOrRemoveItem(ItemsContainerRef, ItemObject, Amount);
 	}
 }
 

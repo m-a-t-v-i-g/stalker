@@ -17,23 +17,21 @@ struct FItemsContainerChangeData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
-	UItemObject* AddedItem = nullptr;
+	TArray<UItemObject*> AddedItems;
 
 	UPROPERTY()
-	UItemObject* RemovedItem = nullptr;
+	TArray<UItemObject*> RemovedItems;
 
 	FItemsContainerChangeData()
 	{
 	}
 	
-	FItemsContainerChangeData(UItemObject* NewItem, UItemObject* OldItem)
+	FItemsContainerChangeData(const TArray<UItemObject*>& NewItems, const TArray<UItemObject*>& OldItems)
 	{
-		AddedItem = NewItem;
-		RemovedItem = OldItem;
+		AddedItems = NewItems;
+		RemovedItems = OldItems;
 	}
 };
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnContainerUpdatedDelegate, const FItemsContainerChangeData&);
 
 UCLASS(EditInlineNew, DefaultToInstanced)
 class STALKER_API UItemsContainer : public UObject
@@ -41,7 +39,7 @@ class STALKER_API UItemsContainer : public UObject
 	GENERATED_BODY()
 
 public:
-	FOnContainerUpdatedDelegate OnContainerUpdated;
+	TMulticastDelegate<void(const FItemsContainerChangeData&)> OnContainerChangeDelegate;
 	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -52,25 +50,17 @@ public:
 	void AddStartingData();
 	
 	bool FindAvailablePlace(UItemObject* ItemObject);
-
 	bool StackItem(UItemObject* SourceItem, UItemObject* TargetItem);
-	
-	void AddItem(UItemObject* ItemObject);
-
 	void SplitItem(UItemObject* ItemObject);
-	
+	void AddItem(UItemObject* ItemObject);
 	void RemoveItem(UItemObject* ItemObject);
-
 	bool SubtractOrRemoveItem(UItemObject* ItemObject, uint16 Amount);
-
 	bool CanAddItem(const UItemDefinition* ItemDefinition) const;
 	
 	bool Contains(const UItemObject* ItemObject) const;
 
 	UItemObject* FindAvailableStack(const UItemObject* ItemObject) const;
-
 	UItemObject* FindItemById(uint32 ItemId) const;
-
 	UItemObject* FindItemByDefinition(const UItemDefinition* Definition) const;
 
 	TArray<UItemObject*> GetItems() const { return Items; }

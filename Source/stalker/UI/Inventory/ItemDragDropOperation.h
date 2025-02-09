@@ -6,21 +6,15 @@
 #include "Blueprint/DragDropOperation.h"
 #include "ItemDragDropOperation.generated.h"
 
-UENUM()
-enum class EItemDragDropOperationResult : uint8
-{
-	Inventory,
-	Equipment,
-	FastSlot,
-	Drop
-};
-
 UCLASS()
 class STALKER_API UItemDragDropOperation : public UDragDropOperation
 {
 	GENERATED_BODY()
 
 public:
+	TWeakObjectPtr<UObject> Source;
+	TWeakObjectPtr<UObject> Target;
+	
 	template <class T>
 	T* GetPayload() const
 	{

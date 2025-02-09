@@ -3,6 +3,7 @@
 #include "StalkerGameplayAbility_RangedWeaponFire.h"
 #include "AbilitySystemComponent.h"
 #include "BulletBase.h"
+#include "StalkerGameplayTags.h"
 #include "Ammo/AmmoObject.h"
 #include "Weapons/WeaponObject.h"
 
@@ -399,6 +400,13 @@ void UStalkerGameplayAbility_RangedWeaponFire::OnTargetDataReadyCallback(const F
 			}
 
 			WeaponObject->StartFire();
+
+			FGameplayCueParameters CueParams;
+			CueParams.Instigator = GetAvatarActorFromActorInfo();
+			CueParams.SourceObject = WeaponObject;
+
+			K2_ExecuteGameplayCueWithParams(
+				CueTag.IsValid() ? CueTag : FStalkerGameplayTags::GameplayCueTag_WeaponBurst, CueParams);
 		}
 		else
 		{

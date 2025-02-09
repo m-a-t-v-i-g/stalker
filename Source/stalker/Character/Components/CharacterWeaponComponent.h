@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CharacterLibrary.h"
 #include "CharacterOutfitComponent.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "Ammo/AmmoObject.h"
@@ -17,11 +16,6 @@ class UWeaponObject;
 class UAbilitySet;
 class AStalkerCharacter;
 
-DECLARE_MULTICAST_DELEGATE(FCharacterFireDelegate);
-DECLARE_MULTICAST_DELEGATE(FCharacterAimingDelegate);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStartReloadSignature, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStopReloadSignature, bool);
-
 USTRUCT()
 struct FEquippedHandEntry
 {
@@ -29,9 +23,6 @@ struct FEquippedHandEntry
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<UItemObject> ItemObject;
-
-	UPROPERTY(VisibleInstanceOnly)
-	TObjectPtr<AItemActor> ItemActor;
 
 	UPROPERTY(VisibleInstanceOnly, NotReplicated)
 	TObjectPtr<const UAbilitySet> AbilitySet;
@@ -43,15 +34,14 @@ struct FEquippedHandEntry
 	
 	FEquippedHandEntry() {}
 	
-	FEquippedHandEntry(UItemObject* ItemObj, AItemActor* ItemAct, const FHandItemBehavior& ItemBeh) : ItemObject(ItemObj),
-		ItemActor(ItemAct), WeaponBehavior(&ItemBeh)
+	FEquippedHandEntry(UItemObject* ItemObj, AItemActor* ItemAct,
+	                   const FHandItemBehavior& ItemBeh) : ItemObject(ItemObj), WeaponBehavior(&ItemBeh)
 	{
 	}
 
 	void Clear()
 	{
 		ItemObject = nullptr;
-		ItemActor = nullptr;
 		AbilitySet = nullptr;
 		WeaponBehavior = nullptr;
 		Abilities.Empty();
@@ -59,7 +49,7 @@ struct FEquippedHandEntry
 
 	bool IsValid() const
 	{
-		return ItemObject != nullptr && ItemActor != nullptr;
+		return ItemObject != nullptr;
 	}
 };
 
@@ -71,12 +61,10 @@ class STALKER_API UCharacterWeaponComponent : public UCharacterOutfitComponent
 public:
 	UCharacterWeaponComponent(const FObjectInitializer& ObjectInitializer);
 
-	FCharacterFireDelegate OnFireStart;
-	FCharacterFireDelegate OnFireStop;
-	FCharacterAimingDelegate OnAimingStart;
-	FCharacterAimingDelegate OnAimingStop;
-	FOnCharacterStartReloadSignature OnReloadStart;
-	FOnCharacterStopReloadSignature OnReloadStop;
+	TMulticastDelegate<void()> OnFireStartDelegate;
+	TMulticastDelegate<void()> OnFireStopDelegate;
+	TMulticastDelegate<void()> OnAimingStartDelegate;
+	TMulticastDelegate<void()> OnAimingStopDelegate;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -90,14 +78,12 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerToggleSlot(int8 SlotIndex);
 
-	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
+	UFUNCTION()
 	void StartAiming();
 
-	UFUNCTION(BlueprintCallable, Category = "Character|Weapon")
+	UFUNCTION()
 	void StopAiming();
 
-	float CalculateSpreadMultiplierForWeapon(float DeltaSeconds) const;
-	
 	const FHandItemBehavior* GetHandItemBehavior(const FName& ItemScriptName) const;
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
@@ -117,13 +103,13 @@ public:
 	}
 
 	FORCEINLINE AItemActor* GetItemActorAtLeftHand() const;
-	
+
 	template<class T>
 	T* GetItemActorAtLeftHand() const
 	{
 		return Cast<T>(GetItemActorAtLeftHand());
 	}
-	
+
 	FORCEINLINE AItemActor* GetItemActorAtRightHand() const;
 	
 	template<class T>
@@ -150,13 +136,18 @@ protected:
 	             UItemObject* ItemObject);
 	void DisarmHand(FEquippedHandEntry& HandedItemData, AItemActor*& ReplicatedItemActor);
 
+	void AddWeaponRecoil();
+	
 	UFUNCTION()
-	void OnAttackStart();
+	void OnWeaponFireStart();
 
 	UFUNCTION()
-	void OnAttackStop();
+	void OnWeaponFireStop();
+
+	bool BindWeaponObject(UWeaponObject* WeaponObject);
+	bool UnbindWeaponObject(UWeaponObject* WeaponObject);
 	
-	virtual AItemActor* SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName);
+	virtual AItemActor* SpawnItemAtHand(USceneComponent* AttachmentComponent, UItemObject* ItemObject, FName SocketName);
 	
 private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
@@ -171,9 +162,11 @@ private:
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	AItemActor* RightHandItemActor = nullptr;
 
-	// The current standing still multiplier
-	float StandingStillMultiplier = 1.0f;
-
+	float TargetArmLength = 0.0f;
+	
 	UFUNCTION()
 	void OnRep_RightHandItemData(const FEquippedHandEntry& PrevHandEntry);
+
+	UFUNCTION()
+	void OnRep_RightHandItemActor(AItemActor* PrevItemActor);
 };

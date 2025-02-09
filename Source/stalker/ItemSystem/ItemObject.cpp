@@ -61,9 +61,9 @@ void UItemInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 
 void UItemInstance::UpdateItemInstance(const FItemInstanceData& PrevItemData)
 {
-	if (OnItemDataChangedDelegate.IsBound())
+	if (OnItemDataChangeDelegate.IsBound())
 	{
-		OnItemDataChangedDelegate.Execute(ItemData, PrevItemData);	
+		OnItemDataChangeDelegate.Execute(ItemData, PrevItemData);	
 	}
 }
 
@@ -80,9 +80,9 @@ void UItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UItemObject, ItemDefinition,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UItemObject, ItemInstance,		COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UItemObject, BoundItemActor,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ItemDefinition,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ItemInstance,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, BoundItemActor,	COND_OwnerOnly);
 }
 
 bool UItemObject::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -121,7 +121,7 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemObject* ItemObject)
 	}
 	
 	ItemInstance = NewItemInstance;
-	ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
+	ItemInstance->OnItemDataChangeDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	ItemInstance->SetupProperties(ItemId, GetDefinition(), ItemObject->GetItemInstance());
 }
 
@@ -144,8 +144,12 @@ void UItemObject::InitItem(const uint32 ItemId, const UItemDefinition* Definitio
 	}
 
 	ItemInstance = NewItemInstance;
-	ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
+	ItemInstance->OnItemDataChangeDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	ItemInstance->SetupProperties(ItemId, GetDefinition(), PredictedData);
+}
+
+void UItemObject::Tick(float DeltaSeconds)
+{
 }
 
 void UItemObject::OnItemInstanceDataChanged(const FItemInstanceData& ItemData, const FItemInstanceData& PrevItemData)
@@ -158,11 +162,6 @@ void UItemObject::OnItemInstanceDataChanged(const FItemInstanceData& ItemData, c
 void UItemObject::SetOwner(UObject* OwnerObject)
 {
 	Owner = OwnerObject;
-}
-
-void UItemObject::SetInstigator(UObject* InstigatorObject)
-{
-	Instigator = InstigatorObject;
 }
 
 void UItemObject::BindItemActor(AItemActor* BindItem)
@@ -327,11 +326,10 @@ EItemMode UItemObject::GetItemMode() const
 
 void UItemObject::SetGrounded()
 {
+	SetOwner(nullptr);
+	
 	if (ItemInstance)
 	{
-		SetOwner(nullptr);
-		SetInstigator(nullptr);
-
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Grounded;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -341,10 +339,10 @@ void UItemObject::SetGrounded()
 
 void UItemObject::SetCollected(UObject* OwnerObject)
 {
+	SetOwner(OwnerObject);
+	
 	if (ItemInstance)
 	{
-		SetOwner(OwnerObject);
-
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Collected;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -354,10 +352,10 @@ void UItemObject::SetCollected(UObject* OwnerObject)
 
 void UItemObject::SetEquipped(UObject* OwnerObject)
 {
+	SetOwner(OwnerObject);
+	
 	if (ItemInstance)
 	{
-		SetOwner(OwnerObject);
-
 		EItemMode PrevMode = ItemInstance->ItemData.Mode;
 		EItemMode NewMode = EItemMode::Equipped;
 		ItemInstance->ItemData.Mode = NewMode;
@@ -480,11 +478,6 @@ UObject* UItemObject::GetOwner() const
 	return Owner;
 }
 
-UObject* UItemObject::GetInstigator() const
-{
-	return Instigator;
-}
-
 FTimerManager& UItemObject::GetWorldTimerManager() const
 {
 	return GetWorld()->GetTimerManager();
@@ -494,14 +487,14 @@ void UItemObject::OnRep_ItemInstance(UItemInstance* PrevItemInstance)
 {
 	if (PrevItemInstance)
 	{
-		PrevItemInstance->OnItemDataChangedDelegate.Unbind();
+		PrevItemInstance->OnItemDataChangeDelegate.Unbind();
 	}
 
 	if (ItemInstance)
 	{
 		OnItemInstanceDataChanged(ItemInstance->ItemData,
 		                          PrevItemInstance ? PrevItemInstance->ItemData : FItemInstanceData());
-		ItemInstance->OnItemDataChangedDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
+		ItemInstance->OnItemDataChangeDelegate.BindUObject(this, &UItemObject::OnItemInstanceDataChanged);
 	}
 }
 

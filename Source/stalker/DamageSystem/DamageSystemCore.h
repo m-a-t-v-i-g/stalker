@@ -72,10 +72,10 @@ struct FApplyDamageData
 		DamageCauser = InDamageCauser;
 	}
 
-	void SetDamageInfo(UClass* DamageType, float Value)
+	void SetDamageInfo(UClass* DamageType, float DmgValue)
 	{
 		DamageTypeClass = DamageType;
-		DamageValue = Value;
+		DamageValue = DmgValue;
 	}
 	
 	void SetHitResult(const FHitResult& Result)
@@ -96,12 +96,12 @@ class STALKER_API UDamageSystemCore : public UBlueprintFunctionLibrary
 
 public:
 	static void TakeDamage(const FApplyDamageData& DamageData);
-	
+
 	static bool TakeDamageASCtoASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
 	static bool TakeDamageActorToASC(const FApplyDamageData& DamageData, FActiveGameplayEffectHandle& OutDamageEffectHandle);
 	static void TakeDamageActorToActor(const FApplyDamageData& DamageData, float& OutResultDamage);
 	
 	static FApplyDamageData GenerateDamageData(AActor* SourceActor, AActor* TargetActor, AActor* DamageCauser,
-	                                           UClass* DamageType, float DamageValue, const FHitResult& SweepResult,
-	                                           const UObject* SourceObject);
+	                                           UClass* DamageType, float DamageValue,
+	                                           const FHitResult& SweepResult, const UObject* SourceObject);
 };

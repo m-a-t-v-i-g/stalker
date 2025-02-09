@@ -18,8 +18,8 @@ void AWeaponActor::OnBindItem()
 
 	if (auto WeaponObject = GetItemObject<UWeaponObject>())
 	{
-		WeaponObject->OnAttackStart.AddUObject(this, &AWeaponActor::OnFireStart);
-		WeaponObject->OnAttackStop.AddUObject(this, &AWeaponActor::OnFireStop);
+		WeaponObject->OnFireStartDelegate.AddUObject(this, &AWeaponActor::OnFireStart);
+		WeaponObject->OnFireStopDelegate.AddUObject(this, &AWeaponActor::OnFireStop);
 	}
 }
 
@@ -29,8 +29,8 @@ void AWeaponActor::OnUnbindItem(UItemObject* PrevItemObject)
 
 	if (auto WeaponObject = Cast<UWeaponObject>(PrevItemObject))
 	{
-		WeaponObject->OnAttackStart.RemoveAll(this);
-		WeaponObject->OnAttackStop.RemoveAll(this);
+		WeaponObject->OnFireStartDelegate.RemoveAll(this);
+		WeaponObject->OnFireStopDelegate.RemoveAll(this);
 	}
 }
 

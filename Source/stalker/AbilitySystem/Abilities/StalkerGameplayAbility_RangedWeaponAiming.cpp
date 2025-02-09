@@ -28,7 +28,10 @@ void UStalkerGameplayAbility_RangedWeaponAiming::ActivateAbility(const FGameplay
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	GetWeaponComponent()->StartAiming();
+	if (UCharacterWeaponComponent* WeaponComponent = GetWeaponComponent())
+	{
+		WeaponComponent->StartAiming();
+	}
 }
 
 void UStalkerGameplayAbility_RangedWeaponAiming::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -45,7 +48,10 @@ void UStalkerGameplayAbility_RangedWeaponAiming::EndAbility(const FGameplayAbili
 			return;
 		}
 		
-		GetWeaponComponent()->StopAiming();
+		if (UCharacterWeaponComponent* WeaponComponent = GetWeaponComponent())
+		{
+			WeaponComponent->StopAiming();
+		}
 		
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	}

@@ -7,6 +7,7 @@
 #include "ItemActor.h"
 #include "ItemObject.h"
 #include "StalkerCharacter.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponObject.h"
@@ -23,8 +24,8 @@ void UCharacterWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION(ThisClass, LeftHandItemData,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, RightHandItemData,	COND_OwnerOnly);
 	
-	DOREPLIFETIME_CONDITION(ThisClass, LeftHandItemActor,	COND_SimulatedOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, RightHandItemActor,	COND_SimulatedOnly);
+	DOREPLIFETIME(ThisClass, LeftHandItemActor);
+	DOREPLIFETIME(ThisClass, RightHandItemActor);
 }
 
 void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -47,9 +48,14 @@ void UCharacterWeaponComponent::OnCharacterDead()
 
 void UCharacterWeaponComponent::TickItemAtHand(float DeltaTime)
 {
-	if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(GetItemObjectAtRightHand()))
+	if (!IsRightItemObjectValid())
 	{
-		WeaponObject->Tick(DeltaTime);
+		return;
+	}
+
+	if (UItemObject* ItemObject = GetItemObjectAtRightHand())
+	{
+		ItemObject->Tick(DeltaTime);
 	}
 }
 
@@ -79,20 +85,29 @@ void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 
 void UCharacterWeaponComponent::StartAiming()
 {
-	OnAimingStart.Broadcast();
+	OnAimingStartDelegate.Broadcast();
+
+	if (GetOwner())
+	{
+		if (auto SpringArm = GetOwner()->GetComponentByClass<USpringArmComponent>())
+		{
+			TargetArmLength = SpringArm->TargetArmLength;
+			SpringArm->TargetArmLength = TargetArmLength - 75.0f;
+		}
+	}
 }
 
 void UCharacterWeaponComponent::StopAiming()
 {
-	OnAimingStop.Broadcast();
-}
-
-float UCharacterWeaponComponent::CalculateSpreadMultiplierForWeapon(float DeltaSeconds) const
-{
-	const float PawnSpeed = GetCharacter()->GetVelocity().Size();
-	const float MovementTargetValue = FMath::GetMappedRangeValueClamped(FVector2D(20.0f, 20.0f + 20.0f),
-	                                                                    FVector2D(0.9f, 1.0f), PawnSpeed);
-	return FMath::FInterpTo(StandingStillMultiplier, MovementTargetValue, DeltaSeconds, 5.0f);
+	OnAimingStopDelegate.Broadcast();
+	
+	if (GetOwner())
+	{
+		if (auto SpringArm = GetOwner()->GetComponentByClass<USpringArmComponent>())
+		{
+			SpringArm->TargetArmLength = TargetArmLength;
+		}
+	}
 }
 
 const FHandItemBehavior* UCharacterWeaponComponent::GetHandItemBehavior(const FName& ItemScriptName) const
@@ -119,19 +134,11 @@ UItemObject* UCharacterWeaponComponent::GetItemObjectAtRightHand() const
 
 AItemActor* UCharacterWeaponComponent::GetItemActorAtLeftHand() const
 {
-	if (GetCharacter()->HasAuthority() || GetCharacter()->IsLocallyControlled())
-	{
-		return LeftHandItemData.ItemActor;
-	}
 	return LeftHandItemActor;
 }
 
 AItemActor* UCharacterWeaponComponent::GetItemActorAtRightHand() const
 {
-	if (GetCharacter()->HasAuthority() || GetCharacter()->IsLocallyControlled())
-	{
-		return RightHandItemData.ItemActor;
-	}
 	return RightHandItemActor;
 }
 
@@ -147,19 +154,11 @@ bool UCharacterWeaponComponent::IsRightItemObjectValid() const
 
 bool UCharacterWeaponComponent::IsLeftItemActorValid() const
 {
-	if (GetCharacter()->HasAuthority() || GetCharacter()->IsLocallyControlled())
-	{
-		return IsValid(LeftHandItemData.ItemActor);
-	}
 	return IsValid(LeftHandItemActor);
 }
 
 bool UCharacterWeaponComponent::IsRightItemActorValid() const
 {
-	if (GetCharacter()->HasAuthority() || GetCharacter()->IsLocallyControlled())
-	{
-		return IsValid(RightHandItemData.ItemActor);
-	}
 	return IsValid(RightHandItemActor);
 }
 
@@ -203,7 +202,7 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 	}
 
 	ECharacterOverlayState TargetOverlay = ECharacterOverlayState::Default;
-	
+
 	const UItemObject* LeftItem = GetItemObjectAtLeftHand();
 	const UItemObject* RightItem = GetItemObjectAtRightHand();
 
@@ -213,6 +212,11 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 		{
 			if (LeftItem != InItem)
 			{
+				if (IsLeftItemObjectValid())
+				{
+					DisarmHand(LeftHandItemData, LeftHandItemActor);
+				}
+
 				if (IsRightItemObjectValid())
 				{
 					if (const FHandItemBehavior* RightItemBeh = GetHandItemBehavior(RightItem->GetScriptName()))
@@ -230,7 +234,7 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 						}
 					}
 				}
-				
+
 				ArmHand(LeftHandItemData, LeftHandItemActor, FCharacterSocketName::LeftHandSocket, InItem);
 			}
 			else
@@ -252,13 +256,18 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 		{
 			if (RightItem != InItem)
 			{
-				if (!IsLeftItemObjectValid())
+				if (IsLeftItemObjectValid())
 				{
-					TargetOverlay = ECharacterOverlayState::OnlyRightHand;
+					TargetOverlay = ECharacterOverlayState::LeftAndRightHand;
 				}
 				else
 				{
-					TargetOverlay = ECharacterOverlayState::LeftAndRightHand;
+					TargetOverlay = ECharacterOverlayState::OnlyRightHand;
+				}
+				
+				if (IsRightItemObjectValid())
+				{
+					DisarmHand(RightHandItemData, RightHandItemActor);
 				}
 				
 				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::RightHandSocket, InItem);
@@ -287,6 +296,11 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 					DisarmHand(LeftHandItemData, LeftHandItemActor);
 				}
 
+				if (IsRightItemObjectValid())
+				{
+					DisarmHand(RightHandItemData, RightHandItemActor);
+				}
+
 				TargetOverlay = ECharacterOverlayState::BothHands;
 				ArmHand(RightHandItemData, RightHandItemActor, FCharacterSocketName::RightHandSocket, InItem);
 			}
@@ -306,35 +320,23 @@ void UCharacterWeaponComponent::ShowOrHideItem(UItemObject* InItem)
 void UCharacterWeaponComponent::ArmHand(FEquippedHandEntry& HandedItemData, AItemActor*& ReplicatedItemActor,
                                         const FName& SocketName, UItemObject* ItemObject)
 {
-	if (HandedItemData.IsValid())
+	check(ItemObject);
+
+	if (const FHandItemBehavior* HandItemBeh = GetHandItemBehavior(ItemObject->GetScriptName()))
 	{
-		DisarmHand(HandedItemData, ReplicatedItemActor);
-	}
+		HandedItemData.ItemObject = ItemObject;
+		ReplicatedItemActor = SpawnItemAtHand(GetCharacter()->GetMesh(), ItemObject, SocketName);
+		
+		check(HandedItemData.ItemObject);
 
-	HandedItemData.ItemObject = ItemObject;
-	HandedItemData.ItemActor = SpawnWeapon(GetCharacter()->GetMesh(), ItemObject, SocketName);
-
-	check(HandedItemData.ItemObject);
-	check(HandedItemData.ItemActor);
-
-	if (const FHandItemBehavior* HandItemBeh = GetHandItemBehavior(HandedItemData.ItemObject->GetScriptName()))
-	{
 		HandedItemData.AbilitySet = HandItemBeh->AbilitySet;
 		HandedItemData.AbilitySet->GiveToAbilitySystem(GetAbilityComponent(), HandedItemData.Abilities, ItemObject);
 		HandedItemData.WeaponBehavior = HandItemBeh;
 
 		if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(ItemObject))
 		{
-			WeaponObject->OnAttackStart.AddUObject(this, &UCharacterWeaponComponent::OnAttackStart);
-			WeaponObject->OnAttackStop.AddUObject(this, &UCharacterWeaponComponent::OnAttackStop);
+			BindWeaponObject(WeaponObject);
 		}
-	}
-	
-	ReplicatedItemActor = HandedItemData.ItemActor;
-	
-	if (!IsValid(HandedItemData.ItemActor))
-	{
-		UKismetSystemLibrary::PrintString(this, FString("Hands was not equipped..."), true, false, FLinearColor::Red);
 	}
 }
 
@@ -344,35 +346,77 @@ void UCharacterWeaponComponent::DisarmHand(FEquippedHandEntry& HandedItemData, A
 	{
 		if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(HandedItemData.ItemObject))
 		{
-			WeaponObject->CancelAllActions();
-			WeaponObject->OnAttackStart.RemoveAll(this);
-			WeaponObject->OnAttackStop.RemoveAll(this);
+			UnbindWeaponObject(WeaponObject);
 		}
-		
+
 		for (const FGameplayAbilitySpecHandle& AbilityHandle : HandedItemData.Abilities)
 		{
 			GetAbilityComponent()->ClearAbility(AbilityHandle);
 		}
-		
+
 		HandedItemData.ItemObject->UnbindItemActor();
-		HandedItemData.ItemActor->Destroy();
 		HandedItemData.Clear();
-		ReplicatedItemActor = nullptr;
+		ReplicatedItemActor->Destroy();
 	}
 }
 
-void UCharacterWeaponComponent::OnAttackStart()
+void UCharacterWeaponComponent::AddWeaponRecoil()
 {
-	OnFireStart.Broadcast();
+	if (AStalkerCharacter* Character = GetCharacter())
+	{
+		if (Character->IsLocallyControlled())
+		{
+			if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(RightHandItemData.ItemObject))
+			{
+				float RecoilAngle = WeaponObject->GetRecoilAngle();
+				float RecoilMultiplier = WeaponObject->GetRecoilMultiplier();
+				float ResultRecoil = -RecoilAngle * RecoilMultiplier;
+				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Recoil angle: %f"), ResultRecoil), true,
+				                                  false, FLinearColor::White);
+				
+				Character->AddControllerPitchInput(ResultRecoil);
+			}
+		}
+	}
 }
 
-void UCharacterWeaponComponent::OnAttackStop()
+void UCharacterWeaponComponent::OnWeaponFireStart()
 {
-	OnFireStop.Broadcast();
+	AddWeaponRecoil();
+	OnFireStartDelegate.Broadcast();
 }
 
-AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentComponent, UItemObject* ItemObject,
-                                                   FName SocketName)
+void UCharacterWeaponComponent::OnWeaponFireStop()
+{
+	OnFireStopDelegate.Broadcast();
+}
+
+bool UCharacterWeaponComponent::BindWeaponObject(UWeaponObject* WeaponObject)
+{
+	if (IsValid(WeaponObject))
+	{
+		WeaponObject->MakeEquipped();
+		WeaponObject->OnFireStartDelegate.AddUObject(this, &UCharacterWeaponComponent::OnWeaponFireStart);
+		WeaponObject->OnFireStopDelegate.AddUObject(this, &UCharacterWeaponComponent::OnWeaponFireStop);
+		return true;
+	}
+	return false;
+}
+
+bool UCharacterWeaponComponent::UnbindWeaponObject(UWeaponObject* WeaponObject)
+{
+	if (IsValid(WeaponObject))
+	{
+		WeaponObject->MakeUnequipped();
+		WeaponObject->OnFireStartDelegate.RemoveAll(this);
+		WeaponObject->OnFireStopDelegate.RemoveAll(this);
+		return true;
+	}
+	return false;
+}
+
+AItemActor* UCharacterWeaponComponent::SpawnItemAtHand(USceneComponent* AttachmentComponent, UItemObject* ItemObject,
+                                                       FName SocketName)
 {
 	if (AttachmentComponent->DoesSocketExist(SocketName))
 	{
@@ -381,17 +425,16 @@ AItemActor* UCharacterWeaponComponent::SpawnWeapon(USceneComponent* AttachmentCo
 			FTransform SpawnTransform = AttachmentComponent->GetSocketTransform(SocketName);
 			FAttachmentTransformRules AttachmentRules{EAttachmentRule::SnapToTarget, true};
 
-			auto SpawnedWeapon = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,
-			                                                                GetCharacter(), GetCharacter(),
-			                                                                ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-			if (SpawnedWeapon)
+			auto SpawnedItem = GetWorld()->SpawnActorDeferred<AItemActor>(ItemObject->GetActorClass(), SpawnTransform,
+			                                                              GetCharacter(), GetCharacter(),
+			                                                              ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+			if (SpawnedItem)
 			{
-				ItemObject->SetInstigator(this);
-				ItemObject->BindItemActor(SpawnedWeapon);
-				SpawnedWeapon->SetEquipped();
-				SpawnedWeapon->AttachToComponent(AttachmentComponent, AttachmentRules, SocketName);
-				SpawnedWeapon->FinishSpawning(SpawnTransform);
-				return SpawnedWeapon;
+				ItemObject->BindItemActor(SpawnedItem);
+				SpawnedItem->SetEquipped();
+				SpawnedItem->AttachToComponent(AttachmentComponent, AttachmentRules, SocketName);
+				SpawnedItem->FinishSpawning(SpawnTransform);
+				return SpawnedItem;
 			}
 		}
 	}
@@ -403,22 +446,22 @@ void UCharacterWeaponComponent::OnRep_RightHandItemData(const FEquippedHandEntry
 	if (RightHandItemData.IsValid())
 	{
 		UItemObject* ItemObject = RightHandItemData.ItemObject;
-		
 		if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(ItemObject))
 		{
-			WeaponObject->OnAttackStart.AddUObject(this, &UCharacterWeaponComponent::OnAttackStart);
-			WeaponObject->OnAttackStop.AddUObject(this, &UCharacterWeaponComponent::OnAttackStop);
+			BindWeaponObject(WeaponObject);
 		}
 	}
 	else
 	{
 		UItemObject* ItemObject = PrevHandEntry.ItemObject;
-		
 		if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(ItemObject))
 		{
-			WeaponObject->CancelAllActions();
-			WeaponObject->OnAttackStart.RemoveAll(this);
-			WeaponObject->OnAttackStop.RemoveAll(this);
+			UnbindWeaponObject(WeaponObject);
 		}
 	}
+}
+
+void UCharacterWeaponComponent::OnRep_RightHandItemActor(AItemActor* PrevItemActor)
+{
+	
 }

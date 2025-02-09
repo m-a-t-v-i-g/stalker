@@ -40,6 +40,12 @@ struct FHandItemBehavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	TObjectPtr<const UAbilitySet> AbilitySet;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	float DrawTime = 0.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	float HideTime = 0.25f;
+	
 	void Clear()
 	{
 		OccupiedHand = EOccupiedHand::Left;

@@ -34,13 +34,14 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 	if (auto WeaponDefinition = Cast<UWeaponDefinition>(Definition))
 	{
 		WeaponData.AmmoClasses = WeaponDefinition->AmmoClasses;
-		WeaponData.bAutomatic = WeaponDefinition->bAutomatic;
 		WeaponData.MagSize = WeaponDefinition->MagSize;
 		WeaponData.ReloadTime = WeaponDefinition->ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponDefinition->FireRate;
 		WeaponData.NastinessMultiplier = WeaponDefinition->NastinessMultiplier;
 		WeaponData.BulletSpeedMultiplier = WeaponDefinition->BulletSpeedMultiplier;
+		WeaponData.BulletImpulseMultiplier = WeaponDefinition->BulletImpulseMultiplier;
+		WeaponData.AdditiveImpulse = WeaponDefinition->AdditiveImpulse;
 		
 		DamageData = WeaponDefinition->DamageData;
 		
@@ -55,13 +56,14 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 	if (auto WeaponInstance = Cast<UWeaponInstance>(Instance))
 	{
 		WeaponData.AmmoClasses = WeaponInstance->WeaponData.AmmoClasses;
-		WeaponData.bAutomatic = WeaponInstance->WeaponData.bAutomatic;
 		WeaponData.MagSize = WeaponInstance->WeaponData.MagSize;
 		WeaponData.ReloadTime = WeaponInstance->WeaponData.ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponInstance->WeaponData.FireRate;
 		WeaponData.NastinessMultiplier = WeaponInstance->WeaponData.NastinessMultiplier;
 		WeaponData.BulletSpeedMultiplier = WeaponInstance->WeaponData.BulletSpeedMultiplier;
+		WeaponData.BulletImpulseMultiplier = WeaponInstance->WeaponData.BulletImpulseMultiplier;
+		WeaponData.AdditiveImpulse = WeaponInstance->WeaponData.AdditiveImpulse;
 
 		DamageData = WeaponInstance->DamageData;
 
@@ -193,6 +195,12 @@ void UWeaponObject::OnUnbindItemActor(AItemActor* PrevItemActor)
 	}
 }
 
+void UWeaponObject::Tick(float DeltaSeconds)
+{
+	UpdateSpread(DeltaSeconds);
+	UpdateRecoil(DeltaSeconds);
+}
+
 bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 {
 	bool bResult = Super::IsCorrespondsTo(OtherItemObject);
@@ -256,41 +264,35 @@ bool UWeaponObject::IsCorrespondsTo(const UItemObject* OtherItemObject) const
 	return bResult;
 }
 
-void UWeaponObject::OnModeUpdated(EItemMode NewMode, EItemMode PrevMode)
+void UWeaponObject::MakeEquipped()
 {
-	Super::OnModeUpdated(NewMode, PrevMode);
+	float MinHeatRange;
+	float MaxHeatRange;
+	ComputeHeatRange(MinHeatRange, MaxHeatRange);
+	CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.5f;
+	CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
 
-	switch (NewMode)
-	{
-	case EItemMode::Equipped:
-		{
-			float MinHeatRange;
-			float MaxHeatRange;
-			ComputeHeatRange(MinHeatRange, MaxHeatRange);
-			CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.5f;
-			CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
-		}
-		break;
-	default: break;
-	}
+	OnEquipped();
 }
 
-void UWeaponObject::Tick(float DeltaSeconds)
+void UWeaponObject::MakeUnequipped()
 {
-	UpdateSpread(DeltaSeconds);
+	CancelAllActions();
+
+	OnUnequipped();
 }
 
 void UWeaponObject::StartFire()
 {
 	AddSpread();
 	DecreaseAmmo();
-	OnAttackStart.Broadcast();
+	OnFireStartDelegate.Broadcast();
 	OnFireStart();
 }
 
 void UWeaponObject::StopFire()
 {
-	OnAttackStop.Broadcast();
+	OnFireStopDelegate.Broadcast();
 	OnFireStop();
 }
 
@@ -315,6 +317,11 @@ void UWeaponObject::AddSpread()
 	const float HeatPerShot = GetHeatToHeatPerShotCurve()->Eval(CurrentHeat);
 	CurrentHeat = ClampHeat(CurrentHeat + HeatPerShot);
 	CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
+}
+
+void UWeaponObject::UpdateRecoil(float DeltaSeconds)
+{
+	CurrentRecoilMultiplier = GetHeatToRecoilCurve()->Eval(CurrentHeat);
 }
 
 void UWeaponObject::IncreaseAmmo(UAmmoObject* AmmoObject, int Amount)
@@ -413,9 +420,24 @@ float UWeaponObject::GetSpreadAngleMultiplayer() const
 	return CurrentSpreadAngleMultiplier;
 }
 
+float UWeaponObject::GetRecoilMultiplier() const
+{
+	return CurrentRecoilMultiplier;
+}
+
 const UWeaponDefinition* UWeaponObject::GetWeaponDefinition() const
 {
 	return Cast<UWeaponDefinition>(GetDefinition());
+}
+
+UClass* UWeaponObject::GetCameraShake() const
+{
+	return GetWeaponDefinition()->CameraShake.LoadSynchronous();
+}
+
+USoundBase* UWeaponObject::GetFireSound() const
+{
+	return GetWeaponDefinition()->FireSound.LoadSynchronous();
 }
 
 TArray<const UAmmoDefinition*> UWeaponObject::GetAmmoClasses() const
@@ -469,6 +491,16 @@ float UWeaponObject::GetDefaultFireRate() const
 	return 1.0f / (FireRate / 60.0f);
 }
 
+float UWeaponObject::GetRecoilAngle() const
+{
+	return GetWeaponInstance()->WeaponData.RecoilAngle;
+}
+
+float UWeaponObject::GetDefaultRecoilAngle() const
+{
+	return GetWeaponDefinition()->RecoilAngle;
+}
+
 float UWeaponObject::GetNastinessMultiplier() const
 {
 	return GetWeaponInstance()->WeaponData.NastinessMultiplier;
@@ -489,9 +521,19 @@ float UWeaponObject::GetDefaultBulletSpeedMultiplier() const
 	return GetWeaponDefinition()->BulletSpeedMultiplier;
 }
 
-bool UWeaponObject::IsAutomatic() const
+float UWeaponObject::GetBulletImpulseMultiplier() const
 {
-	return GetWeaponInstance()->WeaponData.bAutomatic;
+	return GetWeaponInstance()->WeaponData.BulletImpulseMultiplier;
+}
+
+float UWeaponObject::GetDefaultBulletImpulseMultiplier() const
+{
+	return GetWeaponDefinition()->BulletImpulseMultiplier;
+}
+
+float UWeaponObject::GetAdditiveImpulse() const
+{
+	return GetWeaponDefinition()->AdditiveImpulse;
 }
 
 FWeaponDamageData UWeaponObject::GetDamageData() const
@@ -519,6 +561,11 @@ const FRichCurve* UWeaponObject::GetHeatToSpreadCurve() const
 	return GetWeaponDefinition()->HeatToSpreadCurve.GetRichCurveConst();
 }
 
+const FRichCurve* UWeaponObject::GetHeatToRecoilCurve() const
+{
+	return GetWeaponDefinition()->HeatToRecoilCurve.GetRichCurveConst();
+}
+
 const FRichCurve* UWeaponObject::GetHeatToHeatPerShotCurve() const
 {
 	return GetWeaponDefinition()->HeatToHeatPerShotCurve.GetRichCurveConst();
@@ -526,7 +573,7 @@ const FRichCurve* UWeaponObject::GetHeatToHeatPerShotCurve() const
 
 const FRichCurve* UWeaponObject::GetHeatToCooldownPerSecondCurve() const
 {
-	return GetWeaponDefinition()->HeatToCoolDownPerSecondCurve.GetRichCurveConst();
+	return GetWeaponDefinition()->HeatToCooldownPerSecondCurve.GetRichCurveConst();
 }
 
 AWeaponActor* UWeaponObject::GetWeaponActor() const
@@ -537,6 +584,16 @@ AWeaponActor* UWeaponObject::GetWeaponActor() const
 UWeaponInstance* UWeaponObject::GetWeaponInstance() const
 {
 	return GetItemInstance<UWeaponInstance>();
+}
+
+void UWeaponObject::OnEquipped_Implementation()
+{
+	
+}
+
+void UWeaponObject::OnUnequipped_Implementation()
+{
+	
 }
 
 void UWeaponObject::OnFireStart_Implementation()

@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BulletBase.h"
-#include "AbilitySystemComponent.h"
 #include "Ammo/AmmoObject.h"
 #include "Components/SphereComponent.h"
 #include "DamageSystem/DamageSystemCore.h"
@@ -23,6 +22,8 @@ void ABulletBase::SetupBullet(UWeaponObject* Weapon, UAmmoObject* Ammo)
 	BulletData.Instigator = GetInstigator();
 	BulletData.DamageType = Ammo->GetDamageType();
 	BulletData.DamageValue = Weapon->GetDamageData().DamageMultiplier * Ammo->GetDamageData().BaseDamage;
+	BulletData.ImpulseStrength = Weapon->GetAdditiveImpulse() + Weapon->GetBulletImpulseMultiplier() *
+		Ammo->GetBulletImpulse();
 	BulletData.SweepRadius = Ammo->GetBulletSweepRadius();
 	BulletData.Speed = Ammo->GetBulletSpeed() * Weapon->GetBulletSpeedMultiplier() * 100.0f;
 	BulletData.Nastiness = (1 - Ammo->GetBulletNastiness()) / Weapon->GetNastinessMultiplier();
@@ -46,8 +47,8 @@ void ABulletBase::HitLogic_Implementation(UPrimitiveComponent* OverlappedCompone
 	if (OtherActor)
 	{
 		FApplyDamageData DamageData = UDamageSystemCore::GenerateDamageData(
-			BulletData.Instigator.Get(), OtherActor, this, BulletData.DamageType, BulletData.DamageValue, SweepResult,
-			BulletData.SourceAmmo.Get());
+			BulletData.Instigator.Get(), OtherActor, this, BulletData.DamageType, BulletData.DamageValue,
+			SweepResult, BulletData.SourceAmmo.Get());
 
 		UDamageSystemCore::TakeDamage(DamageData);
 	}
@@ -59,8 +60,8 @@ void ABulletBase::OverlapLogic_Implementation(UPrimitiveComponent* OverlappedCom
 	if (OtherActor)
 	{
 		FApplyDamageData DamageData = UDamageSystemCore::GenerateDamageData(
-			BulletData.Instigator.Get(), OtherActor, this, BulletData.DamageType, BulletData.DamageValue, SweepResult,
-			BulletData.SourceAmmo.Get());
+			BulletData.Instigator.Get(), OtherActor, this, BulletData.DamageType, BulletData.DamageValue,
+			SweepResult, BulletData.SourceAmmo.Get());
 
 		UDamageSystemCore::TakeDamage(DamageData);
 	}

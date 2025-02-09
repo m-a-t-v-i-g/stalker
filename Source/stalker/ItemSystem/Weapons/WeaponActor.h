@@ -30,6 +30,8 @@ public:
 
 	FORCEINLINE UWeaponObject* GetWeaponObject() const;
 
+	FORCEINLINE USceneComponent* GetMuzzle() const { return Muzzle; }
+	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Muzzle;

@@ -21,6 +21,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 		AmmoData.BulletSweepRadius = AmmoDefinition->BulletSweepRadius;
 		AmmoData.BulletBaseSpeed = AmmoDefinition->BulletBaseSpeed;
 		AmmoData.BulletBaseNastiness = AmmoDefinition->BulletBaseNastiness;
+		AmmoData.BulletBaseImpulse = AmmoDefinition->BulletBaseImpulse;
 		DamageData.BaseDamage = AmmoDefinition->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoDefinition->DamageData.DamageType;
 		
@@ -41,6 +42,7 @@ void UAmmoInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* Def
 		AmmoData.BulletSweepRadius = AmmoInstance->AmmoData.BulletSweepRadius;
 		AmmoData.BulletBaseSpeed = AmmoInstance->AmmoData.BulletBaseSpeed;
 		AmmoData.BulletBaseNastiness = AmmoInstance->AmmoData.BulletBaseNastiness;
+		AmmoData.BulletBaseImpulse = AmmoInstance->AmmoData.BulletBaseImpulse;
 		DamageData.BaseDamage = AmmoInstance->DamageData.BaseDamage;
 		DamageData.DamageType = AmmoInstance->DamageData.DamageType;
 	}
@@ -86,6 +88,11 @@ float UAmmoObject::GetBulletSpeed() const
 float UAmmoObject::GetBulletNastiness() const
 {
 	return GetAmmoInstance()->AmmoData.BulletBaseNastiness;
+}
+
+float UAmmoObject::GetBulletImpulse() const
+{
+	return GetAmmoInstance()->AmmoData.BulletBaseImpulse;
 }
 
 UAmmoInstance* UAmmoObject::GetAmmoInstance() const

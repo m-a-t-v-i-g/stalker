@@ -95,6 +95,11 @@ void UEquipmentSlot::OnRep_BoundObject(UItemObject* PrevItemObject)
 {
 	if (UItemObject* ItemObject = IsEquipped() ? BoundObject.Get() : PrevItemObject)
 	{
+		if (BoundObject)
+		{
+			BoundObject->SetEquipped(this);
+		}
+		
 		OnSlotDataChange.Broadcast(FEquipmentSlotChangeData(SlotName, ItemObject, IsEquipped()));
 	}
 }

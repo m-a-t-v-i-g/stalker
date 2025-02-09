@@ -52,6 +52,9 @@ protected:
 		}
 	};
 
+	UPROPERTY(EditAnywhere, Category = "Ranged Weapon|Firing")
+	FGameplayTag CueTag;
+	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData) override;
