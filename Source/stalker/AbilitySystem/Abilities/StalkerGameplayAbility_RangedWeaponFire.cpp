@@ -3,6 +3,8 @@
 #include "StalkerGameplayAbility_RangedWeaponFire.h"
 #include "AbilitySystemComponent.h"
 #include "BulletBase.h"
+#include "CharacterWeaponComponent.h"
+#include "StalkerCharacter.h"
 #include "StalkerGameplayTags.h"
 #include "Ammo/AmmoObject.h"
 #include "Weapons/WeaponObject.h"
@@ -40,6 +42,15 @@ UWeaponObject* UStalkerGameplayAbility_RangedWeaponFire::GetWeaponObject() const
 	if (FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec())
 	{
 		return Cast<UWeaponObject>(Spec->SourceObject.Get());
+	}
+	return nullptr;
+}
+
+UCharacterWeaponComponent* UStalkerGameplayAbility_RangedWeaponFire::GetWeaponComponent() const
+{
+	if (AStalkerCharacter* StalkerPawn = Cast<AStalkerCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		return StalkerPawn->GetWeaponComponent();
 	}
 	return nullptr;
 }
@@ -171,7 +182,9 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
                                                                        TArray<FHitResult>& OutHits)
 {
 	UWeaponObject* WeaponObject = InputData.WeaponObject;
+	
 	check(WeaponObject);
+	check(GetWeaponComponent());
 
 	TArray<UAmmoObject*> Cartridge = WeaponObject->GetRounds();
 	if (Cartridge.IsEmpty())
@@ -184,12 +197,8 @@ void UStalkerGameplayAbility_RangedWeaponFire::TraceBulletsInCartridge(const FRa
 
 	for (int32 i = 0; i < BulletsPerCartridge; ++i)
 	{
-		const float SpreadAngle = WeaponObject->GetSpreadAngle();
-		const float SpreadAngleMultiplier = WeaponObject->GetSpreadAngleMultiplayer();
-		const float ActualSpreadAngle = SpreadAngle * SpreadAngleMultiplier;
-
-		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
-
+		const float SpreadAngle = GetWeaponComponent()->GetCalculatedSpreadAngle();
+		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(SpreadAngle * 0.5f);
 		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians,
 		                                                      WeaponObject->GetSpreadExponent());
 		const FVector EndTrace = InputData.StartTrace + BulletDir * 10000.0f;

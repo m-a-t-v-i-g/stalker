@@ -29,6 +29,9 @@ struct FHandItemBehavior
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
+	TObjectPtr<const UAbilitySet> AbilitySet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	EOccupiedHand OccupiedHand = EOccupiedHand::Right;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
@@ -37,9 +40,6 @@ struct FHandItemBehavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	FRotator InHandRotation = FRotator::ZeroRotator;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
-	TObjectPtr<const UAbilitySet> AbilitySet;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	float DrawTime = 0.25f;
 

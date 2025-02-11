@@ -17,6 +17,24 @@ namespace FItemSystemTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ItemTag_WeaponSecondary,		"Item.Weapon.Secondary", "Weapon secondary tag.");
 }
 
+void FOutfitList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
+{
+	
+}
+
+void FOutfitList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
+{
+}
+
+UItemObject* FOutfitList::AddEntry(const FString& SlotName, UItemObject* ItemObject)
+{
+}
+
+void FOutfitList::RemoveEntry(const FString& SlotName)
+{
+	
+}
+
 UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemObject* ItemObject)
 {
 	if (ItemObject)

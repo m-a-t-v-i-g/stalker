@@ -5,7 +5,12 @@
 #include "CoreMinimal.h"
 #include "NativeGameplayTags.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Net/Serialization/FastArraySerializer.h"
 #include "ItemSystemCore.generated.h"
+
+struct FAppliedOutfitEntry;
+struct FOutfitList;
+struct FGameplayAbilitySpecHandle;
 
 class UGameplayEffect;
 class UItemDefinition;
@@ -13,15 +18,69 @@ class UItemPredictedData;
 class UItemObject;
 class AItemActor;
 
+USTRUCT()
+struct FAppliedOutfitEntry : public FFastArraySerializerItem
+{
+	GENERATED_USTRUCT_BODY()
+
+	FAppliedOutfitEntry()
+	{
+	}
+
+private:
+	friend FOutfitList;
+
+	UPROPERTY()
+	FString SlotName;
+	
+	UPROPERTY()
+	TObjectPtr<UItemObject> ItemObject;
+
+	UPROPERTY(NotReplicated)
+	TArray<FGameplayAbilitySpecHandle> Abilities;
+};
+
+USTRUCT()
+struct FOutfitList : public FFastArraySerializer
+{
+	GENERATED_USTRUCT_BODY()
+
+	FOutfitList() : OwnerComponent(nullptr)
+	{
+	}
+
+	FOutfitList(UActorComponent* InOwnerComponent) : OwnerComponent(InOwnerComponent)
+	{
+	}
+
+	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
+	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
+
+	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
+	{
+		return FastArrayDeltaSerialize<FAppliedOutfitEntry, FOutfitList>(Entries, DeltaParams, *this);
+	}
+
+	UItemObject* AddEntry(const FString& SlotName, UItemObject* ItemObject);
+	void RemoveEntry(const FString& SlotName);
+
+private:
+	UPROPERTY()
+	TArray<FAppliedOutfitEntry> Entries;
+
+	UPROPERTY(NotReplicated)
+	TObjectPtr<UActorComponent> OwnerComponent;
+};
+
 USTRUCT(Blueprintable)
 struct FOutfitSlot
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Weapon Slot")
+	UPROPERTY(EditAnywhere, Category = "Outfit Slot")
 	FString SlotName = "Default";
 	
-	UPROPERTY(VisibleInstanceOnly, Category = "Weapon Slot")
+	UPROPERTY(VisibleInstanceOnly, Category = "Outfit Slot")
 	UItemObject* ArmedObject = nullptr;
 	
 	FOutfitSlot()
@@ -59,8 +118,6 @@ public:
 	static UItemObject* GenerateItemObject(UWorld* World, const UItemDefinition* Definition,
 	                                       const UItemPredictedData* PredictedData);
 	static void DestroyItemObject(const UItemObject* ItemObject);
-
-	static AItemActor* SpawnItemAttached();
 
 	static UItemObject* GetItemObjectById(const UWorld* World, uint32 ItemId);
 	static bool IsItemObjectValid(const UWorld* World, uint32 ItemId);

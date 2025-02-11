@@ -25,18 +25,18 @@ class STALKER_API UCharacterOutfitComponent : public UPawnComponent
 public:
 	UCharacterOutfitComponent(const FObjectInitializer& ObjectInitializer);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter);
 
-	void AddOutfitSlot(const FOutfitSlot& OutfitSlot);
-	
-	void OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData);
+	void OnEquipmentSlotChange(const FEquipmentSlotChangeData& SlotData);
 	
 	virtual void OnCharacterDamaged(const FGameplayTag& DamageTag, const FGameplayTag& PartTag,
 	                                const FHitResult& HitResult, float DamageValue);
 	virtual void OnCharacterDead();
 	
-	virtual void ArmSlot(const FString& SlotName, UItemObject* ItemObject);
-	virtual void DisarmSlot(const FString& SlotName);
+	virtual UItemObject* ArmSlot(const FString& SlotName, UItemObject* ItemObject);
+	virtual void DisarmSlot(const FString& SlotName, UItemObject* ItemObject);
 
 	FOutfitSlot* FindOutfitSlot(const FString& SlotName);
 
@@ -49,24 +49,42 @@ public:
 	UHitScanComponent* GetHitScanComponent() const { return HitScanComponentRef; }
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "Outfit")
-	TArray<FOutfitSlot> OutfitSlots;
-
-	virtual void InitializeComponent() override;
+	virtual void InitializeComponent() override; 
 	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* InItem);
+
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "OnEquipSlot", Category = "Outfit")
+	void K2_OnEquipSlot(const FString& SlotName, UItemObject* InItem);
+	
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem);
+	
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "OnUnequipSlot", Category = "Outfit")
+	void K2_OnUnequipSlot(const FString& SlotName, UItemObject* InItem);
 
 	FORCEINLINE const UItemBehaviorSet* GetItemBehaviorSet() const;
 
 private:
+	UPROPERTY(Replicated)
+	FOutfitList OutfitList;
+	
+	UPROPERTY()
 	TObjectPtr<AStalkerCharacter> CharacterRef;
 
+	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilityComponentRef;
+
+	UPROPERTY()
 	TObjectPtr<UInventoryComponent> InventoryComponentRef;
+
+	UPROPERTY()
 	TObjectPtr<UEquipmentComponent> EquipmentComponentRef;
+
+	UPROPERTY()
 	TObjectPtr<UCharacterStateComponent> StateComponentRef;
+
+	UPROPERTY()
 	TObjectPtr<UHitScanComponent> HitScanComponentRef;
 
+	UPROPERTY()
 	TSoftObjectPtr<const UItemBehaviorSet> ItemBehavior;
 };

@@ -9,6 +9,7 @@
 #include "StalkerCharacter.h"
 #include "Components/HitScanComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 UCharacterOutfitComponent::UCharacterOutfitComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -16,6 +17,13 @@ UCharacterOutfitComponent::UCharacterOutfitComponent(const FObjectInitializer& O
 	bWantsInitializeComponent = true;
 	
 	SetIsReplicatedByDefault(true);
+}
+
+void UCharacterOutfitComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, OutfitList);
 }
 
 void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharacter)
@@ -41,23 +49,20 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	{
 		if (EquipmentComponentRef)
 		{
-			if (!EquipmentComponentRef->GetEquipmentSlots().IsEmpty())
+			TArray<UEquipmentSlot*> EquipmentSlots = EquipmentComponentRef->GetEquipmentSlots();
+			if (!EquipmentSlots.IsEmpty())
 			{
-				for (const FOutfitSlot& OutfitSlot : OutfitSlots)
+				for (UEquipmentSlot* EquipmentSlot : EquipmentSlots)
 				{
-					if (OutfitSlot.SlotName.IsEmpty())
+					if (!IsValid(EquipmentSlot) || EquipmentSlot->GetSlotName().IsEmpty())
 					{
 						continue;
 					}
 
-					UEquipmentSlot* SlotPtr = EquipmentComponentRef->FindEquipmentSlot(OutfitSlot.SlotName);
-					if (IsValid(SlotPtr))
-					{
-						OnEquipmentSlotChanged(
-							FEquipmentSlotChangeData(SlotPtr->GetSlotName(), SlotPtr->GetBoundObject(),
-							                         SlotPtr->IsEquipped()));
-						SlotPtr->OnSlotDataChange.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChanged);
-					}
+					OnEquipmentSlotChange(FEquipmentSlotChangeData(EquipmentSlot->GetSlotName(),
+					                                               EquipmentSlot->GetBoundObject(),
+					                                               EquipmentSlot->IsEquipped()));
+					EquipmentSlot->OnSlotDataChange.AddUObject(this, &UCharacterOutfitComponent::OnEquipmentSlotChange);
 				}
 			}
 		}
@@ -74,12 +79,7 @@ void UCharacterOutfitComponent::SetupOutfitComponent(AStalkerCharacter* InCharac
 	}
 }
 
-void UCharacterOutfitComponent::AddOutfitSlot(const FOutfitSlot& OutfitSlot)
-{
-	OutfitSlots.Add(OutfitSlot);
-}
-
-void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChangeData& SlotData)
+void UCharacterOutfitComponent::OnEquipmentSlotChange(const FEquipmentSlotChangeData& SlotData)
 {
 	UItemObject* SlotItem = SlotData.SlotItem;
 	const FString& SlotName = SlotData.SlotName;
@@ -94,13 +94,15 @@ void UCharacterOutfitComponent::OnEquipmentSlotChanged(const FEquipmentSlotChang
 	{
 		ArmSlot(SlotName, SlotItem);
 		OnEquipSlot(SlotName, SlotItem);
+		K2_OnEquipSlot(SlotName, SlotItem);
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot equipped!"), *GetName(), *SlotName),
 		                                  true, false);
 	}
 	else
 	{
-		DisarmSlot(SlotName);
+		DisarmSlot(SlotName, SlotItem);
 		OnUnequipSlot(SlotName, SlotItem);
+		K2_OnUnequipSlot(SlotName, SlotItem);
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s: %s slot unequipped!"), *GetName(), *SlotName),
 		                                  true, false);
 	}
@@ -115,29 +117,26 @@ void UCharacterOutfitComponent::OnCharacterDead()
 {
 }
 
-void UCharacterOutfitComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
+UItemObject* UCharacterOutfitComponent::ArmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (!ItemObject)
+	UItemObject* ArmItem = nullptr;
+	if (ItemObject)
 	{
-		return;
+		ArmItem = OutfitList.AddEntry(SlotName, ItemObject);
+		if (ArmItem)
+		{
+			OnEquipSlot(SlotName, ArmItem);
+		}
 	}
-
-	if (FOutfitSlot* Slot = FindOutfitSlot(SlotName))
-	{
-		Slot->ArmedObject = ItemObject;
-	}
+	return ArmItem;
 }
 
-void UCharacterOutfitComponent::DisarmSlot(const FString& SlotName)
+void UCharacterOutfitComponent::DisarmSlot(const FString& SlotName, UItemObject* ItemObject)
 {
-	if (FOutfitSlot* Slot = FindOutfitSlot(SlotName))
+	if (!SlotName.IsEmpty())
 	{
-		if (!Slot->IsArmed())
-		{
-			return;
-		}
-		
-		Slot->ArmedObject = nullptr;
+		OnUnequipSlot(SlotName, ItemObject);
+		OutfitList.RemoveEntry(SlotName);
 	}
 }
 

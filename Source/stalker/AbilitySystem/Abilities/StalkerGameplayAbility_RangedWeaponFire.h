@@ -6,6 +6,7 @@
 #include "StalkerGameplayAbility.h"
 #include "StalkerGameplayAbility_RangedWeaponFire.generated.h"
 
+class UCharacterWeaponComponent;
 class UWeaponObject;
 
 UENUM(BlueprintType)
@@ -34,6 +35,7 @@ public:
 	UStalkerGameplayAbility_RangedWeaponFire(const FObjectInitializer& ObjectInitializer);
 	
 	UWeaponObject* GetWeaponObject() const;
+	UCharacterWeaponComponent* GetWeaponComponent() const;
 
 protected:
 	struct FRangedWeaponFiringInput

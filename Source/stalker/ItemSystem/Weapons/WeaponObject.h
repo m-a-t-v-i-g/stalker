@@ -6,6 +6,7 @@
 #include "ItemObject.h"
 #include "WeaponObject.generated.h"
 
+class UNiagaraSystem;
 class UAmmoDefinition;
 class UAmmoObject;
 class AWeaponActor;
@@ -89,6 +90,9 @@ public:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Fire", Category = "Weapon|Sounds")
 	TSoftObjectPtr<USoundBase> FireSound;
+	
+	UPROPERTY(EditAnywhere, DisplayName = "Muzzle", Category = "Weapon|VFX")
+	TSoftObjectPtr<UNiagaraSystem> MuzzleEffect;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Magazin", meta = (ClampMin = "0"))
 	int MagSize = 0;
@@ -220,7 +224,6 @@ public:
 	FORCEINLINE bool CanAttack() const;
 
 	FORCEINLINE float GetSpreadAngle() const;
-	FORCEINLINE float GetSpreadAngleMultiplayer() const;
 	FORCEINLINE float GetRecoilMultiplier() const;
 	
 #pragma endregion Behavior
@@ -230,6 +233,7 @@ public:
 	FORCEINLINE UClass* GetCameraShake() const;
 	
 	FORCEINLINE USoundBase* GetFireSound() const;
+	FORCEINLINE UNiagaraSystem* GetMuzzleEffect() const;
 	
 	FORCEINLINE TArray<const UAmmoDefinition*> GetAmmoClasses() const;
 	FORCEINLINE int GetDefaultMagSize() const;
@@ -280,33 +284,12 @@ protected:
 	virtual float CalculateSpreadExponent() const;
 
 private:
-	// Time since this weapon was last fired (relative to world time)
-	double LastFireTime = 0.0;
-
-	// The current heat
+	float LastFireTime = 0.0;
 	float CurrentHeat = 0.0f;
-
-	// The current spread angle (in degrees, diametrical)
 	float CurrentSpreadAngle = 0.0f;
-
-	// The current recoil multiplier
 	float CurrentRecoilMultiplier = 1.0f;
-
-	// Do we currently have first shot accuracy?
-	bool bHasFirstShotAccuracy = false;
-
-	// The current *combined* spread angle multiplier
-	float CurrentSpreadAngleMultiplier = 1.0f;
 
 	void ComputeSpreadRange(float& MinSpread, float& MaxSpread);
 	void ComputeHeatRange(float& MinHeat, float& MaxHeat);
-
-	float ClampHeat(float NewHeat)
-	{
-		float MinHeat;
-		float MaxHeat;
-		ComputeHeatRange(/*out*/ MinHeat, /*out*/ MaxHeat);
-
-		return FMath::Clamp(NewHeat, MinHeat, MaxHeat);
-	}
+	float ClampHeat(float NewHeat);
 };

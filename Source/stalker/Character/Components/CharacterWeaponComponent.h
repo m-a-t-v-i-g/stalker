@@ -84,6 +84,9 @@ public:
 	UFUNCTION()
 	void StopAiming();
 
+	void UpdateSpreadAngleMultipliers(float DeltaTime);
+	float GetCalculatedSpreadAngle() const;
+
 	const FHandItemBehavior* GetHandItemBehavior(const FName& ItemScriptName) const;
 	
 	FORCEINLINE UItemObject* GetItemObjectAtLeftHand() const;
@@ -161,6 +164,24 @@ private:
 
 	UPROPERTY(EditInstanceOnly, Replicated, Category = "Weapon")
 	AItemActor* RightHandItemActor = nullptr;
+
+	float CurrentSpreadAngleMultiplier = 1.0f;
+
+	float StandingStillSpeedThreshold = 0.0f;
+	float StandingStillToMovingSpeedRange = 750.0f;
+	
+	float SpreadAngleMultiplier_StandingStill = 0.8f;
+	float SpreadAngleMultiplier_SpeedValue = 3.0f;
+	float SpreadAngleMultiplier_Crouching = 0.8f;
+	float SpreadAngleMultiplier_JumpingOrFalling = 2.5f;
+
+	float TransitionRate_StandingStill = 5.0f;
+	float TransitionRate_Crouching = 5.0f;
+	float TransitionRate_JumpingOrFalling = 5.0f;
+
+	float StandingStillMultiplier = 1.0f;
+	float CrouchingMultiplier = 1.0f;
+	float JumpOrFallMultiplier = 1.0f;
 
 	float TargetArmLength = 0.0f;
 	

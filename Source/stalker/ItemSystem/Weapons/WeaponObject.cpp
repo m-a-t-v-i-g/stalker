@@ -2,6 +2,7 @@
 
 #include "WeaponObject.h"
 #include "ItemSystemCore.h"
+#include "NiagaraSystem.h"
 #include "WeaponActor.h"
 #include "Ammo/AmmoObject.h"
 #include "Engine/ActorChannel.h"
@@ -38,6 +39,7 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		WeaponData.ReloadTime = WeaponDefinition->ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponDefinition->FireRate;
+		WeaponData.RecoilAngle = WeaponDefinition->RecoilAngle;
 		WeaponData.NastinessMultiplier = WeaponDefinition->NastinessMultiplier;
 		WeaponData.BulletSpeedMultiplier = WeaponDefinition->BulletSpeedMultiplier;
 		WeaponData.BulletImpulseMultiplier = WeaponDefinition->BulletImpulseMultiplier;
@@ -60,6 +62,7 @@ void UWeaponInstance::SetupProperties(uint32 NewItemId, const UItemDefinition* D
 		WeaponData.ReloadTime = WeaponInstance->WeaponData.ReloadTime;
 		WeaponData.Rounds.Empty();
 		WeaponData.FireRate = WeaponInstance->WeaponData.FireRate;
+		WeaponData.RecoilAngle = WeaponInstance->WeaponData.RecoilAngle;
 		WeaponData.NastinessMultiplier = WeaponInstance->WeaponData.NastinessMultiplier;
 		WeaponData.BulletSpeedMultiplier = WeaponInstance->WeaponData.BulletSpeedMultiplier;
 		WeaponData.BulletImpulseMultiplier = WeaponInstance->WeaponData.BulletImpulseMultiplier;
@@ -269,7 +272,7 @@ void UWeaponObject::MakeEquipped()
 	float MinHeatRange;
 	float MaxHeatRange;
 	ComputeHeatRange(MinHeatRange, MaxHeatRange);
-	CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.5f;
+	CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.15f;
 	CurrentSpreadAngle = GetHeatToSpreadCurve()->Eval(CurrentHeat);
 
 	OnEquipped();
@@ -415,11 +418,6 @@ float UWeaponObject::GetSpreadAngle() const
 	return CurrentSpreadAngle;
 }
 
-float UWeaponObject::GetSpreadAngleMultiplayer() const
-{
-	return CurrentSpreadAngleMultiplier;
-}
-
 float UWeaponObject::GetRecoilMultiplier() const
 {
 	return CurrentRecoilMultiplier;
@@ -438,6 +436,11 @@ UClass* UWeaponObject::GetCameraShake() const
 USoundBase* UWeaponObject::GetFireSound() const
 {
 	return GetWeaponDefinition()->FireSound.LoadSynchronous();
+}
+
+UNiagaraSystem* UWeaponObject::GetMuzzleEffect() const
+{
+	return GetWeaponDefinition()->MuzzleEffect.LoadSynchronous();
 }
 
 TArray<const UAmmoDefinition*> UWeaponObject::GetAmmoClasses() const
@@ -642,4 +645,13 @@ void UWeaponObject::ComputeHeatRange(float& MinHeat, float& MaxHeat)
 
 	MinHeat = FMath::Min(FMath::Min(Min1, Min2), Min3);
 	MaxHeat = FMath::Max(FMath::Max(Max1, Max2), Max3);
+}
+
+float UWeaponObject::ClampHeat(float NewHeat)
+{
+	float MinHeat;
+	float MaxHeat;
+	ComputeHeatRange(/*out*/ MinHeat, /*out*/ MaxHeat);
+
+	return FMath::Clamp(NewHeat, MinHeat, MaxHeat);
 }

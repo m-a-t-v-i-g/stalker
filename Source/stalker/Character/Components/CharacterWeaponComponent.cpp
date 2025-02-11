@@ -7,6 +7,7 @@
 #include "ItemActor.h"
 #include "ItemObject.h"
 #include "StalkerCharacter.h"
+#include "StalkerCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -38,7 +39,10 @@ void UCharacterWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		return;
 	}
 
-	TickItemAtHand(DeltaTime);
+	if (HasAuthority() || GetCharacter()->IsLocallyControlled())
+	{
+		TickItemAtHand(DeltaTime);
+	}
 }
 
 void UCharacterWeaponComponent::OnCharacterDead()
@@ -48,15 +52,23 @@ void UCharacterWeaponComponent::OnCharacterDead()
 
 void UCharacterWeaponComponent::TickItemAtHand(float DeltaTime)
 {
-	if (!IsRightItemObjectValid())
+	if (IsLeftItemObjectValid())
 	{
-		return;
+		if (UItemObject* LeftItem = GetItemObjectAtLeftHand())
+		{
+			LeftItem->Tick(DeltaTime);
+		}
 	}
 
-	if (UItemObject* ItemObject = GetItemObjectAtRightHand())
+	if (IsRightItemObjectValid())
 	{
-		ItemObject->Tick(DeltaTime);
+		if (UItemObject* RightItem = GetItemObjectAtRightHand())
+		{
+			RightItem->Tick(DeltaTime);
+		}
 	}
+
+	UpdateSpreadAngleMultipliers(DeltaTime);
 }
 
 void UCharacterWeaponComponent::ToggleSlot(uint8 SlotIndex)
@@ -108,6 +120,43 @@ void UCharacterWeaponComponent::StopAiming()
 			SpringArm->TargetArmLength = TargetArmLength;
 		}
 	}
+}
+
+void UCharacterWeaponComponent::UpdateSpreadAngleMultipliers(float DeltaTime)
+{
+	AStalkerCharacter* StalkerPawn = GetCharacter();
+	check(StalkerPawn);
+	
+	UStalkerCharacterMovementComponent* CharMovementComp = Cast<UStalkerCharacterMovementComponent>(StalkerPawn->GetMovementComponent());
+	check(CharMovementComp);
+
+	const float PawnSpeed = StalkerPawn->GetVelocity().Size();
+	const float MovementTargetValue = FMath::GetMappedRangeValueClamped(
+		FVector2D(StandingStillSpeedThreshold, StandingStillSpeedThreshold + StandingStillToMovingSpeedRange),
+		FVector2D(SpreadAngleMultiplier_StandingStill, SpreadAngleMultiplier_SpeedValue), PawnSpeed);
+	StandingStillMultiplier = FMath::FInterpTo(StandingStillMultiplier, MovementTargetValue, DeltaTime, TransitionRate_StandingStill);
+
+	const bool bIsCrouching = CharMovementComp != nullptr && CharMovementComp->IsCrouching();
+	const float CrouchingTargetValue = bIsCrouching ? SpreadAngleMultiplier_Crouching : 1.0f;
+	CrouchingMultiplier = FMath::FInterpTo(CrouchingMultiplier, CrouchingTargetValue, DeltaTime, TransitionRate_Crouching);
+
+	const bool bIsJumpingOrFalling = CharMovementComp != nullptr && CharMovementComp->IsFalling();
+	const float JumpFallTargetValue = bIsJumpingOrFalling ? SpreadAngleMultiplier_JumpingOrFalling : 1.0f;
+	JumpOrFallMultiplier = FMath::FInterpTo(JumpOrFallMultiplier, JumpFallTargetValue, DeltaTime, TransitionRate_JumpingOrFalling);
+	
+	const float CombinedMultiplier = StandingStillMultiplier * CrouchingMultiplier * JumpOrFallMultiplier;
+	CurrentSpreadAngleMultiplier = CombinedMultiplier;
+}
+
+float UCharacterWeaponComponent::GetCalculatedSpreadAngle() const
+{
+	if (const UWeaponObject* WeaponObject = Cast<const UWeaponObject>(GetItemObjectAtRightHand()))
+	{
+		const float WeaponSpreadAngle = WeaponObject->GetSpreadAngle();
+		const float CurrentSpreadAngle = WeaponSpreadAngle * CurrentSpreadAngleMultiplier;
+		return CurrentSpreadAngle;
+	}
+	return 0.0f;
 }
 
 const FHandItemBehavior* UCharacterWeaponComponent::GetHandItemBehavior(const FName& ItemScriptName) const
@@ -366,13 +415,11 @@ void UCharacterWeaponComponent::AddWeaponRecoil()
 	{
 		if (Character->IsLocallyControlled())
 		{
-			if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(RightHandItemData.ItemObject))
+			if (UWeaponObject* WeaponObject = Cast<UWeaponObject>(GetItemObjectAtRightHand()))
 			{
 				float RecoilAngle = WeaponObject->GetRecoilAngle();
 				float RecoilMultiplier = WeaponObject->GetRecoilMultiplier();
 				float ResultRecoil = -RecoilAngle * RecoilMultiplier;
-				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Recoil angle: %f"), ResultRecoil), true,
-				                                  false, FLinearColor::White);
 				
 				Character->AddControllerPitchInput(ResultRecoil);
 			}

@@ -58,10 +58,7 @@ float UHUDBaseReticleWidget::ComputeSpreadAngle() const
 {
 	if (OwnWeaponComponent.IsValid())
 	{
-		if (const UWeaponObject* WeaponObject = Cast<const UWeaponObject>(OwnWeaponComponent->GetItemObjectAtRightHand()))
-		{
-			return WeaponObject->GetSpreadAngle();
-		}
+		return OwnWeaponComponent->GetCalculatedSpreadAngle();
 	}
 	return 0.0f;
 }
