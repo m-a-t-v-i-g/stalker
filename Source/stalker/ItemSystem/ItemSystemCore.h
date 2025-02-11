@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "NativeGameplayTags.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Net/Serialization/FastArraySerializer.h"
@@ -10,15 +11,16 @@
 
 struct FAppliedOutfitEntry;
 struct FOutfitList;
-struct FGameplayAbilitySpecHandle;
 
+class UAbilitySystemComponent;
+class UOutfitComponent;
 class UGameplayEffect;
 class UItemDefinition;
 class UItemPredictedData;
 class UItemObject;
 class AItemActor;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FAppliedOutfitEntry : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
@@ -40,16 +42,16 @@ private:
 	TArray<FGameplayAbilitySpecHandle> Abilities;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FOutfitList : public FFastArraySerializer
 {
 	GENERATED_USTRUCT_BODY()
 
-	FOutfitList() : OwnerComponent(nullptr)
+	FOutfitList() : OutfitComponent(nullptr)
 	{
 	}
 
-	FOutfitList(UActorComponent* InOwnerComponent) : OwnerComponent(InOwnerComponent)
+	FOutfitList(UOutfitComponent* InOwnerComponent) : OutfitComponent(InOwnerComponent)
 	{
 	}
 
@@ -64,12 +66,14 @@ struct FOutfitList : public FFastArraySerializer
 	UItemObject* AddEntry(const FString& SlotName, UItemObject* ItemObject);
 	void RemoveEntry(const FString& SlotName);
 
+	UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
 private:
 	UPROPERTY()
 	TArray<FAppliedOutfitEntry> Entries;
 
 	UPROPERTY(NotReplicated)
-	TObjectPtr<UActorComponent> OwnerComponent;
+	TObjectPtr<UOutfitComponent> OutfitComponent;
 };
 
 USTRUCT(Blueprintable)

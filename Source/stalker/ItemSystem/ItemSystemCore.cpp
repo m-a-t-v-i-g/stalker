@@ -1,7 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemSystemCore.h"
+#include "AbilitySet.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "ItemObject.h"
+#include "OutfitComponent.h"
 #include "Game/StalkerGameState.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -28,11 +32,58 @@ void FOutfitList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 
 
 UItemObject* FOutfitList::AddEntry(const FString& SlotName, UItemObject* ItemObject)
 {
+	check(ItemObject);
+	
+	FAppliedOutfitEntry& NewEntry = Entries.AddDefaulted_GetRef();
+	NewEntry.SlotName = SlotName;
+	NewEntry.ItemObject = ItemObject;
+
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
+	{
+		if (const UAbilitySet* AbilitySet = ItemObject->GetAbilitySet())
+		{
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, NewEntry.Abilities, ItemObject);
+		}
+	}
+
+	// TODO: Result->SpawnEquipmentActors(EquipmentCDO->ActorsToSpawn);
+	
+	MarkItemDirty(NewEntry);
+	return NewEntry.ItemObject;
 }
 
 void FOutfitList::RemoveEntry(const FString& SlotName)
 {
+	for (auto EntryIt = Entries.CreateIterator(); EntryIt; ++EntryIt)
+	{
+		FAppliedOutfitEntry& Entry = *EntryIt;
+		if (Entry.SlotName == SlotName)
+		{
+			if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
+			{
+				for (FGameplayAbilitySpecHandle& EachAbility : Entry.Abilities)
+				{
+					AbilitySystemComponent->ClearAbility(EachAbility);
+				}
+			}
+
+			// TODO: Instance->DestroyEquipmentActors();
+			
+			EntryIt.RemoveCurrent();
+			MarkArrayDirty();
+			break;
+		}
+	}
+}
+
+UAbilitySystemComponent* FOutfitList::GetAbilitySystemComponent() const
+{
+	check(OutfitComponent);
 	
+	AActor* OwningActor = OutfitComponent->GetOwner();
+	check(OwningActor);
+	
+	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwningActor);
 }
 
 UItemObject* UItemSystemCore::GenerateItemObject(UWorld* World, const UItemObject* ItemObject)

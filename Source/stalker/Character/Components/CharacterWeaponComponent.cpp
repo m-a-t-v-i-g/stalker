@@ -73,26 +73,12 @@ void UCharacterWeaponComponent::TickItemAtHand(float DeltaTime)
 
 void UCharacterWeaponComponent::ToggleSlot(uint8 SlotIndex)
 {
-	if (OutfitSlots.IsValidIndex(SlotIndex))
-	{
-		ServerToggleSlot(SlotIndex);
-	}
+
 }
 
 void UCharacterWeaponComponent::ServerToggleSlot_Implementation(int8 SlotIndex)
 {
-	const FOutfitSlot* SlotPtr = &OutfitSlots[SlotIndex];
-	if (!SlotPtr)
-	{
-		return;
-	}
 
-	if (!SlotPtr->IsArmed())
-	{
-		return;
-	}
-	
-	ShowOrHideItem(SlotPtr->ArmedObject);
 }
 
 void UCharacterWeaponComponent::StartAiming()
@@ -211,9 +197,9 @@ bool UCharacterWeaponComponent::IsRightItemActorValid() const
 	return IsValid(RightHandItemActor);
 }
 
-void UCharacterWeaponComponent::SetupOutfitComponent(AStalkerCharacter* InCharacter)
+void UCharacterWeaponComponent::SetupOutfitComponent()
 {
-	Super::SetupOutfitComponent(InCharacter);
+	Super::SetupOutfitComponent();
 
 	if (GetCharacter())
 	{

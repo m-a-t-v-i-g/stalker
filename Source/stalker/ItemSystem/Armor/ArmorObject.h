@@ -26,9 +26,6 @@ class STALKER_API UArmorDefinition : public UItemDefinition
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Armor")
-	TSubclassOf<UGameplayEffect> ArmorEffect;
-	
-	UPROPERTY(EditAnywhere, Category = "Armor")
 	TMap<FGameplayTag, float> ProtectionModifiers;
 	
 	UPROPERTY(EditAnywhere, Category = "Armor")
@@ -89,7 +86,6 @@ public:
 #pragma endregion Behavior
 
 	FORCEINLINE const UArmorDefinition* GetArmorDefinition() const;
-	FORCEINLINE const UClass* GetArmorEffect() const;
 	FORCEINLINE TMap<FGameplayTag, float> GetProtectionModifiers() const;
 	FORCEINLINE const FRichCurve* GetProtectionFactorCurve() const;
 	

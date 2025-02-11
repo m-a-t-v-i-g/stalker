@@ -115,11 +115,6 @@ const UArmorDefinition* UArmorObject::GetArmorDefinition() const
 	return Cast<UArmorDefinition>(GetDefinition());
 }
 
-const UClass* UArmorObject::GetArmorEffect() const
-{
-	return GetArmorDefinition()->ArmorEffect;
-}
-
 TMap<FGameplayTag, float> UArmorObject::GetProtectionModifiers() const
 {
 	return GetArmorInstance()->ArmorData.ProtectionModifiers;

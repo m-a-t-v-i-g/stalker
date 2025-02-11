@@ -53,7 +53,7 @@ struct FEquippedHandEntry
 	}
 };
 
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class STALKER_API UCharacterWeaponComponent : public UCharacterOutfitComponent
 {
 	GENERATED_BODY()
@@ -128,7 +128,7 @@ public:
 	FORCEINLINE bool IsRightItemActorValid() const;
 	
 protected:
-	virtual void SetupOutfitComponent(AStalkerCharacter* InCharacter) override;
+	virtual void SetupOutfitComponent() override;
 	
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* InItem) override;
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* PrevItem) override;

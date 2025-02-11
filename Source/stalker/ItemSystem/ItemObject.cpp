@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemObject.h"
+#include "GameplayEffect.h"
 #include "ItemActor.h"
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
@@ -433,6 +434,26 @@ FIntPoint UItemObject::GetItemSize() const
 	return GetDefinition()->Size;
 }
 
+uint32 UItemObject::GetStackAmount() const
+{
+	return GetDefinition()->StackAmount;
+}
+
+const UAbilitySet* UItemObject::GetAbilitySet() const
+{
+	return GetDefinition()->AbilitySetToGrant;
+}
+
+const TArray<TSubclassOf<UGameplayEffect>>& UItemObject::GetItemEffects() const
+{
+	return GetDefinition()->ItemEffectsToGrant;
+}
+
+const TMap<FGameplayTag, float>& UItemObject::GetSpoilModifiers() const
+{
+	return GetDefinition()->SpoilModifiers;
+}
+
 bool UItemObject::IsUsable() const
 {
 	return GetDefinition()->bUsable;
@@ -451,16 +472,6 @@ bool UItemObject::IsStackable() const
 bool UItemObject::IsSpoiling() const
 {
 	return true;
-}
-
-uint32 UItemObject::GetStackAmount() const
-{
-	return GetDefinition()->StackAmount;
-}
-
-const TMap<FGameplayTag, float>& UItemObject::GetSpoilModifiers() const
-{
-	return GetDefinition()->SpoilModifiers;
 }
 
 AItemActor* UItemObject::GetBoundActor() const

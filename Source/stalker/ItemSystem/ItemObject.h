@@ -8,6 +8,9 @@
 #include "UObject/Object.h"
 #include "ItemObject.generated.h"
 
+class UAbilitySet;
+class UGameplayEffect;
+
 UENUM()
 enum class EItemMode : uint8
 {
@@ -81,6 +84,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Properties", meta = (ClampMin = "1"))
 	int StackAmount = 1;
+	
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TObjectPtr<const UAbilitySet> AbilitySetToGrant;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TArray<TSubclassOf<UGameplayEffect>> ItemEffectsToGrant;
 	
 	UPROPERTY(EditAnywhere, Category = "Spoiling")
 	TMap<FGameplayTag, float> SpoilModifiers;
@@ -247,13 +256,16 @@ public:
 	FORCEINLINE FText GetItemDesc() const;
 	FORCEINLINE UTexture2D* GetThumbnail() const;
 	FORCEINLINE FIntPoint GetItemSize() const;
+	FORCEINLINE uint32 GetStackAmount() const;
+	FORCEINLINE const UAbilitySet* GetAbilitySet() const;
+	FORCEINLINE const TArray<TSubclassOf<UGameplayEffect>>& GetItemEffects() const;
+	FORCEINLINE const TMap<FGameplayTag, float>& GetSpoilModifiers() const;
+	
 	FORCEINLINE bool IsUsable() const;
 	FORCEINLINE bool IsDroppable() const;
 	FORCEINLINE bool IsStackable() const;
 	FORCEINLINE bool IsSpoiling() const;
-	FORCEINLINE uint32 GetStackAmount() const;
-	FORCEINLINE const TMap<FGameplayTag, float>& GetSpoilModifiers() const;
-
+	
 #pragma endregion Static Data
 
 	FORCEINLINE AItemActor* GetBoundActor() const;

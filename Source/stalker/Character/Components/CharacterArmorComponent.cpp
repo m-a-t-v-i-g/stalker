@@ -53,7 +53,7 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 		return false;
 	}
 
-	if (ActiveItemEffects.Contains(ArmorObject))
+	if (GetActiveItemEffects().Contains(ArmorObject))
 	{
 		return false;
 	}
@@ -64,9 +64,9 @@ bool UCharacterArmorComponent::EquipArmor(UItemObject* ItemObject, FEquippedArmo
 		return false;
 	}
 
-	ApplyItemEffectSpec(ArmorObject);
+	ApplyItemGameplayEffects(ArmorObject);
 	ArmorObject->OnEnduranceChangeDelegate.AddUObject(this, &UCharacterArmorComponent::OnEquippedArmorEnduranceChanged,
-	                                                   ItemObject);
+	                                                  ItemObject);
 	ArmorData = FEquippedArmorPartData(ArmorObject, *ArmorBehConfig);
 	return true;
 }
@@ -84,7 +84,7 @@ void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedAr
 		return;
 	}
 
-	RemoveItemEffectSpec(ArmorObject);
+	RemoveItemGameplayEffects(ArmorObject);
 	ArmorObject->OnEnduranceChangeDelegate.RemoveAll(this);
 	ArmorData.Clear();
 }
@@ -92,7 +92,7 @@ void UCharacterArmorComponent::UnequipArmor(UItemObject* ItemObject, FEquippedAr
 void UCharacterArmorComponent::OnEquippedArmorEnduranceChanged(float ItemEndurance, UItemObject* ItemObject)
 {
 	CalculateTotalArmorEndurance();
-	ReapplyItemEffectSpec(ItemObject);
+	ReapplyItemGameplayEffects(ItemObject);
 }
 
 float UCharacterArmorComponent::CalculateTotalArmorEndurance()
@@ -207,58 +207,15 @@ void UCharacterArmorComponent::OnUnequipSlot(const FString& SlotName, UItemObjec
 	CalculateTotalArmorEndurance();
 }
 
-FActiveGameplayEffectHandle UCharacterArmorComponent::ApplyItemEffectSpec(UItemObject* ItemObject)
+void UCharacterArmorComponent::ModifyItemEffectSpec(FGameplayEffectSpec& Spec, UItemObject* ItemObject)
 {
 	if (UArmorObject* ArmorObject = Cast<UArmorObject>(ItemObject))
 	{
-		if (const UClass* ArmorEffectClass = ArmorObject->GetArmorEffect())
+		const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
+		for (const auto& Modifier : ArmorModifiers)
 		{
-			FGameplayEffectContextHandle Context = GetAbilityComponent()->MakeEffectContext();
-			if (Context.IsValid())
-			{
-				Context.AddSourceObject(ArmorObject);
-
-				auto ArmorEffect = ArmorEffectClass->GetDefaultObject<UGameplayEffect>();
-				auto ArmorSpec = FGameplayEffectSpec(ArmorEffect, Context, 1.0f);
-				const TMap<FGameplayTag, float>& ArmorModifiers = ArmorObject->GetProtectionModifiers();
-
-				for (const auto& Modifier : ArmorModifiers)
-				{
-					ArmorSpec.SetSetByCallerMagnitude(Modifier.Key, Modifier.Value);
-				}
-
-				FActiveGameplayEffectHandle NewEffectHandle = GetAbilityComponent()->ApplyGameplayEffectSpecToSelf(
-					ArmorSpec);
-				if (NewEffectHandle.IsValid())
-				{
-					ActiveItemEffects.Add(ArmorObject, NewEffectHandle);
-					return NewEffectHandle;
-				}
-			}
+			Spec.SetSetByCallerMagnitude(Modifier.Key, Modifier.Value);
 		}
-		
-	}
-	return FActiveGameplayEffectHandle();
-}
-
-bool UCharacterArmorComponent::RemoveItemEffectSpec(UItemObject* ItemObject)
-{
-	if (FActiveGameplayEffectHandle* EffectHandle = ActiveItemEffects.Find(ItemObject))
-	{
-		if (EffectHandle && EffectHandle->IsValid())
-		{
-			ActiveItemEffects.Remove(ItemObject);
-			return GetAbilityComponent()->RemoveActiveGameplayEffect(*EffectHandle);
-		}
-	}
-	return false;
-}
-
-void UCharacterArmorComponent::ReapplyItemEffectSpec(UItemObject* ItemObject)
-{
-	if (RemoveItemEffectSpec(ItemObject))
-	{
-		ApplyItemEffectSpec(ItemObject);
 	}
 }
 

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ActiveGameplayEffectHandle.h"
 #include "CharacterOutfitComponent.h"
 #include "Data/ItemBehaviorSet.h"
 #include "CharacterArmorComponent.generated.h"
@@ -51,7 +50,7 @@ struct FTotalArmorData
 	float TotalArmorEndurance = 0.0f;
 };
 
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class STALKER_API UCharacterArmorComponent : public UCharacterOutfitComponent
 {
 	GENERATED_BODY()
@@ -82,9 +81,7 @@ protected:
 	virtual void OnEquipSlot(const FString& SlotName, UItemObject* IncomingItem) override;
 	virtual void OnUnequipSlot(const FString& SlotName, UItemObject* OutgoingItem) override;
 
-	FActiveGameplayEffectHandle ApplyItemEffectSpec(UItemObject* ItemObject);
-	bool RemoveItemEffectSpec(UItemObject* ItemObject);
-	void ReapplyItemEffectSpec(UItemObject* ItemObject);
+	virtual void ModifyItemEffectSpec(FGameplayEffectSpec& Spec, UItemObject* ItemObject) override;
 	
 	USkeletalMeshComponent* GetCharacterMesh() const;
 
@@ -103,7 +100,4 @@ private:
 	
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = "OnRep_TotalArmorData", Category = "Armor")
 	FTotalArmorData TotalArmorData;
-	
-	UPROPERTY(EditInstanceOnly, Category = "Armor")
-	TMap<UItemObject*, FActiveGameplayEffectHandle> ActiveItemEffects;
 };

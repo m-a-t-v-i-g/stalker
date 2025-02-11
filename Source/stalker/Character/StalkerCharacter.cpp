@@ -65,34 +65,11 @@ AStalkerCharacter::AStalkerCharacter(const FObjectInitializer& ObjectInitializer
 	}
 
 	WeaponComponent = CreateDefaultSubobject<UCharacterWeaponComponent>(WeaponComponentName);
-	if (WeaponComponent)
-	{
-		FOutfitSlot KnifeSlot;
-		KnifeSlot.SlotName = "Knife";
-		WeaponComponent->AddOutfitSlot(KnifeSlot);
-
-		FOutfitSlot SecondarySlot;
-		SecondarySlot.SlotName = "Secondary";
-		WeaponComponent->AddOutfitSlot(SecondarySlot);
-
-		FOutfitSlot PrimarySlot;
-		PrimarySlot.SlotName = "Primary";
-		WeaponComponent->AddOutfitSlot(PrimarySlot);
-	}
 
 	ArmorComponent = CreateDefaultSubobject<UCharacterArmorComponent>(ArmorComponentName);
-	if (ArmorComponent)
-	{
-		FOutfitSlot HelmetSlot;
-		HelmetSlot.SlotName = "Helmet";
-		ArmorComponent->AddOutfitSlot(HelmetSlot);
-	
-		FOutfitSlot BodySlot;
-		BodySlot.SlotName = "Body";
-		ArmorComponent->AddOutfitSlot(BodySlot);
-	}
 
 	StateComponent = CreateDefaultSubobject<UCharacterStateComponent>(StateComponentName);
+	
 	InteractionComponent = CreateDefaultSubobject<UPawnInteractionComponent>(InteractionComponentName);
 
 	if (GetHitScanComponent())
